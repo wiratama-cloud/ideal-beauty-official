@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ideal Beauty Official — E-Commerce Storefront
+
+A luxury, high-fashion single-tenant e-commerce platform built for **Ideal Beauty Official** ([idealbeautyofficial.com](https://idealbeautyofficial.com)), inspired by premier fashion platforms like LAAM.com.
+
+The platform manages haute couture sales, bridal & eveningwear rentals, flexible down payments, dynamic Indonesian QRIS and Virtual Account payment processing, guest cart merging, atomic inventory control, customer order tracking, and financial accounting ledgers.
+
+---
+
+## Key Features
+
+- **LAAM-Inspired High-Fashion UX**: Clean, minimalist design system with top announcement ticker, sticky navigation header, multi-image hover previews, quick view modals, and a slide-over cart drawer.
+- **Product Catalog & URL-Driven Filtering**: Server-side product listing page (PLP) with instant filtering by category, search query, price range, and availability using Next.js Server Components and URL search parameters.
+- **Bespoke Sales & Rentals**: Support for `SALE` (`priceSale`) and `RENTAL` (`priceRent`) item types, including rental start/end date pickers on the Product Detail Page (PDP).
+- **Guest Cart & Account Session Sync**: Cookie-backed `sessionId` persistence for guest carts that auto-merges into the user account upon login/registration.
+- **Indonesian QRIS & Payment Gateway**:
+  - Dynamic QRIS QR code display for instant scanning via GoPay, OVO, ShopeePay, BCA Mobile, etc.
+  - Bank Virtual Account details (BCA, Mandiri, BNI, BRI).
+  - Abstracted payment gateway service (Midtrans/Xendit compatible) with callback webhook verification (`/api/webhooks/payment`).
+- **Down Payment Checkout Workflow**: Flexible checkout options (`DOWN_PAYMENT` updates order status to `PARTIALLY_PAID`, `FINAL_BALANCE` updates status to `PAID`).
+- **Atomic Inventory Control**: Concurrency-safe stock deduction (`stockAvailable`) using conditional Prisma transactions (`where: { id: variantId, stockAvailable: { gte: quantity } }`) to prevent overselling.
+- **Customer Account Portal**:
+  - Order history and status tracking (`/account/orders`).
+  - Courier tracking codes, rental return timelines, and "Pay Final Balance" trigger (`/account/orders/[id]`).
+  - Wishlist management (`/account/wishlist`).
+- **Financial Accounting Ledger**:
+  - Double-entry ledger tracking `INCOME` (`SALES_REVENUE`, `RENTAL_REVENUE`) and `EXPENSE` (`DESIGN_RND`, `MANUFACTURING_COGS`, `OPERATIONAL`).
+  - Admin financial dashboard (`/admin/dashboard`) with revenue vs expense analytics.
+  - Rental & order status management (`/admin/orders`).
+  - One-click CSV audit log export for accounting reports (`/admin/ledger`).
+
+---
+
+## Tech Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/) (Strict Mode)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) & [Lucide Icons](https://lucide.dev/)
+- **Database & ORM**: PostgreSQL 16 & [Prisma ORM 7](https://www.prisma.io/)
+- **State Management**: React Context (`CartContext`) & URL Search Parameters
+- **Testing**: [Vitest](https://vitest.dev/) & Custom Integration Test Runner
+- **Containerization**: [Docker Compose](https://www.docker.com/) for local PostgreSQL setup
+
+---
+
+## Project Structure
+
+```
+idealbeautyofficial/
+├── docker-compose.yml       # Docker Compose setup for local PostgreSQL 16
+├── .env.example             # Template for environment variables
+├── app/                     # Next.js App Router
+│   ├── (storefront)/        # Storefront pages (Home, Products, PDP, Checkout, Account, Wishlist)
+│   ├── admin/               # Admin Portal (Dashboard, Orders, Ledger Audit)
+│   ├── api/webhooks/payment # Payment Gateway Webhook handler
+│   └── actions/             # Next.js Server Actions (Cart, Wishlist, Checkout, Auth, Admin)
+├── src/
+│   ├── components/          # Reusable UI components (Layout, Product, Cart, Checkout, Account)
+│   └── lib/
+│       ├── prisma.ts        # Prisma Client singleton initialization
+│       ├── session.ts       # Session cookie utility
+│       └── services/        # Domain Services (Product, Cart, Order, Payment, Gateway, Ledger)
+├── prisma/
+│   ├── schema.prisma        # 11 Data Models & 5 Enums with composite performance indexes
+│   └── seed.ts              # Sample luxury fashion catalog seed script
+└── tests/
+    └── run-tests.ts         # E2E integration test suite covering checkout, QRIS, and stock guards
+```
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- **Node.js**: v20.0.0 or higher
+- **npm**: v10.0.0 or higher
+- **Docker & Docker Compose** (for running local PostgreSQL)
+
+### Step 1: Clone & Install Dependencies
+
+```bash
+git clone https://github.com/your-org/idealbeautyofficial.git
+cd idealbeautyofficial
+npm install
+```
+
+### Step 2: Environment Setup
+
+Copy `.env.example` to create your local `.env` configuration file:
+
+```bash
+cp .env.example .env
+```
+
+Ensure the database connection URL in `.env` matches your setup:
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/idealbeauty?schema=public"
+NEXT_PUBLIC_BASE_URL="http://localhost:3000"
+MIDTRANS_SERVER_KEY="SB-Mid-server-sample-key"
+MIDTRANS_CLIENT_KEY="SB-Mid-client-sample-key"
+```
+
+### Step 3: Start Local Database
+
+Spin up the containerized PostgreSQL database using Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+### Step 4: Run Migrations & Seed Database
+
+Push the Prisma schema to PostgreSQL and populate initial sample catalog data:
+
+```bash
+npx prisma db push
+npx prisma db seed
+```
+
+### Step 5: Start Development Server
+
+Run the Next.js development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser to explore the storefront.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Testing
 
-## Learn More
+Run the automated integration test suite to verify database transactions, atomic stock deduction under high concurrency, guest cart auto-merging, QRIS webhook handling, and ledger calculations:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm test
+# or
+npx tsx tests/run-tests.ts
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Key Endpoints
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Storefront Home**: `/`
+- **Product Catalog (PLP)**: `/products`
+- **Product Detail (PDP)**: `/products/[slug]`
+- **Checkout**: `/checkout`
+- **Customer Order History**: `/account/orders`
+- **Order Tracking & Balance Payment**: `/account/orders/[id]`
+- **Customer Wishlist**: `/account/wishlist`
+- **Admin Dashboard**: `/admin/dashboard`
+- **Admin Order & Rental Management**: `/admin/orders`
+- **Admin Financial Ledger & CSV Export**: `/admin/ledger`

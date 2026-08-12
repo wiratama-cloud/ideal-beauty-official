@@ -44,3 +44,8 @@ next-env.d.ts
 /.agents/
 /.claude/
 /.windsurf/
+/.junie/
+/.pg_data/
+*.log
+capture.js
+screenshot_home.png

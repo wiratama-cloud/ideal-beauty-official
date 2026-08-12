@@ -1,13 +1,243 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum ItemType {
+  SALE
+  RENTAL
+}
+
+enum OrderStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum RentalStatus {
+  NOT_APPLICABLE
+  OUT_WITH_CUSTOMER
+  RETURNED
+  LATE
+  DAMAGED
+}
+
+enum PaymentType {
+  DOWN_PAYMENT
+  FINAL_BALANCE
+  FULL_PAYMENT
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum EntryType {
+  INCOME
+  EXPENSE
+}
+
+enum ExpenseCategory {
+  DESIGN_RND
+  MANUFACTURING_COGS
+  OPERATIONAL
+  MARKETING
+}
+
+enum IncomeCategory {
+  SALES_REVENUE
+  RENTAL_REVENUE
+  LATE_FEES
+  OTHER
+}
+
+model User {
+  id        String         @id @default(uuid())
+  email     String         @unique
+  name      String?
+  phone     String?
+  addresses Address[]
+  orders    Order[]
+  cart      Cart?
+  wishlist  WishlistItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model Address {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label         String?
+  recipientName String
+  phone         String
+  addressLine1  String
+  city          String
+  province      String
+  postalCode    String
+  isDefault     Boolean  @default(false)
+  orders        Order[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Product {
+  id            String           @id @default(uuid())
+  name          String
+  slug          String           @unique
+  description   String?
+  category      String?          @default("Ready To Wear")
+  images        String[]         @default([])
+  isActive      Boolean          @default(true)
+  variants      ProductVariant[]
+  ledgerEntries LedgerEntry[]
+  wishlistedBy  WishlistItem[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([isActive, slug])
+}
+
+model ProductVariant {
+  id             String          @id @default(uuid())
+  productId      String
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku            String          @unique
+  attributes     Json
+  priceSale      Decimal?        @db.Decimal(10, 2)
+  priceRent      Decimal?        @db.Decimal(10, 2)
+  costPrice      Decimal?        @db.Decimal(10, 2)
+  stockTotal     Int             @default(0)
+  stockAvailable Int             @default(0)
+  orderItems     OrderItem[]
+  cartItems      CartItem[]
+  wishlistedBy   WishlistItem[]
+  ledgerEntries  LedgerEntry[]
+
+  @@index([productId, sku])
+  @@index([productId, stockAvailable])
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String?    @unique
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId String?    @unique
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([sessionId])
+  @@index([userId])
+}
+
+model CartItem {
+  id            String         @id @default(uuid())
+  cartId        String
+  cart          Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId     String
+  variant       ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  type          ItemType
+  quantity      Int            @default(1)
+  rentStartDate DateTime?
+  rentEndDate   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([cartId, variantId, type])
+  @@index([cartId, variantId])
+}
+
+model WishlistItem {
+  id        String          @id @default(uuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  createdAt DateTime        @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Order {
+  id                String        @id @default(uuid())
+  userId            String?
+  user              User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  totalAmount       Decimal       @db.Decimal(10, 2)
+  status            OrderStatus   @default(PENDING)
+  shippingAddressId String?
+  shippingAddress   Address?      @relation(fields: [shippingAddressId], references: [id], onDelete: SetNull)
+  shippingCost      Decimal?      @db.Decimal(10, 2)
+  courierName       String?
+  trackingNumber    String?
+  items             OrderItem[]
+  payments          Payment[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([userId, status])
+}
+
+model OrderItem {
+  id            String         @id @default(uuid())
+  orderId       String
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId     String
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  type          ItemType
+  quantity      Int            @default(1)
+  priceAtTime   Decimal        @db.Decimal(10, 2)
+  rentStartDate DateTime?
+  rentEndDate   DateTime?
+  rentalStatus  RentalStatus   @default(NOT_APPLICABLE)
+}
+
+model Payment {
+  id            String          @id @default(uuid())
+  orderId       String
+  order         Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amount        Decimal         @db.Decimal(10, 2)
+  type          PaymentType
+  status        PaymentStatus   @default(PENDING)
+  paymentMethod String?         @default("QRIS")
+  providerTxId  String?
+  qrisUrl       String?
+  vaNumber      String?
+  bankName      String?
+  ledgerEntries LedgerEntry[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([orderId, status])
+}
+
+model LedgerEntry {
+  id              String           @id @default(uuid())
+  type            EntryType
+  amount          Decimal          @db.Decimal(10, 2)
+  description     String
+  incomeCategory  IncomeCategory?
+  expenseCategory ExpenseCategory?
+  paymentId       String?
+  payment         Payment?         @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  productId       String?
+  product         Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId       String?
+  variant         ProductVariant?  @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([createdAt, type])
 }
