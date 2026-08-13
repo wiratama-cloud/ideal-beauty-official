@@ -19,6 +19,14 @@ import {
   deleteLandingSectionItem,
 } from '../src/lib/services/section';
 import {
+  getNavCategories,
+  createNavCategory,
+  updateNavCategory,
+  deleteNavCategory,
+  reorderNavCategories,
+  resetDefaultNavCategories,
+} from '../src/lib/services/nav-category';
+import {
   createRentalBlockAction,
   deleteRentalBlockAction,
   getVariantRentalAvailabilityAction,
@@ -32,6 +40,7 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
 
   beforeAll(async () => {
     // Seed test data
+    await prisma.navCategory.deleteMany();
     await prisma.voucherUsage.deleteMany();
     await prisma.voucher.deleteMany();
     await prisma.ledgerEntry.deleteMany();
@@ -584,6 +593,53 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
     );
     expect(updatedShippingOrder?.courierName).toBe('JNE Express Atelier');
     expect(updatedShippingOrder?.trackingNumber).toBe('JNE9988776655');
+  });
+
+  test('16. Customizable Header & Search Sidebar Navigation Collections', async () => {
+    // 1. Fetch navigation categories (should auto-seed default 6 collections if empty)
+    const initialNavs = await getNavCategories(false);
+    expect(initialNavs.length).toBe(6);
+    expect(initialNavs.map((n) => n.name)).toEqual([
+      'All Collections',
+      'Haute Couture',
+      'Bridal Wear',
+      'Ready To Wear',
+      'Menswear',
+      'Rentals',
+    ]);
+
+    // 2. Create custom navigation item
+    const customNav = await createNavCategory({
+      name: 'Bespoke Kaftans',
+      href: '/products?category=Kaftans',
+      isActive: true,
+    });
+    expect(customNav.name).toBe('Bespoke Kaftans');
+
+    const updatedNavs = await getNavCategories(true);
+    expect(updatedNavs.length).toBe(7);
+
+    // 3. Update navigation item
+    const editedNav = await updateNavCategory(customNav.id, {
+      name: 'Imperial Kaftans',
+    });
+    expect(editedNav.name).toBe('Imperial Kaftans');
+
+    // 4. Reorder navigation items
+    const navIds = updatedNavs.map((n) => n.id);
+    const reorderedIds = [navIds[1], navIds[0], ...navIds.slice(2)];
+    await reorderNavCategories(reorderedIds);
+
+    const reorderedNavs = await getNavCategories(true);
+    expect(reorderedNavs[0].id).toBe(navIds[1]);
+
+    // 5. Delete custom navigation item
+    await deleteNavCategory(customNav.id);
+
+    // 6. Reset defaults
+    const resetList = await resetDefaultNavCategories();
+    expect(resetList.length).toBe(6);
+    expect(resetList[0].name).toBe('All Collections');
   });
 
   afterAll(async () => {

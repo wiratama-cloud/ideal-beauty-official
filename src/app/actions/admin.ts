@@ -17,6 +17,14 @@ import {
   CreateSectionInput,
   CreateSectionItemInput,
 } from '@/lib/services/section';
+import {
+  getNavCategories,
+  createNavCategory,
+  updateNavCategory,
+  deleteNavCategory,
+  reorderNavCategories,
+  resetDefaultNavCategories,
+} from '@/lib/services/nav-category';
 import { RentalStatus } from '@prisma/client';
 
 export async function logExpenseAction(data: CreateExpenseInput) {
@@ -533,4 +541,62 @@ export async function getCustomersAction() {
       name: 'asc',
     },
   });
+}
+
+// Navigation Category Actions
+export async function getAdminNavCategoriesAction(activeOnly = false) {
+  return getNavCategories(activeOnly);
+}
+
+export async function createNavCategoryAction(data: {
+  name: string;
+  href: string;
+  displayOrder?: number;
+  isActive?: boolean;
+}) {
+  const result = await createNavCategory(data);
+  revalidatePath('/', 'layout');
+  revalidatePath('/products');
+  revalidatePath('/admin/navigation');
+  return result;
+}
+
+export async function updateNavCategoryAction(
+  id: string,
+  data: Partial<{
+    name: string;
+    href: string;
+    displayOrder: number;
+    isActive: boolean;
+  }>
+) {
+  const result = await updateNavCategory(id, data);
+  revalidatePath('/', 'layout');
+  revalidatePath('/products');
+  revalidatePath('/admin/navigation');
+  return result;
+}
+
+export async function deleteNavCategoryAction(id: string) {
+  const result = await deleteNavCategory(id);
+  revalidatePath('/', 'layout');
+  revalidatePath('/products');
+  revalidatePath('/admin/navigation');
+  return result;
+}
+
+export async function reorderNavCategoriesAction(orderedIds: string[]) {
+  await reorderNavCategories(orderedIds);
+  revalidatePath('/', 'layout');
+  revalidatePath('/products');
+  revalidatePath('/admin/navigation');
+  return { success: true };
+}
+
+export async function resetDefaultNavCategoriesAction() {
+  const result = await resetDefaultNavCategories();
+  revalidatePath('/', 'layout');
+  revalidatePath('/products');
+  revalidatePath('/admin/navigation');
+  return result;
 }

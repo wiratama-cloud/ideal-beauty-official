@@ -4,11 +4,18 @@ import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SlidersHorizontal, RotateCcw, ChevronDown, ChevronUp, X } from 'lucide-react';
 
-interface FilterSidebarProps {
-  categories: string[];
+interface NavCategoryItem {
+  id?: string;
+  name: string;
+  href: string;
 }
 
-export default function FilterSidebar({ categories }: FilterSidebarProps) {
+interface FilterSidebarProps {
+  categories?: (string | NavCategoryItem)[];
+  navCategories?: NavCategoryItem[];
+}
+
+export default function FilterSidebar({ categories, navCategories }: FilterSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -18,6 +25,71 @@ export default function FilterSidebar({ categories }: FilterSidebarProps) {
   const currentMinPrice = searchParams.get('minPrice') || '';
   const currentMaxPrice = searchParams.get('maxPrice') || '';
   const currentQuery = searchParams.get('query') || '';
+
+  let collectionList: NavCategoryItem[] = [];
+  if (navCategories && navCategories.length > 0) {
+    collectionList = navCategories;
+  } else if (categories && categories.length > 0) {
+    collectionList = categories.map((cat) => {
+      if (typeof cat === 'string') {
+        if (cat === 'All') return { name: 'All Collections', href: '/products' };
+        return { name: cat, href: `/products?category=${encodeURIComponent(cat)}` };
+      }
+      return cat;
+    });
+  } else {
+    collectionList = [
+      { name: 'All Collections', href: '/products' },
+      { name: 'Haute Couture', href: '/products?category=Haute+Couture' },
+      { name: 'Bridal Wear', href: '/products?category=Bridal+Wear' },
+      { name: 'Ready To Wear', href: '/products?category=Ready+To+Wear' },
+      { name: 'Menswear', href: '/products?category=Menswear' },
+      { name: 'Rentals', href: '/products?type=RENTAL' },
+    ];
+  }
+
+  const isNavCategoryActive = (href: string) => {
+    try {
+      const urlObj = new URL(href, 'http://localhost');
+      const targetCategory = urlObj.searchParams.get('category');
+      const targetType = urlObj.searchParams.get('type');
+
+      if (targetCategory) {
+        return currentCategory.toLowerCase() === targetCategory.toLowerCase();
+      }
+      if (targetType) {
+        return currentType.toLowerCase() === targetType.toLowerCase();
+      }
+      return (currentCategory === 'All' || !currentCategory) && !currentType;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleNavCategoryClick = (href: string) => {
+    try {
+      const urlObj = new URL(href, 'http://localhost');
+      const targetCategory = urlObj.searchParams.get('category');
+      const targetType = urlObj.searchParams.get('type');
+
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (targetCategory) {
+        params.set('category', targetCategory);
+        params.delete('type');
+      } else if (targetType) {
+        params.set('type', targetType);
+        params.delete('category');
+      } else {
+        params.delete('category');
+        params.delete('type');
+      }
+
+      router.push(`/products?${params.toString()}`);
+    } catch {
+      router.push(href);
+    }
+  };
 
   const updateFilter = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -128,23 +200,26 @@ export default function FilterSidebar({ categories }: FilterSidebarProps) {
         </div>
       </div>
 
-      {/* Categories */}
+      {/* Dynamic Collections */}
       <div className="space-y-3">
         <h4 className="uppercase tracking-widest font-medium text-neutral-900 border-b border-neutral-50 pb-2">
           Collection
         </h4>
         <div className="space-y-2">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => updateFilter('category', cat)}
-              className={`block w-full text-left py-1 transition-colors ${
-                currentCategory === cat ? 'text-black font-medium border-l-2 border-black pl-2' : 'text-neutral-600 hover:text-black'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+          {collectionList.map((item) => {
+            const active = isNavCategoryActive(item.href);
+            return (
+              <button
+                key={item.id || item.name}
+                onClick={() => handleNavCategoryClick(item.href)}
+                className={`block w-full text-left py-1 transition-colors ${
+                  active ? 'text-black font-medium border-l-2 border-black pl-2' : 'text-neutral-600 hover:text-black'
+                }`}
+              >
+                {item.name}
+              </button>
+            );
+          })}
         </div>
       </div>
 

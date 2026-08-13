@@ -6,7 +6,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, Heart, ShoppingBag, User, Menu, X } from 'lucide-react';
 import { useCart } from '../cart/CartContext';
 
-export default function Header() {
+interface HeaderProps {
+  initialNavCategories?: { name: string; href: string }[];
+}
+
+export default function Header({ initialNavCategories = [] }: HeaderProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { totalItems, toggleCartDrawer } = useCart();
@@ -23,7 +27,7 @@ export default function Header() {
     }
   };
 
-  const navCategories = [
+  const DEFAULT_NAV_CATEGORIES = [
     { name: 'All Collections', href: '/products' },
     { name: 'Haute Couture', href: '/products?category=Haute+Couture' },
     { name: 'Bridal Wear', href: '/products?category=Bridal+Wear' },
@@ -31,6 +35,8 @@ export default function Header() {
     { name: 'Menswear', href: '/products?category=Menswear' },
     { name: 'Rentals', href: '/products?type=RENTAL' },
   ];
+
+  const navCategories = initialNavCategories.length > 0 ? initialNavCategories : DEFAULT_NAV_CATEGORIES;
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-neutral-100 backdrop-blur-md bg-white/95" suppressHydrationWarning>
@@ -88,9 +94,9 @@ export default function Header() {
             </Link>
 
             <Link
-              href="/account/orders"
+              href="/account"
               className="text-neutral-700 hover:text-black transition-colors p-1"
-              title="Account & Orders"
+              title="Account Portal"
             >
               <User className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5]" />
             </Link>

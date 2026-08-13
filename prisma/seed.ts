@@ -4,6 +4,7 @@ export async function main() {
   console.log('Seeding Ideal Beauty Official database with dummy data...');
 
   // Clean existing data
+  await prisma.navCategory.deleteMany();
   await prisma.landingSectionItem.deleteMany();
   await prisma.landingSection.deleteMany();
   await prisma.ledgerEntry.deleteMany();
@@ -778,6 +779,20 @@ export async function main() {
   });
 
   console.log('Created landing page configurable sections');
+
+  // Seed default navigation categories
+  await prisma.navCategory.createMany({
+    data: [
+      { name: 'All Collections', href: '/products', displayOrder: 0, isActive: true },
+      { name: 'Haute Couture', href: '/products?category=Haute+Couture', displayOrder: 1, isActive: true },
+      { name: 'Bridal Wear', href: '/products?category=Bridal+Wear', displayOrder: 2, isActive: true },
+      { name: 'Ready To Wear', href: '/products?category=Ready+To+Wear', displayOrder: 3, isActive: true },
+      { name: 'Menswear', href: '/products?category=Menswear', displayOrder: 4, isActive: true },
+      { name: 'Rentals', href: '/products?type=RENTAL', displayOrder: 5, isActive: true },
+    ],
+  });
+  console.log('Created default navigation categories');
+
   console.log('Seeding completed successfully!');
 }
 

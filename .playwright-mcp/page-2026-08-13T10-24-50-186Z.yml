@@ -1,0 +1,170 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]: IDEAL BEAUTY OFFICIAL • LUXURY COUTURE
+    - generic [ref=e5]: COMPLIMENTARY EXPRESS SHIPPING ACROSS INDONESIA • RENTAL & BESPOKE TAILORING AVAILABLE
+    - generic [ref=e6]: IDR (Rp)
+  - banner [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e11]:
+          - textbox "Search products..." [ref=e12]
+          - button "Search" [ref=e13]
+        - link "IDEAL BEAUTY OFFICIAL LUXURY" [ref=e18] [cursor=pointer]:
+          - /url: /
+          - text: IDEAL BEAUTY
+          - generic [ref=e19]: OFFICIAL LUXURY
+        - generic [ref=e20]:
+          - link "Wishlist" [ref=e21] [cursor=pointer]:
+            - /url: /account/wishlist
+          - link "Account & Orders" [ref=e24] [cursor=pointer]:
+            - /url: /account/orders
+          - button "Shopping Cart" [ref=e28]
+      - navigation [ref=e32]:
+        - link "All Collections" [ref=e33] [cursor=pointer]:
+          - /url: /products
+        - link "Haute Couture" [ref=e34] [cursor=pointer]:
+          - /url: /products?category=Haute+Couture
+        - link "Bridal Wear" [ref=e35] [cursor=pointer]:
+          - /url: /products?category=Bridal+Wear
+        - link "Ready To Wear" [ref=e36] [cursor=pointer]:
+          - /url: /products?category=Ready+To+Wear
+        - link "Menswear" [ref=e37] [cursor=pointer]:
+          - /url: /products?category=Menswear
+        - link "Rentals" [ref=e38] [cursor=pointer]:
+          - /url: /products?type=RENTAL
+  - main [ref=e39]:
+    - generic [ref=e41]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: Atelier Executive Console
+          - link "View Live Storefront" [ref=e50] [cursor=pointer]:
+            - /url: /
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - generic [ref=e58]: EXECUTIVE FINANCIAL ANALYTICS
+            - heading "Atelier Executive Dashboard" [level=1] [ref=e59]
+          - button "Export Ledger CSV" [ref=e61]
+        - generic [ref=e66]:
+          - link "Executive Dashboard" [ref=e67] [cursor=pointer]:
+            - /url: /admin/dashboard
+          - link "Products & Inventory" [ref=e74] [cursor=pointer]:
+            - /url: /admin/products
+          - link "Landing Sections" [ref=e80] [cursor=pointer]:
+            - /url: /admin/sections
+          - link "Nav & Collections" [ref=e86] [cursor=pointer]:
+            - /url: /admin/navigation
+          - link "Orders & Rentals" [ref=e91] [cursor=pointer]:
+            - /url: /admin/orders
+          - link "Rental Calendar" [ref=e96] [cursor=pointer]:
+            - /url: /admin/calendar
+          - link "Vouchers & Promos" [ref=e100] [cursor=pointer]:
+            - /url: /admin/vouchers
+          - link "Financial Ledger" [ref=e104] [cursor=pointer]:
+            - /url: /admin/ledger
+      - generic [ref=e109]:
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - generic [ref=e112]: Total Income (Gross)
+            - paragraph [ref=e117]: Rp 6.075.000
+            - paragraph [ref=e118]: Sales & rental receipts
+          - generic [ref=e119]:
+            - generic [ref=e120]: Total Expenses
+            - paragraph [ref=e125]: Rp 65.000.000
+            - paragraph [ref=e126]: Couture COGS, R&D & Operations
+          - generic [ref=e127]:
+            - generic [ref=e128]: Net Profit
+            - paragraph [ref=e132]: "-Rp 58.925.000"
+            - paragraph [ref=e133]: Net operating balance
+          - generic [ref=e134]:
+            - generic [ref=e135]:
+              - generic [ref=e136]: Profit Margin
+              - generic [ref=e137]: "%"
+            - paragraph [ref=e138]: "-970.0%"
+            - paragraph [ref=e139]: Efficiency margin
+        - generic [ref=e140]:
+          - generic [ref=e141]:
+            - heading "Income Stream Breakdown Rp 6.075.000" [level=2] [ref=e142]:
+              - generic [ref=e143]: Income Stream Breakdown
+              - generic [ref=e144]: Rp 6.075.000
+            - generic [ref=e145]:
+              - generic [ref=e146]:
+                - generic [ref=e147]: SALES_REVENUE
+                - generic [ref=e148]: Rp 4.550.000
+              - generic [ref=e149]:
+                - generic [ref=e150]: RENTAL_REVENUE
+                - generic [ref=e151]: Rp 1.525.000
+          - generic [ref=e152]:
+            - heading "Expense Category Breakdown Rp 65.000.000" [level=2] [ref=e153]:
+              - generic [ref=e154]: Expense Category Breakdown
+              - generic [ref=e155]: Rp 65.000.000
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - generic [ref=e158]: DESIGN_RND
+                - generic [ref=e159]: Rp 40.000.000
+              - generic [ref=e160]:
+                - generic [ref=e161]: MANUFACTURING_COGS
+                - generic [ref=e162]: Rp 8.500.000
+              - generic [ref=e163]:
+                - generic [ref=e164]: MARKETING
+                - generic [ref=e165]: Rp 12.000.000
+              - generic [ref=e166]:
+                - generic [ref=e167]: OPERATIONAL
+                - generic [ref=e168]: Rp 4.500.000
+        - generic [ref=e169]:
+          - generic [ref=e170]:
+            - heading "Audit Ledger & Log Custom Expenses" [level=3] [ref=e171]
+            - paragraph [ref=e172]: Log raw manufacturing COGS, designer R&D fees, or marketing expenses into the accounting ledger.
+          - link "Open Ledger Form" [ref=e173] [cursor=pointer]:
+            - /url: /admin/ledger
+  - contentinfo [ref=e177]:
+    - generic [ref=e178]:
+      - generic [ref=e179]:
+        - generic [ref=e180]:
+          - heading "IDEAL BEAUTY" [level=3] [ref=e181]
+          - paragraph [ref=e182]: Crafting bespoke luxury fashion, bridal lehengas, haute couture kaftans, and evening gowns inspired by South Asian craftsmanship and modern elegance.
+          - paragraph [ref=e183]: Jakarta • Bali • Worldwide Delivery
+        - generic [ref=e184]:
+          - heading "Collections" [level=4] [ref=e185]
+          - list [ref=e186]:
+            - listitem [ref=e187]:
+              - link "Haute Couture" [ref=e188] [cursor=pointer]:
+                - /url: /products?category=Haute+Couture
+            - listitem [ref=e189]:
+              - link "Bridal Collection" [ref=e190] [cursor=pointer]:
+                - /url: /products?category=Bridal+Wear
+            - listitem [ref=e191]:
+              - link "Ready To Wear" [ref=e192] [cursor=pointer]:
+                - /url: /products?category=Ready+To+Wear
+            - listitem [ref=e193]:
+              - link "Menswear Sherwanis" [ref=e194] [cursor=pointer]:
+                - /url: /products?category=Menswear
+            - listitem [ref=e195]:
+              - link "Luxury Rental Boutique" [ref=e196] [cursor=pointer]:
+                - /url: /products?type=RENTAL
+        - generic [ref=e197]:
+          - heading "Customer Care" [level=4] [ref=e198]
+          - list [ref=e199]:
+            - listitem [ref=e200]:
+              - link "Order Tracking" [ref=e201] [cursor=pointer]:
+                - /url: /account/orders
+            - listitem [ref=e202]:
+              - link "Saved Wishlist" [ref=e203] [cursor=pointer]:
+                - /url: /account/wishlist
+            - listitem [ref=e204]: QRIS & Virtual Account Payment
+            - listitem [ref=e205]: Bespoke Fitting Appointment
+            - listitem [ref=e206]:
+              - link "Admin Portal" [ref=e207] [cursor=pointer]:
+                - /url: /admin/dashboard
+        - generic [ref=e208]:
+          - heading "Privé Club" [level=4] [ref=e209]
+          - paragraph [ref=e210]: Subscribe to receive private invitations to runway releases and bespoke trunk shows.
+          - generic [ref=e211]:
+            - textbox "Enter email address" [ref=e212]
+            - button "Join" [ref=e213]
+      - generic [ref=e214]:
+        - paragraph [ref=e215]: © 2026 Ideal Beauty Official. All Rights Reserved.
+        - generic [ref=e216]:
+          - generic [ref=e217]: QRIS Integrated
+          - generic [ref=e218]: Bank Virtual Account
+          - generic [ref=e219]: Midtrans Secured
+  - button "Open Next.js Dev Tools" [ref=e225] [cursor=pointer]

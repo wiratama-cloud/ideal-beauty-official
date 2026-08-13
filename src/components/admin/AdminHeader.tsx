@@ -12,12 +12,13 @@ import {
   Sparkles,
   Calendar,
   Ticket,
+  Compass,
 } from 'lucide-react';
 
 interface AdminHeaderProps {
   title: string;
   subtitle?: string;
-  activeTab: 'dashboard' | 'products' | 'sections' | 'orders' | 'calendar' | 'vouchers' | 'ledger';
+  activeTab: 'dashboard' | 'products' | 'sections' | 'navigation' | 'orders' | 'calendar' | 'vouchers' | 'ledger';
   action?: React.ReactNode;
 }
 
@@ -40,6 +41,12 @@ export default function AdminHeader({ title, subtitle, activeTab, action }: Admi
       label: 'Landing Sections',
       href: '/admin/sections',
       icon: Layers,
+    },
+    {
+      id: 'navigation',
+      label: 'Nav & Collections',
+      href: '/admin/navigation',
+      icon: Compass,
     },
     {
       id: 'orders',

@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
 import { getProducts, getCategories } from '@/lib/services/product';
+import { getNavCategories } from '@/lib/services/nav-category';
 import { getWishlistedProductIds } from '@/lib/services/wishlist';
 import { getSessionUserId } from '@/lib/session';
 import FilterSidebar from '@/components/product/FilterSidebar';
@@ -21,7 +22,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const minPrice = resolvedParams.minPrice ? parseFloat(resolvedParams.minPrice) : undefined;
   const maxPrice = resolvedParams.maxPrice ? parseFloat(resolvedParams.maxPrice) : undefined;
 
-  const [products, categories, userId] = await Promise.all([
+  const [products, categories, navCategories, userId] = await Promise.all([
     getProducts({
       category: resolvedParams.category,
       minPrice,
@@ -30,6 +31,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       query: resolvedParams.query,
     }),
     getCategories(),
+    getNavCategories(),
     getSessionUserId(),
   ]);
 
@@ -53,7 +55,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         <div className="flex flex-col lg:flex-row gap-10">
           <Suspense fallback={<div className="w-64 bg-white p-6 h-64 animate-pulse" />}>
-            <FilterSidebar categories={categories} />
+            <FilterSidebar categories={categories} navCategories={navCategories} />
           </Suspense>
           <main className="flex-1">
             <ProductGrid products={products} wishlistedIds={wishlistedIds} />

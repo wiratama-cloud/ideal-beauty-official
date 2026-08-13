@@ -1,0 +1,359 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e3]:
+    - generic [ref=f2e4]: IDEAL BEAUTY OFFICIAL • LUXURY COUTURE
+    - generic [ref=f2e5]: COMPLIMENTARY EXPRESS SHIPPING ACROSS INDONESIA • RENTAL & BESPOKE TAILORING AVAILABLE
+    - generic [ref=f2e6]: IDR (Rp)
+  - banner [ref=f2e7]:
+    - generic [ref=f2e8]:
+      - generic [ref=f2e9]:
+        - generic [ref=f2e11]:
+          - textbox "Search products..." [ref=f2e12]
+          - button "Search" [ref=f2e13]
+        - link "IDEAL BEAUTY OFFICIAL LUXURY" [ref=f2e18] [cursor=pointer]:
+          - /url: /
+          - text: IDEAL BEAUTY
+          - generic [ref=f2e19]: OFFICIAL LUXURY
+        - generic [ref=f2e20]:
+          - link "Wishlist" [ref=f2e21] [cursor=pointer]:
+            - /url: /account/wishlist
+          - link "Account & Orders" [ref=f2e24] [cursor=pointer]:
+            - /url: /account/orders
+          - button "Shopping Cart" [ref=f2e28]
+      - navigation [ref=f2e32]:
+        - link "All Collections" [ref=f2e33] [cursor=pointer]:
+          - /url: /products
+        - link "Haute Couture" [ref=f2e34] [cursor=pointer]:
+          - /url: /products?category=Haute+Couture
+        - link "Bridal Wear" [ref=f2e35] [cursor=pointer]:
+          - /url: /products?category=Bridal+Wear
+        - link "Ready To Wear" [ref=f2e36] [cursor=pointer]:
+          - /url: /products?category=Ready+To+Wear
+        - link "Menswear" [ref=f2e37] [cursor=pointer]:
+          - /url: /products?category=Menswear
+        - link "Rentals" [ref=f2e38] [cursor=pointer]:
+          - /url: /products?type=RENTAL
+  - main [ref=f2e39]:
+    - generic [ref=f2e40]:
+      - generic [ref=f2e44]:
+        - text: AUTUMN / WINTER HAUTE COUTURE 2026
+        - heading "Elegance Woven in Gold & Velvet" [level=1] [ref=f2e45]
+        - paragraph [ref=f2e46]: Discover hand-crafted bridal ensembles, imperial kaftans, and couture rentals for life’s grandest celebrations.
+        - generic [ref=f2e47]:
+          - link "Explore Collections" [ref=f2e48] [cursor=pointer]:
+            - /url: /products
+          - link "Rent Luxury Wear" [ref=f2e49] [cursor=pointer]:
+            - /url: /products?type=RENTAL
+      - generic [ref=f2e50]:
+        - generic [ref=f2e51]:
+          - generic [ref=f2e52]:
+            - generic [ref=f2e53]: CURATED COLLECTION
+            - heading "New Arrivals" [level=2] [ref=f2e54]
+            - paragraph [ref=f2e55]: Explore the latest runway releases curated for every wardrobe
+          - generic [ref=f2e57]:
+            - button "All" [ref=f2e58]
+            - button "Women" [ref=f2e60]
+            - button "Men" [ref=f2e61]
+            - button "Kids" [ref=f2e62]
+          - generic [ref=f2e63]:
+            - link "Velvet Royal Emerald Kaftan Velvet Royal Emerald Kaftan hover -25% OFF RENTAL Wishlist Haute Couture Save Rp 1.500.000 Velvet Royal Emerald Kaftan Rp 4.500.000 Rp 6.000.000 Rent from Rp 750.000" [ref=f2e65] [cursor=pointer]:
+              - /url: /products/velvet-royal-emerald-kaftan
+              - generic [ref=f2e66]:
+                - img "Velvet Royal Emerald Kaftan" [ref=f2e67]
+                - img "Velvet Royal Emerald Kaftan hover" [ref=f2e68]
+                - generic:
+                  - generic: "-25% OFF"
+                  - generic: RENTAL
+                - button "Wishlist" [ref=f2e69]
+              - generic [ref=f2e72]:
+                - generic [ref=f2e73]:
+                  - generic [ref=f2e74]:
+                    - generic [ref=f2e75]: Haute Couture
+                    - generic [ref=f2e76]: Save Rp 1.500.000
+                  - heading "Velvet Royal Emerald Kaftan" [level=3] [ref=f2e77]
+                - generic [ref=f2e78]:
+                  - generic [ref=f2e80]:
+                    - generic [ref=f2e81]: Rp 4.500.000
+                    - generic [ref=f2e82]: Rp 6.000.000
+                  - generic [ref=f2e83]:
+                    - generic [ref=f2e84]: Rent from
+                    - generic [ref=f2e86]: Rp 750.000
+            - link "Artisanal Silk Bridal Lehenga Artisanal Silk Bridal Lehenga hover -17% OFF RENTAL Wishlist Bridal Wear Save Rp 2.500.000 Artisanal Silk Bridal Lehenga Rp 12.500.000 Rp 15.000.000 Rent from Rp 2.200.000" [ref=f2e88] [cursor=pointer]:
+              - /url: /products/artisanal-silk-bridal-lehenga
+              - generic [ref=f2e89]:
+                - img "Artisanal Silk Bridal Lehenga" [ref=f2e90]
+                - img "Artisanal Silk Bridal Lehenga hover" [ref=f2e91]
+                - generic:
+                  - generic: "-17% OFF"
+                  - generic: RENTAL
+                - button "Wishlist" [ref=f2e92]
+              - generic [ref=f2e95]:
+                - generic [ref=f2e96]:
+                  - generic [ref=f2e97]:
+                    - generic [ref=f2e98]: Bridal Wear
+                    - generic [ref=f2e99]: Save Rp 2.500.000
+                  - heading "Artisanal Silk Bridal Lehenga" [level=3] [ref=f2e100]
+                - generic [ref=f2e101]:
+                  - generic [ref=f2e103]:
+                    - generic [ref=f2e104]: Rp 12.500.000
+                    - generic [ref=f2e105]: Rp 15.000.000
+                  - generic [ref=f2e106]:
+                    - generic [ref=f2e107]: Rent from
+                    - generic [ref=f2e109]: Rp 2.200.000
+            - link "Embroidered Pearl Anarkali Gown Embroidered Pearl Anarkali Gown hover RENTAL Ready To Wear Wishlist Ready To Wear Embroidered Pearl Anarkali Gown Rp 3.200.000 Rent from Rp 550.000" [ref=f2e111] [cursor=pointer]:
+              - /url: /products/embroidered-pearl-anarkali-gown
+              - generic [ref=f2e112]:
+                - img "Embroidered Pearl Anarkali Gown" [ref=f2e113]
+                - img "Embroidered Pearl Anarkali Gown hover" [ref=f2e114]
+                - generic:
+                  - generic: RENTAL
+                  - generic: Ready To Wear
+                - button "Wishlist" [ref=f2e115]
+              - generic [ref=f2e118]:
+                - generic [ref=f2e119]:
+                  - generic [ref=f2e120]: Ready To Wear
+                  - heading "Embroidered Pearl Anarkali Gown" [level=3] [ref=f2e122]
+                - generic [ref=f2e123]:
+                  - generic [ref=f2e124]: Rp 3.200.000
+                  - generic [ref=f2e127]:
+                    - generic [ref=f2e128]: Rent from
+                    - generic [ref=f2e130]: Rp 550.000
+            - link "Midnight Black Jacquard Sherwani Midnight Black Jacquard Sherwani hover RENTAL Menswear Wishlist Menswear Midnight Black Jacquard Sherwani Rp 5.800.000 Rent from Rp 950.000" [ref=f2e132] [cursor=pointer]:
+              - /url: /products/midnight-black-jacquard-sherwani
+              - generic [ref=f2e133]:
+                - img "Midnight Black Jacquard Sherwani" [ref=f2e134]
+                - img "Midnight Black Jacquard Sherwani hover" [ref=f2e135]
+                - generic:
+                  - generic: RENTAL
+                  - generic: Menswear
+                - button "Wishlist" [ref=f2e136]
+              - generic [ref=f2e139]:
+                - generic [ref=f2e140]:
+                  - generic [ref=f2e141]: Menswear
+                  - heading "Midnight Black Jacquard Sherwani" [level=3] [ref=f2e143]
+                - generic [ref=f2e144]:
+                  - generic [ref=f2e145]: Rp 5.800.000
+                  - generic [ref=f2e148]:
+                    - generic [ref=f2e149]: Rent from
+                    - generic [ref=f2e151]: Rp 950.000
+            - link "Rose Gold Metallic Draped Saree Rose Gold Metallic Draped Saree hover RENTAL Haute Couture Wishlist Haute Couture Rose Gold Metallic Draped Saree Rp 3.800.000 Rent from Rp 650.000" [ref=f2e153] [cursor=pointer]:
+              - /url: /products/rose-gold-metallic-draped-saree
+              - generic [ref=f2e154]:
+                - img "Rose Gold Metallic Draped Saree" [ref=f2e155]
+                - img "Rose Gold Metallic Draped Saree hover" [ref=f2e156]
+                - generic:
+                  - generic: RENTAL
+                  - generic: Haute Couture
+                - button "Wishlist" [ref=f2e157]
+              - generic [ref=f2e160]:
+                - generic [ref=f2e161]:
+                  - generic [ref=f2e162]: Haute Couture
+                  - heading "Rose Gold Metallic Draped Saree" [level=3] [ref=f2e164]
+                - generic [ref=f2e165]:
+                  - generic [ref=f2e166]: Rp 3.800.000
+                  - generic [ref=f2e169]:
+                    - generic [ref=f2e170]: Rent from
+                    - generic [ref=f2e172]: Rp 650.000
+            - link "Sapphire Blue Zardozi Sharara Set Sapphire Blue Zardozi Sharara Set hover RENTAL Bridal Wear Wishlist Bridal Wear Sapphire Blue Zardozi Sharara Set Rp 6.200.000 Rent from Rp 1.100.000" [ref=f2e174] [cursor=pointer]:
+              - /url: /products/sapphire-blue-zardozi-sharara-set
+              - generic [ref=f2e175]:
+                - img "Sapphire Blue Zardozi Sharara Set" [ref=f2e176]
+                - img "Sapphire Blue Zardozi Sharara Set hover" [ref=f2e177]
+                - generic:
+                  - generic: RENTAL
+                  - generic: Bridal Wear
+                - button "Wishlist" [ref=f2e178]
+              - generic [ref=f2e181]:
+                - generic [ref=f2e182]:
+                  - generic [ref=f2e183]: Bridal Wear
+                  - heading "Sapphire Blue Zardozi Sharara Set" [level=3] [ref=f2e185]
+                - generic [ref=f2e186]:
+                  - generic [ref=f2e187]: Rp 6.200.000
+                  - generic [ref=f2e190]:
+                    - generic [ref=f2e191]: Rent from
+                    - generic [ref=f2e193]: Rp 1.100.000
+          - link "View All New Arrivals" [ref=f2e195] [cursor=pointer]:
+            - /url: /products
+        - generic [ref=f2e200]:
+          - generic [ref=f2e201]:
+            - generic [ref=f2e202]: LUXURY HOUSES
+            - heading "Featured Brands" [level=2] [ref=f2e203]
+            - paragraph [ref=f2e204]: World-renowned luxury ateliers and haute couture design houses
+          - generic [ref=f2e206]:
+            - link "Atelier Ideal ATELIER BRAND Atelier Ideal Parisian High Fashion Explore House" [ref=f2e207] [cursor=pointer]:
+              - /url: /products?search=Atelier
+              - img "Atelier Ideal" [ref=f2e208]
+              - generic [ref=f2e209]:
+                - generic [ref=f2e210]: ATELIER BRAND
+                - heading "Atelier Ideal" [level=3] [ref=f2e211]
+                - paragraph [ref=f2e212]: Parisian High Fashion
+                - generic [ref=f2e213]: Explore House
+            - link "Royal Velvet ATELIER BRAND Royal Velvet Heritage Kaftans & Robes Explore House" [ref=f2e217] [cursor=pointer]:
+              - /url: /products?category=Haute%20Couture
+              - img "Royal Velvet" [ref=f2e218]
+              - generic [ref=f2e219]:
+                - generic [ref=f2e220]: ATELIER BRAND
+                - heading "Royal Velvet" [level=3] [ref=f2e221]
+                - paragraph [ref=f2e222]: Heritage Kaftans & Robes
+                - generic [ref=f2e223]: Explore House
+            - link "Maison Silk ATELIER BRAND Maison Silk Handwoven Bridal Lehengas Explore House" [ref=f2e227] [cursor=pointer]:
+              - /url: /products?category=Bridal%20Wear
+              - img "Maison Silk" [ref=f2e228]
+              - generic [ref=f2e229]:
+                - generic [ref=f2e230]: ATELIER BRAND
+                - heading "Maison Silk" [level=3] [ref=f2e231]
+                - paragraph [ref=f2e232]: Handwoven Bridal Lehengas
+                - generic [ref=f2e233]: Explore House
+            - link "Imperial Groom ATELIER BRAND Imperial Groom Besponsored Menswear & Sherwanis Explore House" [ref=f2e237] [cursor=pointer]:
+              - /url: /products?category=Menswear
+              - img "Imperial Groom" [ref=f2e238]
+              - generic [ref=f2e239]:
+                - generic [ref=f2e240]: ATELIER BRAND
+                - heading "Imperial Groom" [level=3] [ref=f2e241]
+                - paragraph [ref=f2e242]: Besponsored Menswear & Sherwanis
+                - generic [ref=f2e243]: Explore House
+        - generic [ref=f2e247]:
+          - generic [ref=f2e248]:
+            - generic [ref=f2e249]: CREATIVE DIRECTOR HIGHLIGHTS
+            - heading "Editor's Picks" [level=2] [ref=f2e254]
+            - paragraph [ref=f2e255]: Masterpieces handpicked by our creative directors for statement elegance
+          - generic [ref=f2e257]:
+            - link "Rose Gold Metallic Draped Saree Rose Gold Metallic Draped Saree hover RENTAL Haute Couture Wishlist Haute Couture Rose Gold Metallic Draped Saree Rp 3.800.000 Rent from Rp 650.000" [ref=f2e259] [cursor=pointer]:
+              - /url: /products/rose-gold-metallic-draped-saree
+              - generic [ref=f2e260]:
+                - img "Rose Gold Metallic Draped Saree" [ref=f2e261]
+                - img "Rose Gold Metallic Draped Saree hover" [ref=f2e262]
+                - generic:
+                  - generic: RENTAL
+                  - generic: Haute Couture
+                - button "Wishlist" [ref=f2e263]
+              - generic [ref=f2e266]:
+                - generic [ref=f2e267]:
+                  - generic [ref=f2e268]: Haute Couture
+                  - heading "Rose Gold Metallic Draped Saree" [level=3] [ref=f2e270]
+                - generic [ref=f2e271]:
+                  - generic [ref=f2e272]: Rp 3.800.000
+                  - generic [ref=f2e275]:
+                    - generic [ref=f2e276]: Rent from
+                    - generic [ref=f2e278]: Rp 650.000
+            - link "Champagne Gold Sequin Evening Cape Champagne Gold Sequin Evening Cape hover RENTAL Eveningwear Wishlist Eveningwear Champagne Gold Sequin Evening Cape Rp 2.900.000 Rent from Rp 500.000" [ref=f2e280] [cursor=pointer]:
+              - /url: /products/champagne-gold-sequin-evening-cape
+              - generic [ref=f2e281]:
+                - img "Champagne Gold Sequin Evening Cape" [ref=f2e282]
+                - img "Champagne Gold Sequin Evening Cape hover" [ref=f2e283]
+                - generic:
+                  - generic: RENTAL
+                  - generic: Eveningwear
+                - button "Wishlist" [ref=f2e284]
+              - generic [ref=f2e287]:
+                - generic [ref=f2e288]:
+                  - generic [ref=f2e289]: Eveningwear
+                  - heading "Champagne Gold Sequin Evening Cape" [level=3] [ref=f2e291]
+                - generic [ref=f2e292]:
+                  - generic [ref=f2e293]: Rp 2.900.000
+                  - generic [ref=f2e296]:
+                    - generic [ref=f2e297]: Rent from
+                    - generic [ref=f2e299]: Rp 500.000
+            - link "Handcrafted Pearl Tulle Veil & Crown Handcrafted Pearl Tulle Veil & Crown hover -25% OFF RENTAL Wishlist Accessories Save Rp 600.000 Handcrafted Pearl Tulle Veil & Crown Rp 1.800.000 Rp 2.400.000 Rent from Rp 350.000" [ref=f2e301] [cursor=pointer]:
+              - /url: /products/handcrafted-pearl-tulle-veil-crown
+              - generic [ref=f2e302]:
+                - img "Handcrafted Pearl Tulle Veil & Crown" [ref=f2e303]
+                - img "Handcrafted Pearl Tulle Veil & Crown hover" [ref=f2e304]
+                - generic:
+                  - generic: "-25% OFF"
+                  - generic: RENTAL
+                - button "Wishlist" [ref=f2e305]
+              - generic [ref=f2e308]:
+                - generic [ref=f2e309]:
+                  - generic [ref=f2e310]:
+                    - generic [ref=f2e311]: Accessories
+                    - generic [ref=f2e312]: Save Rp 600.000
+                  - heading "Handcrafted Pearl Tulle Veil & Crown" [level=3] [ref=f2e313]
+                - generic [ref=f2e314]:
+                  - generic [ref=f2e316]:
+                    - generic [ref=f2e317]: Rp 1.800.000
+                    - generic [ref=f2e318]: Rp 2.400.000
+                  - generic [ref=f2e319]:
+                    - generic [ref=f2e320]: Rent from
+                    - generic [ref=f2e322]: Rp 350.000
+            - link "Velvet Royal Emerald Kaftan Velvet Royal Emerald Kaftan hover -25% OFF RENTAL Wishlist Haute Couture Save Rp 1.500.000 Velvet Royal Emerald Kaftan Rp 4.500.000 Rp 6.000.000 Rent from Rp 750.000" [ref=f2e324] [cursor=pointer]:
+              - /url: /products/velvet-royal-emerald-kaftan
+              - generic [ref=f2e325]:
+                - img "Velvet Royal Emerald Kaftan" [ref=f2e326]
+                - img "Velvet Royal Emerald Kaftan hover" [ref=f2e327]
+                - generic:
+                  - generic: "-25% OFF"
+                  - generic: RENTAL
+                - button "Wishlist" [ref=f2e328]
+              - generic [ref=f2e331]:
+                - generic [ref=f2e332]:
+                  - generic [ref=f2e333]:
+                    - generic [ref=f2e334]: Haute Couture
+                    - generic [ref=f2e335]: Save Rp 1.500.000
+                  - heading "Velvet Royal Emerald Kaftan" [level=3] [ref=f2e336]
+                - generic [ref=f2e337]:
+                  - generic [ref=f2e339]:
+                    - generic [ref=f2e340]: Rp 4.500.000
+                    - generic [ref=f2e341]: Rp 6.000.000
+                  - generic [ref=f2e342]:
+                    - generic [ref=f2e343]: Rent from
+                    - generic [ref=f2e345]: Rp 750.000
+          - link "Explore Editor's Choices" [ref=f2e347] [cursor=pointer]:
+            - /url: /products?type=SALE
+      - generic [ref=f2e352]:
+        - generic [ref=f2e353]: BESPOKE RENTAL SERVICE
+        - heading "Wear Haute Couture for Your Special Occasions" [level=2] [ref=f2e354]
+        - paragraph [ref=f2e355]: Experience imperial velvet kaftans, silk lehengas, and tailored sherwanis without long-term commitment. Flexible 3-day to 7-day rentals across Indonesia.
+        - link "Browse Rental Boutique" [ref=f2e357] [cursor=pointer]:
+          - /url: /products?type=RENTAL
+  - contentinfo [ref=f2e358]:
+    - generic [ref=f2e359]:
+      - generic [ref=f2e360]:
+        - generic [ref=f2e361]:
+          - heading "IDEAL BEAUTY" [level=3] [ref=f2e362]
+          - paragraph [ref=f2e363]: Crafting bespoke luxury fashion, bridal lehengas, haute couture kaftans, and evening gowns inspired by South Asian craftsmanship and modern elegance.
+          - paragraph [ref=f2e364]: Jakarta • Bali • Worldwide Delivery
+        - generic [ref=f2e365]:
+          - heading "Collections" [level=4] [ref=f2e366]
+          - list [ref=f2e367]:
+            - listitem [ref=f2e368]:
+              - link "Haute Couture" [ref=f2e369] [cursor=pointer]:
+                - /url: /products?category=Haute+Couture
+            - listitem [ref=f2e370]:
+              - link "Bridal Collection" [ref=f2e371] [cursor=pointer]:
+                - /url: /products?category=Bridal+Wear
+            - listitem [ref=f2e372]:
+              - link "Ready To Wear" [ref=f2e373] [cursor=pointer]:
+                - /url: /products?category=Ready+To+Wear
+            - listitem [ref=f2e374]:
+              - link "Menswear Sherwanis" [ref=f2e375] [cursor=pointer]:
+                - /url: /products?category=Menswear
+            - listitem [ref=f2e376]:
+              - link "Luxury Rental Boutique" [ref=f2e377] [cursor=pointer]:
+                - /url: /products?type=RENTAL
+        - generic [ref=f2e378]:
+          - heading "Customer Care" [level=4] [ref=f2e379]
+          - list [ref=f2e380]:
+            - listitem [ref=f2e381]:
+              - link "Order Tracking" [ref=f2e382] [cursor=pointer]:
+                - /url: /account/orders
+            - listitem [ref=f2e383]:
+              - link "Saved Wishlist" [ref=f2e384] [cursor=pointer]:
+                - /url: /account/wishlist
+            - listitem [ref=f2e385]: QRIS & Virtual Account Payment
+            - listitem [ref=f2e386]: Bespoke Fitting Appointment
+            - listitem [ref=f2e387]:
+              - link "Admin Portal" [ref=f2e388] [cursor=pointer]:
+                - /url: /admin/dashboard
+        - generic [ref=f2e389]:
+          - heading "Privé Club" [level=4] [ref=f2e390]
+          - paragraph [ref=f2e391]: Subscribe to receive private invitations to runway releases and bespoke trunk shows.
+          - generic [ref=f2e392]:
+            - textbox "Enter email address" [ref=f2e393]
+            - button "Join" [ref=f2e394]
+      - generic [ref=f2e395]:
+        - paragraph [ref=f2e396]: © 2026 Ideal Beauty Official. All Rights Reserved.
+        - generic [ref=f2e397]:
+          - generic [ref=f2e398]: QRIS Integrated
+          - generic [ref=f2e399]: Bank Virtual Account
+          - generic [ref=f2e400]: Midtrans Secured
+  - button "Open Next.js Dev Tools" [ref=f2e406] [cursor=pointer]
