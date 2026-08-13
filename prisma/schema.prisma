@@ -87,19 +87,25 @@ enum SectionType {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  name          String?
-  phone         String?
-  passwordHash  String?
-  addresses     Address[]
-  orders        Order[]
-  cart          Cart?
-  wishlist      WishlistItem[]
-  vouchers      Voucher[]
-  voucherUsages VoucherUsage[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id              String         @id @default(uuid())
+  firebaseUid     String?        @unique
+  email           String?        @unique
+  name            String?
+  phone           String?
+  isPhoneVerified Boolean        @default(false)
+  isEmailVerified Boolean        @default(false)
+  fcmToken        String?
+  passwordHash    String?
+  addresses       Address[]
+  orders          Order[]
+  cart            Cart?
+  wishlist        WishlistItem[]
+  vouchers        Voucher[]
+  voucherUsages   VoucherUsage[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([phone])
 }
 
 model Address {

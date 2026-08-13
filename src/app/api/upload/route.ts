@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { uploadFileToFirebase } from '@/lib/services/firebase-storage';
 
 export async function POST(request: Request) {
   try {
@@ -17,19 +18,28 @@ export async function POST(request: Request) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
     const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-').replace(/^-|-$/g, '');
     const filename = `${Date.now()}-${safeName || 'image.jpg'}`;
-    const filePath = path.join(uploadsDir, filename);
+    
+    let fileUrl: string;
 
-    await fs.promises.writeFile(filePath, buffer);
+    try {
+      // Try Firebase
+      fileUrl = await uploadFileToFirebase(buffer, filename, 'products', file.type);
+    } catch (error) {
+      console.warn('Firebase upload failed, falling back to local storage:', error);
+      
+      // Fallback
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
+      const filePath = path.join(uploadsDir, filename);
+      await fs.promises.writeFile(filePath, buffer);
+      fileUrl = `/uploads/${filename}`;
+    }
 
-    const fileUrl = `/uploads/${filename}`;
     return NextResponse.json({ url: fileUrl });
   } catch (error: any) {
     console.error('Error uploading file:', error);

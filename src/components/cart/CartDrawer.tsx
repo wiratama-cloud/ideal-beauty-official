@@ -114,7 +114,13 @@ export default function CartDrawer() {
                           <span className="px-2 py-0.5 font-mono text-[11px]">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="px-2 py-0.5 text-neutral-600 hover:bg-neutral-100"
+                            disabled={item.type === 'RENTAL'}
+                            className={`px-2 py-0.5 ${
+                              item.type === 'RENTAL'
+                                ? 'text-neutral-300 cursor-not-allowed bg-neutral-50'
+                                : 'text-neutral-600 hover:bg-neutral-100'
+                            }`}
+                            title={item.type === 'RENTAL' ? 'Rental quantity is limited to 1' : undefined}
                           >
                             +
                           </button>

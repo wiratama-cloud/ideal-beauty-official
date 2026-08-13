@@ -35,28 +35,55 @@ export async function getOrCreateCart(userIdOrSessionId: string) {
       where: { id: userIdOrSessionId },
     });
 
-    cart = await prisma.cart.create({
-      data: userExists
-        ? { userId: userIdOrSessionId }
-        : { sessionId: userIdOrSessionId },
-      include: {
-        items: {
+    try {
+      cart = await prisma.cart.create({
+        data: userExists
+          ? { userId: userIdOrSessionId }
+          : { sessionId: userIdOrSessionId },
+        include: {
+          items: {
+            include: {
+              variant: {
+                include: {
+                  product: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+        },
+      });
+    } catch (error: any) {
+      // Handle race condition where a concurrent request created the cart first
+      if (error.code === 'P2002' || error.message?.includes('Unique constraint failed')) {
+        cart = await prisma.cart.findFirst({
+          where: {
+            OR: [{ userId: userIdOrSessionId }, { sessionId: userIdOrSessionId }],
+          },
           include: {
-            variant: {
+            items: {
               include: {
-                product: true,
+                variant: {
+                  include: {
+                    product: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: 'desc',
               },
             },
           },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-      },
-    });
+        });
+      } else {
+        throw error;
+      }
+    }
   }
 
-  if (!cart) return cart;
+  if (!cart) throw new Error('Failed to retrieve or create cart.');
 
   return {
     ...cart,
@@ -69,6 +96,7 @@ export async function getOrCreateCart(userIdOrSessionId: string) {
             priceRent: item.variant.priceRent ? Number(item.variant.priceRent) : null,
             compareAtPrice: item.variant.compareAtPrice ? Number(item.variant.compareAtPrice) : null,
             costPrice: item.variant.costPrice ? Number(item.variant.costPrice) : null,
+            purchaseCost: item.variant.purchaseCost ? Number(item.variant.purchaseCost) : null,
           }
         : null,
     })),

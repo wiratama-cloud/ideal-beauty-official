@@ -4,10 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
-  Calendar as CalendarIcon,
   AlertCircle,
-  Sparkles,
-  RefreshCw,
   ShieldCheck,
   Clock,
 } from 'lucide-react';
@@ -244,33 +241,6 @@ export default function RentalAvailabilityCalendar({
 
   return (
     <div className="bg-white border border-neutral-200/80 p-5 sm:p-6 space-y-6 font-sans text-xs tracking-wide shadow-[0_2px_15px_-3px_rgba(0,0,0,0.02)]">
-      {/* Atelier Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-neutral-100 gap-2">
-        <div>
-          <span className="text-[10px] tracking-[0.25em] text-neutral-400 font-light uppercase block mb-0.5">
-            Atelier Rental Scheduler
-          </span>
-          <div className="flex items-center space-x-2">
-            <CalendarIcon className="w-4 h-4 text-neutral-900" />
-            <h3 className="font-serif text-base text-neutral-900 font-medium tracking-wide">
-              Check Availability & Reserve
-            </h3>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center space-x-1.5 text-[10px] text-neutral-400 uppercase tracking-widest font-light">
-            <RefreshCw className="w-3 h-3 animate-spin text-neutral-500" />
-            <span>Checking Atelier Schedules...</span>
-          </div>
-        ) : (
-          <div className="flex items-center space-x-1.5 text-[10px] text-emerald-800 bg-emerald-50 px-2.5 py-1 border border-emerald-200/60 font-medium uppercase tracking-wider rounded-none">
-            <Sparkles className="w-3 h-3 text-emerald-600" />
-            <span>Live Availability Sync</span>
-          </div>
-        )}
-      </div>
-
       {/* Refined Color Legend */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] py-2.5 px-3 bg-neutral-50/80 border border-neutral-100">
         <div className="flex items-center space-x-2">

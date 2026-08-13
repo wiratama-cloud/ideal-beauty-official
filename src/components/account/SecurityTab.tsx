@@ -2,12 +2,30 @@
 
 import React, { useState } from 'react';
 import { updatePasswordAction } from '@/app/actions/account';
-import { ShieldCheck, Key, CheckCircle2, AlertCircle, Loader2, Lock } from 'lucide-react';
+import {
+  ShieldCheck,
+  Key,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Lock,
+  Phone,
+  Mail,
+  Smartphone,
+  Globe,
+  PlusCircle,
+} from 'lucide-react';
+import PhoneAuthForm from '@/components/auth/PhoneAuthForm';
+import SocialAuthButtons from '@/components/auth/SocialAuthButtons';
 
 interface SecurityTabProps {
   user: {
     id: string;
-    email: string;
+    email?: string | null;
+    phone?: string | null;
+    isPhoneVerified?: boolean;
+    isEmailVerified?: boolean;
+    firebaseUid?: string | null;
     hasPassword?: boolean;
     createdAt?: Date | string;
   };
@@ -19,6 +37,9 @@ export default function SecurityTab({ user }: SecurityTabProps) {
     newPassword: '',
     confirmPassword: '',
   });
+
+  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
+  const [isLinkingSocial, setIsLinkingSocial] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -89,28 +110,205 @@ export default function SecurityTab({ user }: SecurityTabProps) {
       <div className="bg-white border border-neutral-100 p-6 sm:p-8 space-y-4">
         <div className="border-b border-neutral-100 pb-4 flex justify-between items-start">
           <div>
-            <h2 className="font-serif text-xl font-normal text-neutral-900">Sign-In Options & Session Security</h2>
+            <h2 className="font-serif text-xl font-normal text-neutral-900">Sign-In Methods & Account Security</h2>
             <p className="text-neutral-500 font-light text-xs mt-1">
-              Active account status and security settings for {user.email}.
+              Manage your connected sign-in methods, mobile phone verification, and account password.
             </p>
           </div>
           <span className="bg-emerald-50 text-emerald-800 text-[10px] font-mono px-3 py-1 uppercase tracking-widest border border-emerald-200 flex items-center space-x-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Session Secure</span>
+            <span>Account Protected</span>
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-light">
-          <div className="bg-neutral-50/50 p-4 border border-neutral-100 space-y-1">
-            <span className="text-[10px] uppercase text-neutral-400 font-mono block">Primary Credential</span>
-            <span className="font-mono text-neutral-800 font-medium">{user.email}</span>
+        {/* Multi Sign-In Options Grid */}
+        <div className="space-y-4 pt-2">
+          <h3 className="text-xs uppercase tracking-wider text-neutral-700 font-medium">Connected Sign-In Methods</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-light">
+            {/* Email / Password Provider */}
+            <div className="bg-neutral-50/70 p-4 border border-neutral-200 space-y-2 flex flex-col justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 font-medium text-neutral-800">
+                    <Mail className="w-4 h-4 text-neutral-600" />
+                    <span>Email & Password</span>
+                  </div>
+                  {user.isEmailVerified ? (
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 font-mono flex items-center space-x-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 inline" />
+                      <span>Verified</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 font-mono">
+                      Unverified
+                    </span>
+                  )}
+                </div>
+                <p className="font-mono text-neutral-600 text-[11px] truncate">{user.email || 'No email configured'}</p>
+                <p className="text-neutral-400 text-[11px]">
+                  {user.hasPassword
+                    ? 'Allows sign-in via email address and password.'
+                    : 'Set a password below to enable password sign-in.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Phone SMS Provider */}
+            <div className="bg-neutral-50/70 p-4 border border-neutral-200 space-y-2 flex flex-col justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 font-medium text-neutral-800">
+                    <Smartphone className="w-4 h-4 text-neutral-600" />
+                    <span>Mobile Phone SMS</span>
+                  </div>
+                  {user.isPhoneVerified ? (
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 font-mono flex items-center space-x-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 inline" />
+                      <span>Verified</span>
+                    </span>
+                  ) : user.phone ? (
+                    <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 font-mono">
+                      Unverified
+                    </span>
+                  ) : (
+                    <span className="text-[10px] bg-neutral-200 text-neutral-600 px-2 py-0.5 font-mono">
+                      Not Linked
+                    </span>
+                  )}
+                </div>
+                <p className="font-mono text-neutral-600 text-[11px]">
+                  {user.phone || 'No phone number linked'}
+                </p>
+                <p className="text-neutral-400 text-[11px]">
+                  {user.isPhoneVerified
+                    ? 'Allows instant sign-in using SMS code verification.'
+                    : 'Link or verify your mobile number to enable SMS sign-in.'}
+                </p>
+              </div>
+
+              {!user.isPhoneVerified && (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsVerifyingPhone(!isVerifyingPhone)}
+                    className="text-[11px] font-medium text-black underline underline-offset-2 hover:text-neutral-700"
+                  >
+                    {isVerifyingPhone ? 'Cancel Phone Verification' : user.phone ? 'Verify Mobile Number' : 'Link Mobile Number'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Google Provider Card */}
+            <div className="bg-neutral-50/70 p-4 border border-neutral-200 space-y-2 flex flex-col justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 font-medium text-neutral-800">
+                    <Globe className="w-4 h-4 text-neutral-600" />
+                    <span>Google Account</span>
+                  </div>
+                  {user.firebaseUid ? (
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 font-mono">
+                      Linked
+                    </span>
+                  ) : (
+                    <span className="text-[10px] bg-neutral-200 text-neutral-600 px-2 py-0.5 font-mono">
+                      Available
+                    </span>
+                  )}
+                </div>
+                <p className="text-neutral-400 text-[11px]">
+                  Sign in or verify using your Google credentials.
+                </p>
+              </div>
+              <div className="pt-2">
+                <SocialAuthButtons
+                  provider="google"
+                  onSuccess={() => window.location.reload()}
+                />
+              </div>
+            </div>
+
+            {/* Facebook Provider Card */}
+            <div className="bg-neutral-50/70 p-4 border border-neutral-200 space-y-2 flex flex-col justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 font-medium text-neutral-800">
+                    <Globe className="w-4 h-4 text-neutral-600" />
+                    <span>Facebook Account</span>
+                  </div>
+                  {user.firebaseUid ? (
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 font-mono">
+                      Linked
+                    </span>
+                  ) : (
+                    <span className="text-[10px] bg-neutral-200 text-neutral-600 px-2 py-0.5 font-mono">
+                      Available
+                    </span>
+                  )}
+                </div>
+                <p className="text-neutral-400 text-[11px]">
+                  Sign in or verify using your Facebook credentials.
+                </p>
+              </div>
+              <div className="pt-2">
+                <SocialAuthButtons
+                  provider="facebook"
+                  onSuccess={() => window.location.reload()}
+                />
+              </div>
+            </div>
+
+            {/* Apple Provider Card */}
+            <div className="bg-neutral-50/70 p-4 border border-neutral-200 space-y-2 flex flex-col justify-between md:col-span-2">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 font-medium text-neutral-800">
+                    <Globe className="w-4 h-4 text-neutral-600" />
+                    <span>Apple ID</span>
+                  </div>
+                  {user.firebaseUid ? (
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 font-mono">
+                      Linked
+                    </span>
+                  ) : (
+                    <span className="text-[10px] bg-neutral-200 text-neutral-600 px-2 py-0.5 font-mono">
+                      Available
+                    </span>
+                  )}
+                </div>
+                <p className="text-neutral-400 text-[11px]">
+                  Sign in or verify using your Apple ID credentials.
+                </p>
+              </div>
+              <div className="pt-2">
+                <SocialAuthButtons
+                  provider="apple"
+                  onSuccess={() => window.location.reload()}
+                />
+              </div>
+            </div>
           </div>
-          <div className="bg-neutral-50/50 p-4 border border-neutral-100 space-y-1">
-            <span className="text-[10px] uppercase text-neutral-400 font-mono block">Password Protection</span>
-            <span className="font-mono text-neutral-800 font-medium">
-              {user.hasPassword ? 'Enabled (Password Hash Configured)' : 'Not Set (Session Cookie Auth)'}
-            </span>
-          </div>
+
+          {/* Inline Phone Verification Drawer */}
+          {isVerifyingPhone && (
+            <div className="bg-neutral-50 p-5 border border-neutral-300 space-y-3 mt-4">
+              <h4 className="text-xs font-medium text-neutral-900 uppercase tracking-wider">
+                SMS OTP Mobile Phone Verification
+              </h4>
+              <p className="text-xs text-neutral-600 font-light">
+                Enter your mobile number to receive a 6-digit SMS OTP verification code.
+              </p>
+              <PhoneAuthForm
+                isProfileVerification={true}
+                onSuccess={() => {
+                  setIsVerifyingPhone(false);
+                  window.location.reload();
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -118,7 +316,7 @@ export default function SecurityTab({ user }: SecurityTabProps) {
       <div className="bg-white border border-neutral-100 p-6 sm:p-8 space-y-6">
         <div className="border-b border-neutral-100 pb-4">
           <h2 className="font-serif text-xl font-normal text-neutral-900">
-            {user.hasPassword ? 'Change Password' : 'Set Account Password'}
+            {user.hasPassword ? 'Change Account Password' : 'Set Account Password'}
           </h2>
           <p className="text-neutral-500 font-light text-xs mt-1">
             Ensure your account uses a strong, unique password to safeguard your orders and private information.

@@ -20,9 +20,12 @@ import {
 
 export interface UserAccountData {
   id: string;
-  email: string;
+  email: string | null;
   name: string | null;
   phone: string | null;
+  isPhoneVerified: boolean;
+  isEmailVerified?: boolean;
+  firebaseUid?: string | null;
   passwordHash: string | null;
   createdAt: Date | string;
   addresses: Array<{
@@ -76,7 +79,7 @@ export default function AccountView({ account }: AccountViewProps) {
                 <span>Welcome, {account.name || 'Valued Patron'}</span>
                 <Sparkles className="w-5 h-5 text-amber-600 inline-block" />
               </h1>
-              <p className="text-neutral-500 font-mono text-[11px]">{account.email}</p>
+              <p className="text-neutral-500 font-mono text-[11px]">{account.email || account.phone || 'No contact email'}</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -269,6 +272,10 @@ export default function AccountView({ account }: AccountViewProps) {
                 user={{
                   id: account.id,
                   email: account.email,
+                  phone: account.phone,
+                  isPhoneVerified: account.isPhoneVerified,
+                  isEmailVerified: account.isEmailVerified ?? false,
+                  firebaseUid: account.firebaseUid,
                   hasPassword: !!account.passwordHash,
                   createdAt: account.createdAt,
                 }}

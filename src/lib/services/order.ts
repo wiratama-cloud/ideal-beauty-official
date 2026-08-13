@@ -2,6 +2,7 @@ import { prisma } from '../prisma';
 import { generateQRISData, generateVirtualAccountData } from './payment-gateway';
 import { OrderStatus, PaymentType, PaymentStatus, RentalStatus, InventoryTransactionType } from '@prisma/client';
 import { validateVoucherForCart, serializeVoucher } from './voucher';
+import { sendOrderPushNotification } from './notification';
 
 export interface CreateOrderInput {
   userId: string;
@@ -323,6 +324,7 @@ export function serializeOrder(order: any) {
                 priceRent: item.variant.priceRent !== undefined && item.variant.priceRent !== null ? Number(item.variant.priceRent) : null,
                 compareAtPrice: item.variant.compareAtPrice !== undefined && item.variant.compareAtPrice !== null ? Number(item.variant.compareAtPrice) : null,
                 costPrice: item.variant.costPrice !== undefined && item.variant.costPrice !== null ? Number(item.variant.costPrice) : null,
+                purchaseCost: item.variant.purchaseCost !== undefined && item.variant.purchaseCost !== null ? Number(item.variant.purchaseCost) : null,
               }
             : null,
         }))
@@ -351,6 +353,15 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
       voucher: true,
     },
   });
+
+  if (updated.user?.fcmToken && ['PROCESSING', 'SHIPPED', 'COMPLETED'].includes(status)) {
+    await sendOrderPushNotification(
+      updated.user.fcmToken,
+      'Order Update',
+      `Your order ${orderId} is now ${status}.`,
+      orderId
+    );
+  }
 
   return serializeOrder(updated);
 }

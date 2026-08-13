@@ -2,14 +2,18 @@
 
 import React, { useState } from 'react';
 import { updateProfileAction } from '@/app/actions/account';
+import { sendEmailVerificationAction, verifyEmailOtpAction } from '@/app/actions/auth';
 import { User, Mail, Phone, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import PhoneAuthForm from '@/components/auth/PhoneAuthForm';
 
 interface ProfileTabProps {
   user: {
     id: string;
     name: string | null;
-    email: string;
+    email: string | null;
     phone: string | null;
+    isPhoneVerified: boolean;
+    isEmailVerified?: boolean;
   };
 }
 
@@ -19,6 +23,12 @@ export default function ProfileTab({ user }: ProfileTabProps) {
     email: user.email || '',
     phone: user.phone || '',
   });
+  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+  const [emailCode, setEmailCode] = useState('');
+  const [isSendingEmailCode, setIsSendingEmailCode] = useState(false);
+  const [isConfirmingEmailCode, setIsConfirmingEmailCode] = useState(false);
+  const [emailCodeStatus, setEmailCodeStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -28,10 +38,57 @@ export default function ProfileTab({ user }: ProfileTabProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSendEmailCode = async () => {
+    setIsSendingEmailCode(true);
+    setEmailCodeStatus(null);
+    try {
+      const res = await sendEmailVerificationAction();
+      setEmailCodeStatus({
+        type: 'success',
+        text: res.message || `Verification code sent to ${user.email}`,
+      });
+    } catch (err: any) {
+      setEmailCodeStatus({
+        type: 'error',
+        text: err.message || 'Failed to dispatch verification email.',
+      });
+    } finally {
+      setIsSendingEmailCode(false);
+    }
+  };
+
+  const handleConfirmEmailCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsConfirmingEmailCode(true);
+    setEmailCodeStatus(null);
+    try {
+      await verifyEmailOtpAction(emailCode);
+      setEmailCodeStatus({
+        type: 'success',
+        text: 'Email address verified successfully!',
+      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (err: any) {
+      setEmailCodeStatus({
+        type: 'error',
+        text: err.message || 'Invalid email verification code.',
+      });
+    } finally {
+      setIsConfirmingEmailCode(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setStatusMessage(null);
+
+    const currentEmail = user.email ? user.email.trim().toLowerCase() : '';
+    const newEmail = formData.email.trim().toLowerCase();
+    const emailChanged = newEmail !== currentEmail;
+    const phoneChanged = (formData.phone.trim() || null) !== (user.phone || null);
 
     try {
       const res = await updateProfileAction({
@@ -41,10 +98,23 @@ export default function ProfileTab({ user }: ProfileTabProps) {
       });
 
       if (res.success) {
+        let msg = 'Your profile information has been updated successfully.';
+        if (emailChanged && phoneChanged) {
+          msg = 'Profile updated successfully. Both your new email address and mobile phone number require re-verification.';
+        } else if (emailChanged) {
+          msg = 'Profile updated successfully. Your new email address requires re-verification.';
+        } else if (phoneChanged) {
+          msg = 'Profile updated successfully. Your new mobile phone number requires re-verification.';
+        }
+
         setStatusMessage({
           type: 'success',
-          text: 'Your profile information has been updated successfully.',
+          text: msg,
         });
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       } else {
         setStatusMessage({
           type: 'error',
@@ -63,12 +133,120 @@ export default function ProfileTab({ user }: ProfileTabProps) {
 
   return (
     <div className="bg-white border border-neutral-100 p-6 sm:p-8 space-y-6">
-      <div className="border-b border-neutral-100 pb-4">
-        <h2 className="font-serif text-xl font-normal text-neutral-900">Personal Details</h2>
-        <p className="text-neutral-500 font-light text-xs mt-1">
-          Manage your personal contact information and patron details.
-        </p>
+      <div className="border-b border-neutral-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="font-serif text-xl font-normal text-neutral-900">Personal Details</h2>
+          <p className="text-neutral-500 font-light text-xs mt-1">
+            Manage your personal contact information and patron details.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Email Verification Status Badge */}
+          {user.isEmailVerified ? (
+            <span className="flex items-center text-emerald-600 bg-emerald-50 px-2.5 py-1 text-[10px] uppercase tracking-wider font-medium border border-emerald-200">
+              <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Email Verified
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsVerifyingEmail(!isVerifyingEmail)}
+              className="text-amber-800 bg-amber-50 px-2.5 py-1 text-[10px] uppercase tracking-wider font-medium border border-amber-200 hover:bg-amber-100 transition-colors"
+            >
+              {isVerifyingEmail ? 'Cancel Email Verify' : 'Verify Email'}
+            </button>
+          )}
+
+          {/* Phone Verification Status Badge */}
+          {user.isPhoneVerified ? (
+            <span className="flex items-center text-emerald-600 bg-emerald-50 px-2.5 py-1 text-[10px] uppercase tracking-wider font-medium border border-emerald-200">
+              <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Phone Verified
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsVerifyingPhone(!isVerifyingPhone)}
+              className="text-amber-800 bg-amber-50 px-2.5 py-1 text-[10px] uppercase tracking-wider font-medium border border-amber-200 hover:bg-amber-100 transition-colors"
+            >
+              {isVerifyingPhone ? 'Cancel Phone Verify' : 'Verify Phone'}
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Inline Email Verification Drawer */}
+      {isVerifyingEmail && (
+        <div className="bg-neutral-50 p-4 border border-neutral-200 space-y-3">
+          <h3 className="text-xs font-medium text-neutral-800 uppercase tracking-wider">
+            Email Re-Verification ({user.email})
+          </h3>
+          <p className="text-xs text-neutral-600 font-light">
+            Click send to dispatch a 6-digit confirmation code to your email address, then enter the code below.
+          </p>
+
+          {emailCodeStatus && (
+            <div
+              className={`p-3 text-xs font-light flex items-center space-x-2 border ${
+                emailCodeStatus.type === 'success'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : 'bg-red-50 text-red-800 border-red-200'
+              }`}
+            >
+              {emailCodeStatus.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+              )}
+              <span>{emailCodeStatus.text}</span>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={handleSendEmailCode}
+              disabled={isSendingEmailCode}
+              className="bg-neutral-800 text-white text-xs px-4 py-2 hover:bg-black transition-colors disabled:opacity-50 flex items-center justify-center space-x-1.5"
+            >
+              {isSendingEmailCode ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+              <span>Send Verification Code</span>
+            </button>
+
+            <form onSubmit={handleConfirmEmailCode} className="flex items-center space-x-2 flex-1">
+              <input
+                type="text"
+                value={emailCode}
+                onChange={(e) => setEmailCode(e.target.value)}
+                placeholder="Enter 6-digit code (e.g. 123456)"
+                required
+                className="border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-black font-mono w-full bg-white"
+              />
+              <button
+                type="submit"
+                disabled={isConfirmingEmailCode || !emailCode.trim()}
+                className="bg-black text-white text-xs px-4 py-2 hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center space-x-1"
+              >
+                {isConfirmingEmailCode ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                <span>Confirm</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Inline Phone Verification Drawer */}
+      {isVerifyingPhone && (
+        <div className="bg-neutral-50 p-4 border border-neutral-200 space-y-3">
+          <p className="text-xs text-neutral-700">Please verify your mobile phone number using SMS OTP.</p>
+          <PhoneAuthForm
+            isProfileVerification={true}
+            onSuccess={() => {
+              setIsVerifyingPhone(false);
+              window.location.reload();
+            }}
+          />
+        </div>
+      )}
 
       {statusMessage && (
         <div

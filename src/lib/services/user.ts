@@ -32,22 +32,39 @@ export async function getUserById(userId: string) {
 }
 
 export async function updateUserProfile(userId: string, data: UpdateProfileInput) {
-  if (data.email) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error('User not found');
+
+  const cleanEmail = data.email ? data.email.trim().toLowerCase() : null;
+
+  if (cleanEmail) {
     const existing = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email: cleanEmail },
     });
     if (existing && existing.id !== userId) {
       throw new Error('Email address is already in use by another account');
     }
   }
 
+  const updateData: any = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.email !== undefined) {
+    updateData.email = cleanEmail;
+    if (user.email !== cleanEmail) {
+      updateData.isEmailVerified = false;
+    }
+  }
+  if (data.phone !== undefined) {
+    const cleanPhone = data.phone ? data.phone.trim() : null;
+    updateData.phone = cleanPhone;
+    if (user.phone !== cleanPhone) {
+      updateData.isPhoneVerified = false;
+    }
+  }
+
   return prisma.user.update({
     where: { id: userId },
-    data: {
-      ...(data.name !== undefined && { name: data.name }),
-      ...(data.email !== undefined && { email: data.email }),
-      ...(data.phone !== undefined && { phone: data.phone }),
-    },
+    data: updateData,
   });
 }
 

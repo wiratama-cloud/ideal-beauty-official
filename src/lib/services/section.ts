@@ -62,6 +62,7 @@ export async function getLandingSections(onlyActive = true) {
                 priceRent: variant.priceRent ? Number(variant.priceRent) : null,
                 compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
                 costPrice: variant.costPrice ? Number(variant.costPrice) : null,
+                purchaseCost: variant.purchaseCost ? Number(variant.purchaseCost) : null,
               })),
             }
           : null,
@@ -112,6 +113,7 @@ export async function getLandingSectionById(id: string) {
                 priceRent: variant.priceRent ? Number(variant.priceRent) : null,
                 compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
                 costPrice: variant.costPrice ? Number(variant.costPrice) : null,
+                purchaseCost: variant.purchaseCost ? Number(variant.purchaseCost) : null,
               })),
             }
           : null,

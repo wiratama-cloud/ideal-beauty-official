@@ -41,6 +41,7 @@ export async function getLedgerEntries(filter?: { type?: 'INCOME' | 'EXPENSE' })
       ...entry.variant,
       priceSale: entry.variant.priceSale ? Number(entry.variant.priceSale) : null,
       priceRent: entry.variant.priceRent ? Number(entry.variant.priceRent) : null,
+      compareAtPrice: entry.variant.compareAtPrice ? Number(entry.variant.compareAtPrice) : null,
       costPrice: entry.variant.costPrice ? Number(entry.variant.costPrice) : null,
       purchaseCost: entry.variant.purchaseCost ? Number(entry.variant.purchaseCost) : null,
     } : null,

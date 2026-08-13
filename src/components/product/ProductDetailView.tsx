@@ -58,10 +58,18 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
     if (!selectedVariant) return;
     if (optionType === 'SALE' && !selectedVariant.priceSale && selectedVariant.priceRent) {
       setOptionType('RENTAL');
+      setQuantity(1);
     } else if (optionType === 'RENTAL' && !selectedVariant.priceRent && selectedVariant.priceSale) {
       setOptionType('SALE');
     }
   }, [selectedVariantId, selectedVariant, optionType]);
+
+  // Force quantity to 1 when RENTAL option is selected
+  React.useEffect(() => {
+    if (optionType === 'RENTAL') {
+      setQuantity(1);
+    }
+  }, [optionType]);
 
   const handleWishlistToggle = async () => {
     setIsWishlistLoading(true);
@@ -82,7 +90,7 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
       await addToCart({
         variantId: selectedVariant.id,
         type: optionType,
-        quantity,
+        quantity: optionType === 'RENTAL' ? 1 : quantity,
         rentStartDate: optionType === 'RENTAL' ? rentStartDate : undefined,
         rentEndDate: optionType === 'RENTAL' ? rentEndDate : undefined,
       });
@@ -168,7 +176,10 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
 
               {selectedVariant?.priceRent && (
                 <button
-                  onClick={() => setOptionType('RENTAL')}
+                  onClick={() => {
+                    setOptionType('RENTAL');
+                    setQuantity(1);
+                  }}
                   className={`flex-1 py-3 px-4 text-xs uppercase tracking-widest border transition-all text-center ${
                     optionType === 'RENTAL'
                       ? 'border-black bg-black text-white'
@@ -258,19 +269,36 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
             <span className="text-xs uppercase tracking-widest text-neutral-700">Quantity</span>
             <div className="flex items-center border border-neutral-300">
               <button
+                type="button"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="px-3 py-2 text-neutral-600 hover:bg-neutral-100 text-sm"
+                disabled={optionType === 'RENTAL' || quantity <= 1}
+                className={`px-3 py-2 text-sm ${
+                  optionType === 'RENTAL' || quantity <= 1
+                    ? 'text-neutral-300 cursor-not-allowed bg-neutral-50'
+                    : 'text-neutral-600 hover:bg-neutral-100'
+                }`}
               >
                 -
               </button>
-              <span className="px-4 py-2 text-xs font-mono">{quantity}</span>
+              <span className="px-4 py-2 text-xs font-mono">{optionType === 'RENTAL' ? 1 : quantity}</span>
               <button
+                type="button"
                 onClick={() => setQuantity(quantity + 1)}
-                className="px-3 py-2 text-neutral-600 hover:bg-neutral-100 text-sm"
+                disabled={optionType === 'RENTAL'}
+                className={`px-3 py-2 text-sm ${
+                  optionType === 'RENTAL'
+                    ? 'text-neutral-300 cursor-not-allowed bg-neutral-50'
+                    : 'text-neutral-600 hover:bg-neutral-100'
+                }`}
               >
                 +
               </button>
             </div>
+            {optionType === 'RENTAL' && (
+              <span className="text-[11px] text-neutral-400 font-sans italic">
+                (Quantity is always 1 for rental)
+              </span>
+            )}
           </div>
 
           {/* Add to Cart & Wishlist Buttons */}

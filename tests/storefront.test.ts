@@ -1,7 +1,40 @@
 process.env.USE_IN_MEMORY_DB = 'true';
+process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test-bucket';
 
-import { expect, test, describe, beforeAll, afterAll } from 'vitest';
+import { expect, test, describe, beforeAll, afterAll, vi } from 'vitest';
 import { prisma } from '../src/lib/prisma';
+import { sendOrderPushNotification } from '../src/lib/services/notification';
+
+const { mockSendMessage } = vi.hoisted(() => {
+  const mockSendMessage = vi.fn().mockImplementation(async (message: any) => {
+    return 'projects/test-project/messages/mock-msg-id-123';
+  });
+
+  return { mockSendMessage };
+});
+
+vi.mock('@/lib/firebase/admin', () => ({
+  firebaseAdmin: {},
+  firebaseAdminAuth: {
+    verifyIdToken: vi.fn(),
+  },
+  firebaseAdminMessaging: {
+    send: (msg: any) => mockSendMessage(msg),
+  },
+  firebaseAdminStorage: {
+    bucket: vi.fn().mockReturnValue({
+      file: vi.fn().mockReturnValue({
+        save: vi.fn().mockResolvedValue(undefined),
+        delete: vi.fn().mockResolvedValue(undefined),
+      }),
+    }),
+  },
+  verifyIdToken: vi.fn(),
+}));
+
+vi.mock('firebase-admin/storage', () => ({
+  getDownloadURL: vi.fn().mockResolvedValue('https://storage.googleapis.com/test-bucket/uploads/test-image.jpg'),
+}));
 import { getProducts, getCategories } from '../src/lib/services/product';
 import { toggleWishlistItem, getUserWishlist } from '../src/lib/services/wishlist';
 import { addItemToCart, getOrCreateCart, mergeGuestCartToUser } from '../src/lib/services/cart';
@@ -640,6 +673,69 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
     const resetList = await resetDefaultNavCategories();
     expect(resetList.length).toBe(6);
     expect(resetList[0].name).toBe('All Collections');
+  });
+
+  test('17. Firebase Cloud Messaging Push Notification & Order Status Dispatch', async () => {
+    // 1. Test direct sendOrderPushNotification function
+    const res = await sendOrderPushNotification(
+      'test_fcm_token_123',
+      'Order Shipped',
+      'Your order has been shipped via JNE Express',
+      'order_test_id'
+    );
+    expect(res).toBe('projects/test-project/messages/mock-msg-id-123');
+    expect(mockSendMessage).toHaveBeenCalledWith({
+      token: 'test_fcm_token_123',
+      notification: {
+        title: 'Order Shipped',
+        body: 'Your order has been shipped via JNE Express',
+      },
+      data: {
+        orderId: 'order_test_id',
+      },
+    });
+
+    // 2. Test order status change triggers FCM notification when user has fcmToken
+    const userWithFcm = await prisma.user.create({
+      data: {
+        email: 'fcm.storefront.patron@idealbeautyofficial.com',
+        name: 'FCM Storefront Patron',
+        phone: '+628777777777',
+        fcmToken: 'patron_fcm_token_456',
+      },
+    });
+
+    // Add item to cart and create order
+    await addItemToCart(userWithFcm.id, {
+      variantId: sampleVariant.id,
+      type: 'SALE',
+      quantity: 1,
+    });
+
+    const orderRes = await createOrder({
+      userId: userWithFcm.id,
+      shippingAddress: {
+        recipientName: 'FCM Storefront Patron',
+        phone: '+628777777777',
+        addressLine1: 'Jl. Senopati 45',
+        city: 'Jakarta',
+        province: 'DKI Jakarta',
+        postalCode: '12190',
+      },
+      paymentType: 'FULL_PAYMENT',
+      paymentMethod: 'QRIS',
+    });
+
+    mockSendMessage.mockClear();
+
+    // Update order status to PROCESSING (should trigger push notification)
+    await updateOrderStatus(orderRes.order.id, 'PROCESSING');
+
+    expect(mockSendMessage).toHaveBeenCalled();
+    const lastCallArg = mockSendMessage.mock.calls[0][0];
+    expect(lastCallArg.token).toBe('patron_fcm_token_456');
+    expect(lastCallArg.notification.title).toBe('Order Update');
+    expect(lastCallArg.notification.body).toContain('PROCESSING');
   });
 
   afterAll(async () => {
