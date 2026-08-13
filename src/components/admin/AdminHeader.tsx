@@ -10,12 +10,14 @@ import {
   FileText,
   ExternalLink,
   Sparkles,
+  Calendar,
+  Ticket,
 } from 'lucide-react';
 
 interface AdminHeaderProps {
   title: string;
   subtitle?: string;
-  activeTab: 'dashboard' | 'products' | 'sections' | 'orders' | 'ledger';
+  activeTab: 'dashboard' | 'products' | 'sections' | 'orders' | 'calendar' | 'vouchers' | 'ledger';
   action?: React.ReactNode;
 }
 
@@ -44,6 +46,18 @@ export default function AdminHeader({ title, subtitle, activeTab, action }: Admi
       label: 'Orders & Rentals',
       href: '/admin/orders',
       icon: ShoppingBag,
+    },
+    {
+      id: 'calendar',
+      label: 'Rental Calendar',
+      href: '/admin/calendar',
+      icon: Calendar,
+    },
+    {
+      id: 'vouchers',
+      label: 'Vouchers & Promos',
+      href: '/admin/vouchers',
+      icon: Ticket,
     },
     {
       id: 'ledger',

@@ -82,6 +82,15 @@ export async function addItemToCart(userIdOrSessionId: string, input: AddToCartI
   const rentStart = input.rentStartDate ? new Date(input.rentStartDate) : null;
   const rentEnd = input.rentEndDate ? new Date(input.rentEndDate) : null;
 
+  const variant = await prisma.productVariant.findUnique({
+    where: { id: input.variantId },
+    include: { product: true },
+  });
+
+  if (!variant) {
+    throw new Error('Product variant not found.');
+  }
+
   const existingItem = await prisma.cartItem.findUnique({
     where: {
       cartId_variantId_type: {
@@ -92,11 +101,33 @@ export async function addItemToCart(userIdOrSessionId: string, input: AddToCartI
     },
   });
 
+  const requestedQuantity = (existingItem?.quantity || 0) + input.quantity;
+
+  const effectiveRentAvailable =
+    variant.stockRentAvailable === 0 && variant.stockSaleAvailable === 0 && variant.stockAvailable > 0
+      ? variant.stockAvailable
+      : variant.stockRentAvailable;
+
+  const effectiveSaleAvailable =
+    variant.stockRentAvailable === 0 && variant.stockSaleAvailable === 0 && variant.stockAvailable > 0
+      ? variant.stockAvailable
+      : variant.stockSaleAvailable;
+
+  if (itemType === ItemType.RENTAL) {
+    if (effectiveRentAvailable < requestedQuantity) {
+      throw new Error(`Only ${effectiveRentAvailable} rental units available for ${variant.product.name}.`);
+    }
+  } else {
+    if (effectiveSaleAvailable < requestedQuantity) {
+      throw new Error(`Only ${effectiveSaleAvailable} items available for sale for ${variant.product.name}.`);
+    }
+  }
+
   if (existingItem) {
     await prisma.cartItem.update({
       where: { id: existingItem.id },
       data: {
-        quantity: existingItem.quantity + input.quantity,
+        quantity: requestedQuantity,
         rentStartDate: rentStart || existingItem.rentStartDate,
         rentEndDate: rentEnd || existingItem.rentEndDate,
       },

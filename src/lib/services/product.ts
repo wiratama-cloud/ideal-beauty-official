@@ -77,6 +77,7 @@ export async function getProducts(params: GetProductsParams = {}) {
       priceRent: variant.priceRent ? Number(variant.priceRent) : null,
       compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
       costPrice: variant.costPrice ? Number(variant.costPrice) : null,
+      purchaseCost: variant.purchaseCost ? Number(variant.purchaseCost) : null,
     })),
   }));
 }
@@ -103,6 +104,7 @@ export async function getProductBySlug(slug: string) {
       priceRent: variant.priceRent ? Number(variant.priceRent) : null,
       compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
       costPrice: variant.costPrice ? Number(variant.costPrice) : null,
+      purchaseCost: variant.purchaseCost ? Number(variant.purchaseCost) : null,
     })),
   };
 }

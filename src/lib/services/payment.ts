@@ -1,5 +1,5 @@
 import { prisma } from '../prisma';
-import { PaymentStatus, OrderStatus, EntryType, IncomeCategory, PaymentType } from '@prisma/client';
+import { PaymentStatus, OrderStatus, EntryType, IncomeCategory, PaymentType, DebitCredit } from '@prisma/client';
 import { generateQRISData, generateVirtualAccountData } from './payment-gateway';
 
 export async function processPaymentCompletion(paymentId: string, providerTxId?: string) {
@@ -68,6 +68,9 @@ export async function processPaymentCompletion(paymentId: string, providerTxId?:
     await tx.ledgerEntry.create({
       data: {
         type: EntryType.INCOME,
+        dcType: DebitCredit.CREDIT,
+        tranCode: 'PAYMENT_INCOME',
+        tranSequence: 1,
         amount: payment.amount,
         description: `Received ${payment.type} payment for Order #${payment.orderId.substring(0, 8)} (${payment.paymentMethod || 'QRIS'})`,
         incomeCategory,

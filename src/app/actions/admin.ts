@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { createExpenseEntry, CreateExpenseInput, generateLedgerCSV } from '@/lib/services/ledger';
-import { serializeOrder } from '@/lib/services/order';
+import { serializeOrder, updateOrderStatus, updateOrderShippingInfo } from '@/lib/services/order';
+import { createVoucher, getVouchers, toggleVoucherStatus, deleteVoucher, CreateVoucherInput } from '@/lib/services/voucher';
+import { recordStockAdjustment, getInventoryTransactions, RecordStockAdjustmentInput } from '@/lib/services/inventory';
 import {
   createLandingSection,
   updateLandingSection,
@@ -65,6 +67,7 @@ export async function getAllOrdersAdminAction() {
       },
       shippingAddress: true,
       user: true,
+      voucher: true,
     },
     orderBy: {
       createdAt: 'desc',
@@ -72,6 +75,18 @@ export async function getAllOrdersAdminAction() {
   });
 
   return orders.map((order) => serializeOrder(order));
+}
+
+export async function updateOrderStatusAction(orderId: string, status: any) {
+  const order = await updateOrderStatus(orderId, status);
+  revalidatePath('/admin/orders');
+  return order;
+}
+
+export async function updateOrderShippingInfoAction(orderId: string, courierName?: string, trackingNumber?: string) {
+  const order = await updateOrderShippingInfo(orderId, courierName, trackingNumber);
+  revalidatePath('/admin/orders');
+  return order;
 }
 
 // Landing Section Actions
@@ -154,25 +169,72 @@ export async function getAdminInventoryAction() {
       priceRent: variant.priceRent ? Number(variant.priceRent) : null,
       compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
       costPrice: variant.costPrice ? Number(variant.costPrice) : null,
+      purchaseCost: variant.purchaseCost ? Number(variant.purchaseCost) : null,
     })),
   }));
 }
 
+export async function adjustInventoryStockAction(data: RecordStockAdjustmentInput) {
+  const result = await recordStockAdjustment(data);
+  revalidatePath('/admin/inventory');
+  revalidatePath('/admin/products');
+  revalidatePath('/admin/ledger');
+  revalidatePath('/products');
+  revalidatePath('/');
+  return result;
+}
+
+export async function getInventoryTransactionsAction(variantId?: string) {
+  return getInventoryTransactions(variantId);
+}
+
 export async function updateVariantStockAction(
   variantId: string,
-  stockTotal: number,
-  stockAvailable: number
+  stockSaleTotal: number,
+  stockSaleAvailable: number,
+  stockRentTotal: number = 0,
+  stockRentAvailable: number = 0,
+  reason?: string,
+  cost?: number | null
 ) {
+  const saleTotal = Math.max(0, Number(stockSaleTotal) || 0);
+  const saleAvailable = Math.max(0, Number(stockSaleAvailable) || 0);
+  const rentTotal = Math.max(0, Number(stockRentTotal) || 0);
+  const rentAvailable = Math.max(0, Number(stockRentAvailable) || 0);
+
+  const legacyTotal = saleTotal + rentTotal;
+  const legacyAvailable = saleAvailable + rentAvailable;
+
+  const costVal = cost !== undefined && cost !== null ? Number(cost) : undefined;
+
   const updated = await prisma.productVariant.update({
     where: { id: variantId },
     data: {
-      stockTotal: Math.max(0, stockTotal),
-      stockAvailable: Math.max(0, stockAvailable),
+      stockSaleTotal: saleTotal,
+      stockSaleAvailable: saleAvailable,
+      stockRentTotal: rentTotal,
+      stockRentAvailable: rentAvailable,
+      stockTotal: legacyTotal,
+      stockAvailable: legacyAvailable,
+      ...(costVal !== undefined ? { purchaseCost: costVal, costPrice: costVal } : {}),
     },
     include: {
       product: true,
     },
   });
+
+  if (reason) {
+    await prisma.inventoryTransaction.create({
+      data: {
+        variantId,
+        type: 'ADJUSTMENT',
+        quantity: legacyTotal,
+        reason,
+        cost: costVal ?? null,
+        purchaseCost: costVal ?? null,
+      },
+    });
+  }
 
   revalidatePath('/admin/inventory');
   revalidatePath('/admin/products');
@@ -185,6 +247,7 @@ export async function updateVariantStockAction(
     priceRent: updated.priceRent ? Number(updated.priceRent) : null,
     compareAtPrice: updated.compareAtPrice ? Number(updated.compareAtPrice) : null,
     costPrice: updated.costPrice ? Number(updated.costPrice) : null,
+    purchaseCost: updated.purchaseCost ? Number(updated.purchaseCost) : null,
   };
 }
 
@@ -197,8 +260,13 @@ export interface VariantInput {
   priceRent?: number | null;
   compareAtPrice?: number | null;
   costPrice?: number | null;
-  stockTotal: number;
-  stockAvailable: number;
+  purchaseCost?: number | null;
+  stockSaleTotal?: number;
+  stockSaleAvailable?: number;
+  stockRentTotal?: number;
+  stockRentAvailable?: number;
+  stockTotal?: number;
+  stockAvailable?: number;
 }
 
 export interface CreateProductInput {
@@ -229,6 +297,7 @@ export async function getFullAdminProductsAction() {
       priceRent: variant.priceRent ? Number(variant.priceRent) : null,
       compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
       costPrice: variant.costPrice ? Number(variant.costPrice) : null,
+      purchaseCost: variant.purchaseCost ? Number(variant.purchaseCost) : null,
     })),
   }));
 }
@@ -248,16 +317,27 @@ export async function createProductAction(data: CreateProductInput) {
       images: data.images && data.images.length > 0 ? data.images : ['/images/products/default-product.jpg'],
       isActive: data.isActive ?? true,
       variants: {
-        create: data.variants.map((v) => ({
-          sku: v.sku.trim(),
-          attributes: v.attributes || { size: 'Free Size' },
-          priceSale: v.priceSale !== undefined && v.priceSale !== null ? v.priceSale : null,
-          priceRent: v.priceRent !== undefined && v.priceRent !== null ? v.priceRent : null,
-          compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : null,
-          costPrice: v.costPrice !== undefined && v.costPrice !== null ? v.costPrice : null,
-          stockTotal: Math.max(0, Number(v.stockTotal) || 0),
-          stockAvailable: Math.max(0, Number(v.stockAvailable) || 0),
-        })),
+        create: data.variants.map((v) => {
+          const saleTotal = Math.max(0, Number(v.stockSaleTotal ?? v.stockTotal) || 0);
+          const saleAvailable = Math.max(0, Number(v.stockSaleAvailable ?? v.stockAvailable) || 0);
+          const rentTotal = Math.max(0, Number(v.stockRentTotal) || 0);
+          const rentAvailable = Math.max(0, Number(v.stockRentAvailable) || 0);
+          return {
+            sku: v.sku.trim(),
+            attributes: v.attributes || { size: 'Free Size' },
+            priceSale: v.priceSale !== undefined && v.priceSale !== null ? v.priceSale : null,
+            priceRent: v.priceRent !== undefined && v.priceRent !== null ? v.priceRent : null,
+            compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : null,
+            costPrice: v.costPrice !== undefined && v.costPrice !== null ? v.costPrice : null,
+            purchaseCost: v.purchaseCost !== undefined && v.purchaseCost !== null ? v.purchaseCost : null,
+            stockSaleTotal: saleTotal,
+            stockSaleAvailable: saleAvailable,
+            stockRentTotal: rentTotal,
+            stockRentAvailable: rentAvailable,
+            stockTotal: saleTotal + rentTotal,
+            stockAvailable: saleAvailable + rentAvailable,
+          };
+        }),
       },
     },
     include: { variants: true },
@@ -276,6 +356,7 @@ export async function createProductAction(data: CreateProductInput) {
       priceRent: v.priceRent ? Number(v.priceRent) : null,
       compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : null,
       costPrice: v.costPrice ? Number(v.costPrice) : null,
+      purchaseCost: v.purchaseCost ? Number(v.purchaseCost) : null,
     })),
   };
 }
@@ -313,32 +394,37 @@ export async function updateProductAction(productId: string, data: CreateProduct
 
     // 3. Upsert variants
     for (const v of data.variants) {
+      const saleTotal = Math.max(0, Number(v.stockSaleTotal ?? v.stockTotal) || 0);
+      const saleAvailable = Math.max(0, Number(v.stockSaleAvailable ?? v.stockAvailable) || 0);
+      const rentTotal = Math.max(0, Number(v.stockRentTotal) || 0);
+      const rentAvailable = Math.max(0, Number(v.stockRentAvailable) || 0);
+
+      const variantPayload = {
+        sku: v.sku.trim(),
+        attributes: v.attributes || { size: 'Free Size' },
+        priceSale: v.priceSale !== undefined && v.priceSale !== null ? v.priceSale : null,
+        priceRent: v.priceRent !== undefined && v.priceRent !== null ? v.priceRent : null,
+        compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : null,
+        costPrice: v.costPrice !== undefined && v.costPrice !== null ? v.costPrice : null,
+        purchaseCost: v.purchaseCost !== undefined && v.purchaseCost !== null ? v.purchaseCost : null,
+        stockSaleTotal: saleTotal,
+        stockSaleAvailable: saleAvailable,
+        stockRentTotal: rentTotal,
+        stockRentAvailable: rentAvailable,
+        stockTotal: saleTotal + rentTotal,
+        stockAvailable: saleAvailable + rentAvailable,
+      };
+
       if (v.id && existingIds.has(v.id)) {
         await tx.productVariant.update({
           where: { id: v.id },
-          data: {
-            sku: v.sku.trim(),
-            attributes: v.attributes || { size: 'Free Size' },
-            priceSale: v.priceSale !== undefined && v.priceSale !== null ? v.priceSale : null,
-            priceRent: v.priceRent !== undefined && v.priceRent !== null ? v.priceRent : null,
-            compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : null,
-            costPrice: v.costPrice !== undefined && v.costPrice !== null ? v.costPrice : null,
-            stockTotal: Math.max(0, Number(v.stockTotal) || 0),
-            stockAvailable: Math.max(0, Number(v.stockAvailable) || 0),
-          },
+          data: variantPayload,
         });
       } else {
         await tx.productVariant.create({
           data: {
             productId,
-            sku: v.sku.trim(),
-            attributes: v.attributes || { size: 'Free Size' },
-            priceSale: v.priceSale !== undefined && v.priceSale !== null ? v.priceSale : null,
-            priceRent: v.priceRent !== undefined && v.priceRent !== null ? v.priceRent : null,
-            compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : null,
-            costPrice: v.costPrice !== undefined && v.costPrice !== null ? v.costPrice : null,
-            stockTotal: Math.max(0, Number(v.stockTotal) || 0),
-            stockAvailable: Math.max(0, Number(v.stockAvailable) || 0),
+            ...variantPayload,
           },
         });
       }
@@ -353,7 +439,14 @@ export async function updateProductAction(productId: string, data: CreateProduct
           // If referenced by order or cart, mark stock as 0
           await tx.productVariant.update({
             where: { id: existingId },
-            data: { stockTotal: 0, stockAvailable: 0 },
+            data: {
+              stockSaleTotal: 0,
+              stockSaleAvailable: 0,
+              stockRentTotal: 0,
+              stockRentAvailable: 0,
+              stockTotal: 0,
+              stockAvailable: 0,
+            },
           });
         }
       }
@@ -403,4 +496,41 @@ export async function toggleProductActiveAction(productId: string, isActive: boo
   revalidatePath('/');
 
   return updated;
+}
+
+// Voucher Actions
+export async function createVoucherAction(data: CreateVoucherInput) {
+  const result = await createVoucher(data);
+  revalidatePath('/admin/vouchers');
+  return result;
+}
+
+export async function getVouchersAction() {
+  return getVouchers();
+}
+
+export async function toggleVoucherStatusAction(id: string) {
+  const result = await toggleVoucherStatus(id);
+  revalidatePath('/admin/vouchers');
+  return result;
+}
+
+export async function deleteVoucherAction(id: string) {
+  const result = await deleteVoucher(id);
+  revalidatePath('/admin/vouchers');
+  return result;
+}
+
+export async function getCustomersAction() {
+  return prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+    },
+    orderBy: {
+      name: 'asc',
+    },
+  });
 }

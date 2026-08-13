@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Heart, ShoppingBag, Calendar, Check, ShieldCheck, Truck } from 'lucide-react';
 import { useCart } from '../cart/CartContext';
 import { toggleWishlistAction } from '@/app/actions/wishlist';
+import RentalAvailabilityCalendar from './RentalAvailabilityCalendar';
 
 interface ProductDetailViewProps {
   product: {
@@ -43,6 +44,7 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
   const threeDaysLater = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const [rentStartDate, setRentStartDate] = useState(todayStr);
   const [rentEndDate, setRentEndDate] = useState(threeDaysLater);
+  const [isRentalDatesValid, setIsRentalDatesValid] = useState(true);
 
   const [isWishlisted, setIsWishlisted] = useState(isWishlistedInitial);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
@@ -237,34 +239,18 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
 
           {/* Rental Date Selector (if RENTAL) */}
           {optionType === 'RENTAL' && (
-            <div className="bg-neutral-50 p-4 border border-neutral-200 space-y-4">
-              <div className="flex items-center space-x-2 text-xs uppercase tracking-widest font-medium text-neutral-800">
-                <Calendar className="w-4 h-4 text-neutral-600" />
-                <span>Specify Rental Period</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs">
-                <div>
-                  <label className="block text-neutral-500 mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    value={rentStartDate}
-                    min={todayStr}
-                    onChange={(e) => setRentStartDate(e.target.value)}
-                    className="w-full bg-white border border-neutral-300 p-2 text-neutral-800 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-neutral-500 mb-1">Return Date</label>
-                  <input
-                    type="date"
-                    value={rentEndDate}
-                    min={rentStartDate}
-                    onChange={(e) => setRentEndDate(e.target.value)}
-                    className="w-full bg-white border border-neutral-300 p-2 text-neutral-800 text-xs"
-                  />
-                </div>
-              </div>
-            </div>
+            <RentalAvailabilityCalendar
+              key={selectedVariant?.id}
+              variantId={selectedVariant?.id || ''}
+              dailyRate={selectedVariant?.priceRent}
+              initialStartDate={rentStartDate}
+              initialEndDate={rentEndDate}
+              onSelectDates={(start, end, isValid) => {
+                setRentStartDate(start);
+                setRentEndDate(end);
+                setIsRentalDatesValid(isValid);
+              }}
+            />
           )}
 
           {/* Quantity Selector */}
@@ -291,11 +277,18 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
           <div className="flex space-x-4 pt-2">
             <button
               onClick={handleAddToCart}
-              disabled={isAddingToCart || !selectedVariant || selectedVariant.stockAvailable <= 0}
+              disabled={
+                isAddingToCart ||
+                !selectedVariant ||
+                selectedVariant.stockAvailable <= 0 ||
+                (optionType === 'RENTAL' && (!isRentalDatesValid || !rentStartDate || !rentEndDate))
+              }
               className={`flex-1 py-4 text-xs uppercase tracking-[0.2em] font-light transition-all flex items-center justify-center space-x-2 ${
                 addedSuccess
                   ? 'bg-emerald-700 text-white'
-                  : selectedVariant && selectedVariant.stockAvailable > 0
+                  : selectedVariant &&
+                    selectedVariant.stockAvailable > 0 &&
+                    (optionType !== 'RENTAL' || (isRentalDatesValid && rentStartDate && rentEndDate))
                   ? 'bg-black text-white hover:bg-neutral-800'
                   : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
               }`}

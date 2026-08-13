@@ -42,9 +42,26 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum DebitCredit {
+  DEBIT
+  CREDIT
+}
+
+enum VoucherDiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum VoucherTargetType {
+  EVENT
+  CUSTOMER
+}
+
 enum EntryType {
   INCOME
   EXPENSE
+  DEBIT
+  CREDIT
 }
 
 enum ExpenseCategory {
@@ -70,16 +87,18 @@ enum SectionType {
 }
 
 model User {
-  id        String         @id @default(uuid())
-  email     String         @unique
-  name      String?
-  phone     String?
-  addresses Address[]
-  orders    Order[]
-  cart      Cart?
-  wishlist  WishlistItem[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id            String         @id @default(uuid())
+  email         String         @unique
+  name          String?
+  phone         String?
+  addresses     Address[]
+  orders        Order[]
+  cart          Cart?
+  wishlist      WishlistItem[]
+  vouchers      Voucher[]
+  voucherUsages VoucherUsage[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Address {
@@ -118,24 +137,38 @@ model Product {
 }
 
 model ProductVariant {
-  id             String          @id @default(uuid())
-  productId      String
-  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  sku            String          @unique
-  attributes     Json
-  priceSale      Decimal?        @db.Decimal(10, 2)
-  priceRent      Decimal?        @db.Decimal(10, 2)
-  compareAtPrice Decimal?        @db.Decimal(10, 2)
-  costPrice      Decimal?        @db.Decimal(10, 2)
-  stockTotal     Int             @default(0)
-  stockAvailable Int             @default(0)
-  orderItems     OrderItem[]
-  cartItems      CartItem[]
-  wishlistedBy   WishlistItem[]
-  ledgerEntries  LedgerEntry[]
+  id                 String          @id @default(uuid())
+  productId          String
+  product            Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku                String          @unique
+  attributes         Json
+  priceSale          Decimal?        @db.Decimal(10, 2)
+  priceRent          Decimal?        @db.Decimal(10, 2)
+  compareAtPrice     Decimal?               @db.Decimal(10, 2)
+  costPrice          Decimal?               @db.Decimal(10, 2)
+  purchaseCost       Decimal?               @db.Decimal(10, 2)
+
+  // Separated Stock Pools
+  stockSaleTotal     Int                    @default(0)
+  stockSaleAvailable Int                    @default(0)
+  stockRentTotal     Int                    @default(0)
+  stockRentAvailable Int                    @default(0)
+
+  // Deprecated legacy fallback fields
+  stockTotal         Int                    @default(0)
+  stockAvailable     Int                    @default(0)
+
+  orderItems            OrderItem[]
+  cartItems             CartItem[]
+  wishlistedBy          WishlistItem[]
+  ledgerEntries         LedgerEntry[]
+  rentalBlocks          RentalBlock[]
+  inventoryTransactions InventoryTransaction[]
 
   @@index([productId, sku])
   @@index([productId, stockAvailable])
+  @@index([productId, stockSaleAvailable])
+  @@index([productId, stockRentAvailable])
 }
 
 model Cart {
@@ -182,22 +215,27 @@ model WishlistItem {
 }
 
 model Order {
-  id                String        @id @default(uuid())
+  id                String         @id @default(uuid())
   userId            String?
-  user              User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  totalAmount       Decimal       @db.Decimal(10, 2)
-  status            OrderStatus   @default(PENDING)
+  user              User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  totalAmount       Decimal        @db.Decimal(10, 2)
+  discountAmount    Decimal?       @default(0) @db.Decimal(10, 2)
+  status            OrderStatus    @default(PENDING)
   shippingAddressId String?
-  shippingAddress   Address?      @relation(fields: [shippingAddressId], references: [id], onDelete: SetNull)
-  shippingCost      Decimal?      @db.Decimal(10, 2)
+  shippingAddress   Address?       @relation(fields: [shippingAddressId], references: [id], onDelete: SetNull)
+  shippingCost      Decimal?       @db.Decimal(10, 2)
   courierName       String?
   trackingNumber    String?
+  voucherId         String?
+  voucher           Voucher?       @relation(fields: [voucherId], references: [id], onDelete: SetNull)
   items             OrderItem[]
   payments          Payment[]
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  voucherUsages     VoucherUsage[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   @@index([userId, status])
+  @@index([voucherId])
 }
 
 model OrderItem {
@@ -235,7 +273,11 @@ model Payment {
 
 model LedgerEntry {
   id              String           @id @default(uuid())
+  sequence        Int              @default(autoincrement())
   type            EntryType
+  dcType          DebitCredit?
+  tranCode        String?
+  tranSequence    Int?
   amount          Decimal          @db.Decimal(10, 2)
   description     String
   incomeCategory  IncomeCategory?
@@ -250,6 +292,7 @@ model LedgerEntry {
   updatedAt       DateTime         @updatedAt
 
   @@index([createdAt, type])
+  @@index([sequence])
 }
 
 model LandingSection {
@@ -284,4 +327,84 @@ model LandingSectionItem {
   updatedAt    DateTime       @updatedAt
 
   @@index([sectionId, displayOrder])
+}
+
+model RentalBlock {
+  id        String         @id @default(uuid())
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  startDate DateTime
+  endDate   DateTime
+  reason    String         @default("MAINTENANCE") // MAINTENANCE, DRY_CLEANING, DAMAGED, BLACKOUT
+  notes     String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([variantId, startDate, endDate])
+}
+
+enum InventoryTransactionType {
+  ADD
+  REMOVE
+  ADJUSTMENT
+  SALE
+  RENTAL
+  RETURN
+}
+
+model InventoryTransaction {
+  id           String                   @id @default(uuid())
+  variantId    String
+  variant      ProductVariant           @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  type         InventoryTransactionType @default(ADD)
+  quantity     Int
+  reason       String?                  // Reason for stock addition/removal e.g. "PURCHASE", "DAMAGE", "RESTOCK", "AUDIT_ADJUSTMENT"
+  cost         Decimal?                 @db.Decimal(10, 2) // Unit cost or purchase cost
+  purchaseCost Decimal?                 @db.Decimal(10, 2) // Purchase cost
+  notes        String?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@index([variantId, createdAt])
+}
+
+model Voucher {
+  id            String              @id @default(uuid())
+  code          String              @unique
+  description   String?
+  discountType  VoucherDiscountType
+  discountValue Decimal             @db.Decimal(10, 2)
+  minPurchase   Decimal?            @db.Decimal(10, 2)
+  maxDiscount   Decimal?            @db.Decimal(10, 2)
+  startDate     DateTime?
+  endDate       DateTime?
+  usageLimit    Int?
+  usageCount    Int                 @default(0)
+  isActive      Boolean             @default(true)
+  targetType    VoucherTargetType   @default(EVENT)
+  userId        String?
+  user          User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  usages        VoucherUsage[]
+  orders        Order[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([code])
+  @@index([userId])
+}
+
+model VoucherUsage {
+  id             String   @id @default(uuid())
+  voucherId      String
+  voucher        Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  discountAmount Decimal  @db.Decimal(10, 2)
+  usedAt         DateTime @default(now())
+
+  @@index([voucherId])
+  @@index([orderId])
+  @@index([userId])
 }

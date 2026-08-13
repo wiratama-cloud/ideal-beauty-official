@@ -17,7 +17,7 @@ import {
   ShoppingBag,
   FileText,
 } from 'lucide-react';
-import { updateVariantStockAction } from '@/app/actions/admin';
+import { adjustInventoryStockAction } from '@/app/actions/admin';
 
 interface ProductVariant {
   id: string;
@@ -26,6 +26,10 @@ interface ProductVariant {
   priceSale: number | null;
   priceRent: number | null;
   costPrice: number | null;
+  stockSaleTotal: number;
+  stockSaleAvailable: number;
+  stockRentTotal: number;
+  stockRentAvailable: number;
   stockTotal: number;
   stockAvailable: number;
 }
@@ -49,7 +53,16 @@ export default function AdminInventoryView({ products: initialProducts }: AdminI
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [stockFilter, setStockFilter] = useState<'ALL' | 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK'>('ALL');
-  const [editingStock, setEditingStock] = useState<Record<string, { total: number; available: number }>>({});
+  const [adjustmentModal, setAdjustmentModal] = useState<{
+    isOpen: boolean;
+    variantId: string;
+    sku: string;
+    stockPool: 'SALE' | 'RENTAL';
+    type: 'ADD' | 'REMOVE' | 'ADJUSTMENT';
+    quantity: number;
+    reason: string;
+    cost: number | '';
+  } | null>(null);
   const [savingVariantId, setSavingVariantId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -75,66 +88,58 @@ export default function AdminInventoryView({ products: initialProducts }: AdminI
   products.forEach((p) => {
     p.variants.forEach((v) => {
       totalVariantsCount++;
-      totalAvailableUnits += v.stockAvailable;
-      if (v.stockAvailable <= 0) {
+      const available = v.stockSaleAvailable + v.stockRentAvailable || v.stockAvailable;
+      totalAvailableUnits += available;
+      if (available <= 0) {
         outOfStockCount++;
-      } else if (v.stockAvailable <= 2) {
+      } else if (available <= 2) {
         lowStockCount++;
       }
     });
   });
 
-  // Handle stock input change
-  const handleStockChange = (variantId: string, field: 'total' | 'available', value: number) => {
-    const val = Math.max(0, value);
-    setEditingStock((prev) => {
-      const current = prev[variantId] || {
-        total: products.flatMap((p) => p.variants).find((v) => v.id === variantId)?.stockTotal || 0,
-        available: products.flatMap((p) => p.variants).find((v) => v.id === variantId)?.stockAvailable || 0,
-      };
-      return {
-        ...prev,
-        [variantId]: {
-          ...current,
-          [field]: val,
-        },
-      };
+  const handleOpenAdjustment = (variant: ProductVariant, stockPool: 'SALE' | 'RENTAL') => {
+    setAdjustmentModal({
+      isOpen: true,
+      variantId: variant.id,
+      sku: variant.sku,
+      stockPool,
+      type: 'ADD',
+      quantity: 1,
+      reason: 'RESTOCK',
+      cost: '',
     });
   };
 
-  // Save stock changes
-  const handleSaveStock = async (variantId: string) => {
-    const currentVariant = products.flatMap((p) => p.variants).find((v) => v.id === variantId);
-    if (!currentVariant) return;
+  const handleAdjustStockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adjustmentModal || adjustmentModal.quantity <= 0 || !adjustmentModal.reason) return;
 
-    const edited = editingStock[variantId] ?? {
-      total: currentVariant.stockTotal,
-      available: currentVariant.stockAvailable,
-    };
-
-    setSavingVariantId(variantId);
+    setSavingVariantId(adjustmentModal.variantId);
     try {
-      const updated = await updateVariantStockAction(variantId, edited.total, edited.available);
+      const response = await adjustInventoryStockAction({
+        variantId: adjustmentModal.variantId,
+        type: adjustmentModal.type,
+        quantity: adjustmentModal.quantity,
+        reason: adjustmentModal.reason,
+        stockPool: adjustmentModal.stockPool,
+        cost: adjustmentModal.cost === '' ? null : Number(adjustmentModal.cost),
+      });
 
       setProducts((prev) =>
         prev.map((product) => ({
           ...product,
           variants: product.variants.map((v) =>
-            v.id === variantId
-              ? {
-                  ...v,
-                  stockTotal: updated.stockTotal,
-                  stockAvailable: updated.stockAvailable,
-                }
-              : v
+            v.id === response.variant.id ? { ...v, ...response.variant } : v
           ),
         }))
       );
 
-      setSuccessMessage(`Stock updated for SKU ${updated.sku}`);
+      setSuccessMessage(`Stock adjusted for SKU ${adjustmentModal.sku}`);
       setTimeout(() => setSuccessMessage(null), 3000);
+      setAdjustmentModal(null);
     } catch (err) {
-      console.error('Failed to update stock:', err);
+      console.error('Failed to adjust stock:', err);
     } finally {
       setSavingVariantId(null);
     }
@@ -375,22 +380,13 @@ export default function AdminInventoryView({ products: initialProducts }: AdminI
                         <th className="pb-3 font-medium">SKU</th>
                         <th className="pb-3 font-medium">Attributes</th>
                         <th className="pb-3 font-medium">Prices (Sale / Rent / Cost)</th>
-                        <th className="pb-3 font-medium">Stock Status</th>
-                        <th className="pb-3 font-medium text-center">Available Stock</th>
-                        <th className="pb-3 font-medium text-center">Total Stock</th>
+                        <th className="pb-3 font-medium text-center">Buy Stock (Avail / Total)</th>
+                        <th className="pb-3 font-medium text-center">Rent Stock (Avail / Total)</th>
                         <th className="pb-3 font-medium text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-100 font-mono text-[11px]">
                       {product.variants.map((variant) => {
-                        const edited = editingStock[variant.id] ?? {
-                          total: variant.stockTotal,
-                          available: variant.stockAvailable,
-                        };
-
-                        const isChanged =
-                          edited.total !== variant.stockTotal || edited.available !== variant.stockAvailable;
-
                         const isSaving = savingVariantId === variant.id;
 
                         // Attributes string
@@ -410,102 +406,48 @@ export default function AdminInventoryView({ products: initialProducts }: AdminI
                               <div>Rent: {formatIDR(variant.priceRent)}</div>
                               <div className="text-neutral-400 text-[10px]">COGS: {formatIDR(variant.costPrice)}</div>
                             </td>
-                            <td className="py-4">
-                              {variant.stockAvailable <= 0 ? (
-                                <span className="bg-rose-100 text-rose-800 px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold inline-flex items-center space-x-1">
-                                  <XCircle className="w-3 h-3" />
-                                  <span>OUT OF STOCK</span>
-                                </span>
-                              ) : variant.stockAvailable <= 2 ? (
-                                <span className="bg-amber-100 text-amber-800 px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold inline-flex items-center space-x-1">
-                                  <AlertTriangle className="w-3 h-3" />
-                                  <span>LOW STOCK ({variant.stockAvailable})</span>
-                                </span>
-                              ) : (
-                                <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold inline-flex items-center space-x-1">
-                                  <CheckCircle className="w-3 h-3" />
-                                  <span>IN STOCK</span>
-                                </span>
-                              )}
-                            </td>
 
-                            {/* Available Stock Counter */}
+                            {/* Buy Stock (Available / Total) */}
                             <td className="py-4 text-center">
-                              <div className="inline-flex items-center space-x-1 bg-neutral-100 p-1 rounded-sm border border-neutral-200">
+                              <div className="flex flex-col items-center gap-1">
+                                <div className="text-[9px] uppercase tracking-wider text-neutral-400">Buy / Sale</div>
+                                <div className="inline-flex items-center space-x-2 p-1">
+                                  <span className="font-bold text-neutral-900">{variant.stockSaleAvailable ?? variant.stockAvailable}</span>
+                                  <span className="text-neutral-400">/</span>
+                                  <span className="text-neutral-600">{variant.stockSaleTotal ?? variant.stockTotal}</span>
+                                </div>
                                 <button
                                   type="button"
-                                  onClick={() => handleStockChange(variant.id, 'available', edited.available - 1)}
-                                  className="p-1 text-neutral-600 hover:text-black hover:bg-white transition-colors"
-                                  title="Decrement Available Stock"
+                                  onClick={() => handleOpenAdjustment(variant, 'SALE')}
+                                  className="text-[9px] uppercase tracking-widest text-neutral-500 border-b border-neutral-300 hover:text-black hover:border-black transition-colors"
                                 >
-                                  <Minus className="w-3 h-3" />
-                                </button>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={edited.available}
-                                  onChange={(e) =>
-                                    handleStockChange(variant.id, 'available', parseInt(e.target.value) || 0)
-                                  }
-                                  className="w-12 text-center bg-white border border-neutral-300 py-1 font-mono text-xs focus:outline-none text-neutral-900 font-bold"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleStockChange(variant.id, 'available', edited.available + 1)}
-                                  className="p-1 text-neutral-600 hover:text-black hover:bg-white transition-colors"
-                                  title="Increment Available Stock"
-                                >
-                                  <Plus className="w-3 h-3" />
+                                  Adjust
                                 </button>
                               </div>
                             </td>
 
-                            {/* Total Stock Counter */}
+                            {/* Rent Stock (Available / Total) */}
                             <td className="py-4 text-center">
-                              <div className="inline-flex items-center space-x-1 bg-neutral-100 p-1 rounded-sm border border-neutral-200">
+                              <div className="flex flex-col items-center gap-1">
+                                <div className="text-[9px] uppercase tracking-wider text-neutral-400">Rent Fleet</div>
+                                <div className="inline-flex items-center space-x-2 p-1">
+                                  <span className="font-bold text-emerald-800">{variant.stockRentAvailable ?? 0}</span>
+                                  <span className="text-neutral-400">/</span>
+                                  <span className="text-neutral-600">{variant.stockRentTotal ?? 0}</span>
+                                </div>
                                 <button
                                   type="button"
-                                  onClick={() => handleStockChange(variant.id, 'total', edited.total - 1)}
-                                  className="p-1 text-neutral-600 hover:text-black hover:bg-white transition-colors"
-                                  title="Decrement Total Stock"
+                                  onClick={() => handleOpenAdjustment(variant, 'RENTAL')}
+                                  className="text-[9px] uppercase tracking-widest text-neutral-500 border-b border-neutral-300 hover:text-black hover:border-black transition-colors"
                                 >
-                                  <Minus className="w-3 h-3" />
-                                </button>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={edited.total}
-                                  onChange={(e) =>
-                                    handleStockChange(variant.id, 'total', parseInt(e.target.value) || 0)
-                                  }
-                                  className="w-12 text-center bg-white border border-neutral-300 py-1 font-mono text-xs focus:outline-none text-neutral-900"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleStockChange(variant.id, 'total', edited.total + 1)}
-                                  className="p-1 text-neutral-600 hover:text-black hover:bg-white transition-colors"
-                                  title="Increment Total Stock"
-                                >
-                                  <Plus className="w-3 h-3" />
+                                  Adjust
                                 </button>
                               </div>
                             </td>
 
-                            {/* Save Button */}
+                            {/* Action Placeholder */}
                             <td className="py-4 text-right">
-                              <button
-                                type="button"
-                                onClick={() => handleSaveStock(variant.id)}
-                                disabled={isSaving || !isChanged}
-                                className={`px-3 py-1.5 uppercase tracking-widest text-[10px] font-medium transition-all flex items-center space-x-1 ml-auto ${
-                                  isChanged
-                                    ? 'bg-black text-white hover:bg-neutral-800'
-                                    : 'bg-neutral-100 text-neutral-400 cursor-not-allowed border border-neutral-200'
-                                }`}
-                              >
-                                <Save className="w-3 h-3" />
-                                <span>{isSaving ? 'Saving...' : 'Save'}</span>
-                              </button>
+                              {isSaving && <span className="text-[10px] text-neutral-500 uppercase tracking-widest">Saving...</span>}
                             </td>
                           </tr>
                         );
@@ -516,6 +458,95 @@ export default function AdminInventoryView({ products: initialProducts }: AdminI
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Adjustment Modal */}
+      {adjustmentModal && adjustmentModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white w-full max-w-md shadow-xl border border-neutral-200">
+            <div className="flex items-center justify-between p-4 border-b border-neutral-100">
+              <h3 className="uppercase tracking-widest text-xs font-bold text-neutral-900">
+                Adjust Stock - {adjustmentModal.sku}
+              </h3>
+              <button
+                onClick={() => setAdjustmentModal(null)}
+                className="text-neutral-400 hover:text-black transition-colors"
+              >
+                <XCircle className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleAdjustStockSubmit} className="p-4 space-y-4 font-mono text-xs">
+              <div>
+                <label className="block text-neutral-500 mb-1 uppercase tracking-wider text-[9px]">Type</label>
+                <select
+                  value={adjustmentModal.type}
+                  onChange={(e) => setAdjustmentModal({ ...adjustmentModal, type: e.target.value as any })}
+                  className="w-full border border-neutral-300 p-2 focus:outline-none text-neutral-900"
+                >
+                  <option value="ADD">ADD (e.g. Purchase / Restock)</option>
+                  <option value="REMOVE">REMOVE (e.g. Damage / Loss)</option>
+                  <option value="ADJUSTMENT">ADJUSTMENT (Audit)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-neutral-500 mb-1 uppercase tracking-wider text-[9px]">Quantity</label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={adjustmentModal.quantity}
+                  onChange={(e) => setAdjustmentModal({ ...adjustmentModal, quantity: parseInt(e.target.value) || 0 })}
+                  className="w-full border border-neutral-300 p-2 focus:outline-none text-neutral-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-neutral-500 mb-1 uppercase tracking-wider text-[9px]">Reason</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. PURCHASE, RESTOCK, DAMAGED"
+                  value={adjustmentModal.reason}
+                  onChange={(e) => setAdjustmentModal({ ...adjustmentModal, reason: e.target.value })}
+                  className="w-full border border-neutral-300 p-2 focus:outline-none text-neutral-900"
+                />
+              </div>
+
+              {(adjustmentModal.type === 'ADD' || adjustmentModal.type === 'ADJUSTMENT') && (
+                <div>
+                  <label className="block text-neutral-500 mb-1 uppercase tracking-wider text-[9px]">Cost of Purchase (IDR)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 50000"
+                    value={adjustmentModal.cost}
+                    onChange={(e) => setAdjustmentModal({ ...adjustmentModal, cost: e.target.value === '' ? '' : Number(e.target.value) })}
+                    className="w-full border border-neutral-300 p-2 focus:outline-none text-neutral-900"
+                  />
+                  <p className="text-[9px] text-neutral-400 mt-1">If provided, an automated purchase ledger entry will be recorded.</p>
+                </div>
+              )}
+
+              <div className="pt-4 border-t border-neutral-100 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setAdjustmentModal(null)}
+                  className="px-4 py-2 border border-neutral-300 text-neutral-600 hover:bg-neutral-50 uppercase tracking-widest text-[9px] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingVariantId === adjustmentModal.variantId}
+                  className="px-4 py-2 bg-black text-white hover:bg-neutral-800 uppercase tracking-widest text-[9px] transition-colors"
+                >
+                  {savingVariantId === adjustmentModal.variantId ? 'Saving...' : 'Save Adjustment'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

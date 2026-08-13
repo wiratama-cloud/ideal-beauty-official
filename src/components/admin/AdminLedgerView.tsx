@@ -157,8 +157,11 @@ export default function AdminLedgerView({ entries: initialEntries }: AdminLedger
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-neutral-200 bg-neutral-50 text-[10px] uppercase tracking-widest text-neutral-500 font-medium">
+              <th className="p-4">Seq #</th>
               <th className="p-4">Entry Date</th>
-              <th className="p-4">Type</th>
+              <th className="p-4">TranCode</th>
+              <th className="p-4">TranSeq</th>
+              <th className="p-4">Dr/Cr</th>
               <th className="p-4">Category</th>
               <th className="p-4">Description</th>
               <th className="p-4 text-right">Amount (IDR)</th>
@@ -167,7 +170,7 @@ export default function AdminLedgerView({ entries: initialEntries }: AdminLedger
           <tbody className="divide-y divide-neutral-100 font-mono text-[11px]">
             {entries.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-neutral-400 font-sans italic">
+                <td colSpan={8} className="p-8 text-center text-neutral-400 font-sans italic">
                   No ledger audit entries recorded.
                 </td>
               </tr>
@@ -180,6 +183,7 @@ export default function AdminLedgerView({ entries: initialEntries }: AdminLedger
 
                 return (
                   <tr key={entry.id} className="hover:bg-neutral-50/80 transition-colors">
+                    <td className="p-4 text-neutral-500 font-bold">{entry.sequence || '-'}</td>
                     <td className="p-4 text-neutral-500">
                       {new Date(entry.createdAt).toLocaleDateString('id-ID', {
                         year: 'numeric',
@@ -189,16 +193,22 @@ export default function AdminLedgerView({ entries: initialEntries }: AdminLedger
                         minute: '2-digit',
                       })}
                     </td>
+                    <td className="p-4 text-neutral-700">{entry.tranCode || '-'}</td>
+                    <td className="p-4 text-neutral-700">{entry.tranSequence || '1'}</td>
                     <td className="p-4">
-                      {isIncome ? (
+                      {entry.dcType === 'CREDIT' ? (
                         <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[9px] uppercase tracking-widest flex items-center w-max space-x-1">
                           <ArrowUpRight className="w-3 h-3 text-emerald-600" />
-                          <span>INCOME</span>
+                          <span>CREDIT</span>
                         </span>
-                      ) : (
+                      ) : entry.dcType === 'DEBIT' ? (
                         <span className="bg-rose-100 text-rose-800 px-2 py-0.5 text-[9px] uppercase tracking-widest flex items-center w-max space-x-1">
                           <ArrowDownRight className="w-3 h-3 text-rose-600" />
-                          <span>EXPENSE</span>
+                          <span>DEBIT</span>
+                        </span>
+                      ) : (
+                        <span className="bg-neutral-100 text-neutral-800 px-2 py-0.5 text-[9px] uppercase tracking-widest flex items-center w-max space-x-1">
+                          <span>{entry.type}</span>
                         </span>
                       )}
                     </td>

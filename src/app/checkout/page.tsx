@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/cart/CartContext';
-import { submitCheckoutAction } from '@/app/actions/checkout';
+import { submitCheckoutAction, validateVoucherAction } from '@/app/actions/checkout';
 import QRISModal from '@/components/checkout/QRISModal';
-import { CreditCard, QrCode, Building2, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { CreditCard, QrCode, Building2, ShieldCheck, ArrowLeft, Tag, Check, X } from 'lucide-react';
 
 export default function CheckoutPage() {
   const { cart, subtotal } = useCart();
@@ -28,11 +28,53 @@ export default function CheckoutPage() {
   const [activePayment, setActivePayment] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Voucher State
+  const [voucherInput, setVoucherInput] = useState('');
+  const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [voucherError, setVoucherError] = useState('');
+  const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
+
   const items = cart?.items || [];
   const hasRentalItems = items.some((item: any) => item.type === 'RENTAL');
 
   const effectivePaymentType = hasRentalItems ? 'FULL_PAYMENT' : paymentType;
-  const initialAmountDue = effectivePaymentType === 'DOWN_PAYMENT' ? subtotal * 0.5 : subtotal;
+  const finalSubtotal = Math.max(0, subtotal - discountAmount);
+  const initialAmountDue = effectivePaymentType === 'DOWN_PAYMENT' ? finalSubtotal * 0.5 : finalSubtotal;
+
+  const handleApplyVoucher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!voucherInput.trim()) return;
+
+    setIsValidatingVoucher(true);
+    setVoucherError('');
+
+    try {
+      const res = await validateVoucherAction(voucherInput, subtotal);
+      if (res.valid) {
+        setAppliedVoucher(res.voucher);
+        setDiscountAmount(res.discountAmount || 0);
+        setVoucherError('');
+      } else {
+        setAppliedVoucher(null);
+        setDiscountAmount(0);
+        setVoucherError(res.message || 'Invalid voucher code.');
+      }
+    } catch (err: any) {
+      setAppliedVoucher(null);
+      setDiscountAmount(0);
+      setVoucherError(err.message || 'Failed to validate voucher.');
+    } finally {
+      setIsValidatingVoucher(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setVoucherInput('');
+    setAppliedVoucher(null);
+    setDiscountAmount(0);
+    setVoucherError('');
+  };
 
   const formatIDR = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -55,6 +97,7 @@ export default function CheckoutPage() {
         paymentType: effectivePaymentType,
         paymentMethod,
         bankName,
+        voucherCode: appliedVoucher ? appliedVoucher.code : undefined,
       });
 
       setActivePayment(res.payment);
@@ -348,11 +391,75 @@ export default function CheckoutPage() {
                 })}
               </div>
 
+              {/* Voucher Redemption Box */}
+              <div className="pt-3 border-t border-neutral-100">
+                <label className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold mb-1.5 flex items-center space-x-1">
+                  <Tag className="w-3 h-3 text-neutral-400" />
+                  <span>Voucher / Promo Code</span>
+                </label>
+
+                {!appliedVoucher ? (
+                  <div className="space-y-1.5">
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        placeholder="ENTER VOUCHER CODE"
+                        value={voucherInput}
+                        onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
+                        className="flex-1 border border-neutral-200 rounded-xs p-2 text-xs uppercase font-mono focus:outline-hidden focus:border-black"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyVoucher}
+                        disabled={isValidatingVoucher || !voucherInput.trim()}
+                        className="px-3 py-2 bg-black text-white text-[10px] uppercase tracking-wider font-semibold rounded-xs hover:bg-neutral-800 disabled:opacity-50 transition-colors"
+                      >
+                        {isValidatingVoucher ? 'Validating...' : 'Apply'}
+                      </button>
+                    </div>
+                    {voucherError && (
+                      <p className="text-[10px] text-red-600 font-medium">{voucherError}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-purple-50 border border-purple-200 p-2.5 rounded-xs flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Check className="w-4 h-4 text-purple-700" />
+                      <div>
+                        <span className="font-mono text-xs font-bold text-purple-900 block">
+                          {appliedVoucher.code}
+                        </span>
+                        <span className="text-[10px] text-purple-700 font-sans block">
+                          {appliedVoucher.description || 'Discount Applied'}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveVoucher}
+                      className="p-1 text-purple-400 hover:text-purple-900 transition-colors"
+                      title="Remove Voucher"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="border-t border-neutral-100 pt-4 space-y-2 font-mono text-xs">
                 <div className="flex justify-between text-neutral-600">
                   <span className="font-sans uppercase tracking-wider text-[10px]">Order Subtotal</span>
                   <span>{formatIDR(subtotal)}</span>
                 </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-purple-700 font-medium">
+                    <span className="font-sans uppercase tracking-wider text-[10px] flex items-center space-x-1">
+                      <Tag className="w-3 h-3" />
+                      <span>Voucher Discount</span>
+                    </span>
+                    <span>-{formatIDR(discountAmount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-neutral-600">
                   <span className="font-sans uppercase tracking-wider text-[10px]">Express Courier Shipping</span>
                   <span className="text-emerald-700 font-sans uppercase text-[10px]">Complimentary</span>

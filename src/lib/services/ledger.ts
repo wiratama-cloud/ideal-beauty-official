@@ -1,5 +1,5 @@
 import { prisma } from '../prisma';
-import { EntryType, ExpenseCategory } from '@prisma/client';
+import { EntryType, ExpenseCategory, DebitCredit } from '@prisma/client';
 
 export interface CreateExpenseInput {
   amount: number;
@@ -7,6 +7,9 @@ export interface CreateExpenseInput {
   expenseCategory: 'DESIGN_RND' | 'MANUFACTURING_COGS' | 'OPERATIONAL' | 'MARKETING';
   productId?: string;
   variantId?: string;
+  dcType?: DebitCredit;
+  tranCode?: string;
+  tranSequence?: number;
 }
 
 export async function getLedgerEntries(filter?: { type?: 'INCOME' | 'EXPENSE' }) {
@@ -23,7 +26,7 @@ export async function getLedgerEntries(filter?: { type?: 'INCOME' | 'EXPENSE' })
       variant: true,
     },
     orderBy: {
-      createdAt: 'desc',
+      sequence: 'desc',
     },
   });
 
@@ -39,6 +42,7 @@ export async function getLedgerEntries(filter?: { type?: 'INCOME' | 'EXPENSE' })
       priceSale: entry.variant.priceSale ? Number(entry.variant.priceSale) : null,
       priceRent: entry.variant.priceRent ? Number(entry.variant.priceRent) : null,
       costPrice: entry.variant.costPrice ? Number(entry.variant.costPrice) : null,
+      purchaseCost: entry.variant.purchaseCost ? Number(entry.variant.purchaseCost) : null,
     } : null,
   }));
 }
@@ -49,6 +53,9 @@ export async function createExpenseEntry(input: CreateExpenseInput) {
   return prisma.ledgerEntry.create({
     data: {
       type: EntryType.EXPENSE,
+      dcType: input.dcType || DebitCredit.DEBIT,
+      tranCode: input.tranCode || 'EXPENSE_PAYMENT',
+      tranSequence: input.tranSequence || 1,
       amount: input.amount,
       description: input.description,
       expenseCategory: cat,
@@ -97,11 +104,15 @@ export async function getFinancialSummary() {
 export async function generateLedgerCSV() {
   const entries = await getLedgerEntries();
 
-  const headers = ['ID', 'Date', 'Type', 'Category', 'Amount (IDR)', 'Description', 'Payment ID', 'Product ID'];
+  const headers = ['Sequence', 'ID', 'Date', 'Type', 'Dr/Cr', 'TranCode', 'TranSeq', 'Category', 'Amount (IDR)', 'Description', 'Payment ID', 'Product ID'];
   const rows = entries.map((e) => [
+    (e.sequence ?? '').toString(),
     e.id,
     new Date(e.createdAt).toISOString(),
     e.type,
+    e.dcType || '',
+    e.tranCode || '',
+    (e.tranSequence || 1).toString(),
     e.type === EntryType.INCOME ? e.incomeCategory || 'OTHER' : e.expenseCategory || 'OPERATIONAL',
     Number(e.amount).toString(),
     `"${(e.description || '').replace(/"/g, '""')}"`,

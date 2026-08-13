@@ -1,6 +1,7 @@
 import { prisma } from '../prisma';
 import { generateQRISData, generateVirtualAccountData } from './payment-gateway';
-import { OrderStatus, PaymentType, PaymentStatus, RentalStatus } from '@prisma/client';
+import { OrderStatus, PaymentType, PaymentStatus, RentalStatus, InventoryTransactionType } from '@prisma/client';
+import { validateVoucherForCart, serializeVoucher } from './voucher';
 
 export interface CreateOrderInput {
   userId: string;
@@ -16,6 +17,7 @@ export interface CreateOrderInput {
   paymentMethod: 'QRIS' | 'BANK_TRANSFER' | 'CREDIT_CARD';
   bankName?: string;
   downPaymentPercentage?: number; // e.g. 50%
+  voucherCode?: string;
 }
 
 export async function createOrder(input: CreateOrderInput) {
@@ -47,13 +49,27 @@ export async function createOrder(input: CreateOrderInput) {
     throw new Error('Rental items require 100% full payment upon checkout.');
   }
 
-  // Calculate order total
-  let totalAmount = 0;
+  // Calculate subtotal
+  let subtotal = 0;
   for (const item of cart.items) {
     const itemPrice =
       item.type === 'RENTAL' ? Number(item.variant.priceRent || 0) : Number(item.variant.priceSale || 0);
-    totalAmount += itemPrice * item.quantity;
+    subtotal += itemPrice * item.quantity;
   }
+
+  let discountAmount = 0;
+  let appliedVoucher: any = null;
+
+  if (input.voucherCode) {
+    const voucherRes = await validateVoucherForCart(input.voucherCode, subtotal, userId);
+    if (!voucherRes.valid) {
+      throw new Error(voucherRes.message || 'Invalid voucher code.');
+    }
+    discountAmount = voucherRes.discountAmount || 0;
+    appliedVoucher = voucherRes.voucher;
+  }
+
+  const totalAmount = Math.max(0, subtotal - discountAmount);
 
   const pType = paymentType === 'DOWN_PAYMENT' ? PaymentType.DOWN_PAYMENT : PaymentType.FULL_PAYMENT;
 
@@ -64,24 +80,115 @@ export async function createOrder(input: CreateOrderInput) {
   return prisma.$transaction(async (tx) => {
     // 1. Atomic Stock Deduction Check
     for (const item of cart.items) {
-      const updatedVariant = await tx.productVariant.updateMany({
-        where: {
-          id: item.variantId,
-          stockAvailable: {
-            gte: item.quantity,
-          },
-        },
-        data: {
-          stockAvailable: {
-            decrement: item.quantity,
-          },
-        },
-      });
+      const isRental = item.type === 'RENTAL';
 
-      if (updatedVariant.count === 0) {
-        throw new Error(
-          `Insufficient stock available for ${item.variant.product.name} (${item.variant.sku}).`
-        );
+      if (isRental) {
+        if (item.rentStartDate && item.rentEndDate) {
+          const overlappingOrdersCount = await tx.orderItem.count({
+            where: {
+              variantId: item.variantId,
+              type: 'RENTAL',
+              order: {
+                status: {
+                  not: OrderStatus.CANCELLED,
+                },
+              },
+              rentStartDate: { lte: item.rentEndDate },
+              rentEndDate: { gte: item.rentStartDate },
+            },
+          });
+
+          const overlappingBlocksCount = await tx.rentalBlock.count({
+            where: {
+              variantId: item.variantId,
+              startDate: { lte: item.rentEndDate },
+              endDate: { gte: item.rentStartDate },
+            },
+          });
+
+          const variant = await tx.productVariant.findUnique({
+            where: { id: item.variantId },
+            select: { stockRentTotal: true, stockRentAvailable: true },
+          });
+
+          const maxCapacity = Math.max(
+            variant?.stockRentTotal ?? 0,
+            variant?.stockRentAvailable ?? 0,
+            1
+          );
+
+          if (overlappingOrdersCount + overlappingBlocksCount + item.quantity > maxCapacity) {
+            throw new Error(
+              `The selected rental dates for ${item.variant.product.name} (${item.variant.sku}) are no longer available.`
+            );
+          }
+        }
+
+        const updatedVariant = await tx.productVariant.updateMany({
+          where: {
+            id: item.variantId,
+            stockRentAvailable: {
+              gte: item.quantity,
+            },
+          },
+          data: {
+            stockRentAvailable: {
+              decrement: item.quantity,
+            },
+            stockAvailable: {
+              decrement: item.quantity,
+            },
+          },
+        });
+
+        if (updatedVariant.count === 0) {
+          throw new Error(
+            `Insufficient rental stock available for ${item.variant.product.name} (${item.variant.sku}).`
+          );
+        }
+
+        await tx.inventoryTransaction.create({
+          data: {
+            variantId: item.variantId,
+            type: InventoryTransactionType.RENTAL,
+            quantity: item.quantity,
+            reason: 'CUSTOMER_RENTAL',
+            notes: `Deducted for order checkout`,
+          },
+        });
+      } else {
+        const updatedVariant = await tx.productVariant.updateMany({
+          where: {
+            id: item.variantId,
+            stockSaleAvailable: {
+              gte: item.quantity,
+            },
+          },
+          data: {
+            stockSaleAvailable: {
+              decrement: item.quantity,
+            },
+            stockAvailable: {
+              decrement: item.quantity,
+            },
+          },
+        });
+
+        if (updatedVariant.count === 0) {
+          throw new Error(
+            `Insufficient sale stock available for ${item.variant.product.name} (${item.variant.sku}).`
+          );
+        }
+
+        await tx.inventoryTransaction.create({
+          data: {
+            variantId: item.variantId,
+            type: InventoryTransactionType.SALE,
+            quantity: item.quantity,
+            reason: 'CUSTOMER_PURCHASE',
+            notes: `Deducted for order checkout`,
+          },
+        });
       }
     }
 
@@ -103,6 +210,8 @@ export async function createOrder(input: CreateOrderInput) {
       data: {
         userId,
         totalAmount,
+        discountAmount,
+        voucherId: appliedVoucher ? appliedVoucher.id : null,
         status: OrderStatus.PENDING,
         shippingAddressId: address.id,
         shippingCost: 0, // Complimentary express shipping
@@ -126,8 +235,27 @@ export async function createOrder(input: CreateOrderInput) {
       },
       include: {
         items: true,
+        voucher: true,
       },
     });
+
+    if (appliedVoucher) {
+      await tx.voucherUsage.create({
+        data: {
+          voucherId: appliedVoucher.id,
+          orderId: order.id,
+          userId,
+          discountAmount,
+        },
+      });
+
+      await tx.voucher.update({
+        where: { id: appliedVoucher.id },
+        data: {
+          usageCount: { increment: 1 },
+        },
+      });
+    }
 
     // 4. Generate Gateway Payment Details (QRIS or Virtual Account)
     let qrisUrl: string | undefined;
@@ -181,7 +309,9 @@ export function serializeOrder(order: any) {
   return {
     ...order,
     totalAmount: order.totalAmount !== undefined && order.totalAmount !== null ? Number(order.totalAmount) : null,
+    discountAmount: order.discountAmount !== undefined && order.discountAmount !== null ? Number(order.discountAmount) : 0,
     shippingCost: order.shippingCost !== undefined && order.shippingCost !== null ? Number(order.shippingCost) : null,
+    voucher: order.voucher ? serializeVoucher(order.voucher) : null,
     items: order.items
       ? order.items.map((item: any) => ({
           ...item,
@@ -199,6 +329,57 @@ export function serializeOrder(order: any) {
       : [],
     payments: order.payments ? order.payments.map((payment: any) => serializePayment(payment)) : [],
   };
+}
+
+export async function updateOrderStatus(orderId: string, status: OrderStatus) {
+  const updated = await prisma.order.update({
+    where: { id: orderId },
+    data: { status },
+    include: {
+      items: {
+        include: {
+          variant: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      },
+      payments: true,
+      shippingAddress: true,
+      user: true,
+      voucher: true,
+    },
+  });
+
+  return serializeOrder(updated);
+}
+
+export async function updateOrderShippingInfo(orderId: string, courierName?: string, trackingNumber?: string) {
+  const updated = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      ...(courierName !== undefined && { courierName }),
+      ...(trackingNumber !== undefined && { trackingNumber }),
+    },
+    include: {
+      items: {
+        include: {
+          variant: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      },
+      payments: true,
+      shippingAddress: true,
+      user: true,
+      voucher: true,
+    },
+  });
+
+  return serializeOrder(updated);
 }
 
 export async function getOrderById(orderId: string) {
@@ -221,6 +402,7 @@ export async function getOrderById(orderId: string) {
       },
       shippingAddress: true,
       user: true,
+      voucher: true,
     },
   });
 
@@ -247,6 +429,7 @@ export async function getUserOrders(userId: string) {
           createdAt: 'desc',
         },
       },
+      voucher: true,
     },
     orderBy: {
       createdAt: 'desc',

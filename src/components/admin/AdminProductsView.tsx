@@ -50,6 +50,10 @@ interface ProductVariantSerialized {
   priceRent: number | null;
   compareAtPrice: number | null;
   costPrice: number | null;
+  stockSaleTotal?: number;
+  stockSaleAvailable?: number;
+  stockRentTotal?: number;
+  stockRentAvailable?: number;
   stockTotal: number;
   stockAvailable: number;
 }
@@ -287,8 +291,12 @@ export default function AdminProductsView({ initialProducts }: AdminProductsView
         priceRent: 500000,
         compareAtPrice: 3200000,
         costPrice: 1000000,
-        stockTotal: 10,
-        stockAvailable: 10,
+        stockSaleTotal: 10,
+        stockSaleAvailable: 10,
+        stockRentTotal: 5,
+        stockRentAvailable: 5,
+        stockTotal: 15,
+        stockAvailable: 15,
       },
     ]);
     setErrorMessage('');
@@ -314,6 +322,10 @@ export default function AdminProductsView({ initialProducts }: AdminProductsView
         priceRent: v.priceRent,
         compareAtPrice: v.compareAtPrice,
         costPrice: v.costPrice,
+        stockSaleTotal: v.stockSaleTotal ?? v.stockTotal,
+        stockSaleAvailable: v.stockSaleAvailable ?? v.stockAvailable,
+        stockRentTotal: v.stockRentTotal ?? 0,
+        stockRentAvailable: v.stockRentAvailable ?? 0,
         stockTotal: v.stockTotal,
         stockAvailable: v.stockAvailable,
       }))
@@ -389,8 +401,12 @@ export default function AdminProductsView({ initialProducts }: AdminProductsView
         priceRent: 400000,
         compareAtPrice: null,
         costPrice: 800000,
-        stockTotal: 5,
-        stockAvailable: 5,
+        stockSaleTotal: 5,
+        stockSaleAvailable: 5,
+        stockRentTotal: 3,
+        stockRentAvailable: 3,
+        stockTotal: 8,
+        stockAvailable: 8,
       },
     ]);
   };
@@ -1271,18 +1287,37 @@ export default function AdminProductsView({ initialProducts }: AdminProductsView
 
                           <div>
                             <label className="block text-[9px] uppercase tracking-wider text-neutral-600 font-medium mb-1">
-                              Stock Available
+                              Buy Stock (Sale)
                             </label>
                             <input
                               type="number"
                               min="0"
-                              value={variant.stockAvailable}
+                              disabled={currentMode === 'RENT_ONLY'}
+                              value={variant.stockSaleAvailable ?? variant.stockAvailable ?? 0}
                               onChange={(e) => {
                                 const val = parseInt(e.target.value) || 0;
-                                handleVariantChange(index, 'stockAvailable', val);
-                                handleVariantChange(index, 'stockTotal', val);
+                                handleVariantChange(index, 'stockSaleAvailable', val);
+                                handleVariantChange(index, 'stockSaleTotal', val);
                               }}
-                              className="w-full px-2.5 py-1.5 border border-neutral-300 rounded-xs text-xs font-mono focus:outline-none focus:border-black"
+                              className="w-full px-2.5 py-1.5 border border-neutral-300 rounded-xs text-xs font-mono focus:outline-none focus:border-black disabled:bg-neutral-200/60 disabled:text-neutral-400"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[9px] uppercase tracking-wider text-neutral-600 font-medium mb-1">
+                              Rent Stock (Fleet)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              disabled={currentMode === 'BUY_ONLY'}
+                              value={variant.stockRentAvailable ?? 0}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value) || 0;
+                                handleVariantChange(index, 'stockRentAvailable', val);
+                                handleVariantChange(index, 'stockRentTotal', val);
+                              }}
+                              className="w-full px-2.5 py-1.5 border border-neutral-300 rounded-xs text-xs font-mono focus:outline-none focus:border-black disabled:bg-neutral-200/60 disabled:text-neutral-400"
                             />
                           </div>
                         </div>

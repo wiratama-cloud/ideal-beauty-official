@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createOrder, CreateOrderInput } from '@/lib/services/order';
 import { processPaymentCompletion, createFinalBalancePayment } from '@/lib/services/payment';
+import { validateVoucherForCart } from '@/lib/services/voucher';
 import { getSessionUserId } from '@/lib/session';
 
 export async function submitCheckoutAction(input: Omit<CreateOrderInput, 'userId'>) {
@@ -33,4 +34,9 @@ export async function createFinalPaymentAction(
   const payment = await createFinalBalancePayment(orderId, paymentMethod, bankName);
   revalidatePath(`/account/orders/${orderId}`);
   return payment;
+}
+
+export async function validateVoucherAction(code: string, subtotal: number) {
+  const userId = await getSessionUserId();
+  return validateVoucherForCart(code, subtotal, userId);
 }
