@@ -127,7 +127,7 @@ export default function OrderDetailView({ order }: OrderDetailViewProps) {
             const attrs = item.variant?.attributes;
             const image =
               product?.images?.[0] ||
-              'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop';
+              '/images/products/default-product.jpg';
 
             return (
               <div key={item.id} className="pt-4 first:pt-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

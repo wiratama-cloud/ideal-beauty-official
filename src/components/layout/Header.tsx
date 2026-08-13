@@ -33,7 +33,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-neutral-100 backdrop-blur-md bg-white/95">
+    <header className="sticky top-0 z-40 bg-white border-b border-neutral-100 backdrop-blur-md bg-white/95" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Mobile menu button */}
@@ -42,6 +42,7 @@ export default function Header() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-1.5 text-neutral-800 hover:text-black focus:outline-none"
               aria-label="Toggle menu"
+              suppressHydrationWarning
             >
               {isMobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
@@ -49,15 +50,16 @@ export default function Header() {
 
           {/* Desktop Search Bar (Left) */}
           <div className="hidden md:flex items-center w-1/4">
-            <form onSubmit={handleSearchSubmit} className="flex items-center w-full border-b border-neutral-300 pb-1 mr-4">
+            <form onSubmit={handleSearchSubmit} className="flex items-center w-full border-b border-neutral-300 pb-1 mr-4" suppressHydrationWarning>
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent border-none text-xs focus:outline-none text-neutral-900 placeholder-neutral-500 font-light"
+                suppressHydrationWarning
               />
-              <button type="submit" className="text-neutral-500 hover:text-black transition-colors" aria-label="Search">
+              <button type="submit" className="text-neutral-500 hover:text-black transition-colors" aria-label="Search" suppressHydrationWarning>
                 <Search className="w-4 h-4" />
               </button>
             </form>
@@ -97,6 +99,7 @@ export default function Header() {
               onClick={toggleCartDrawer}
               className="text-neutral-700 hover:text-black transition-colors relative p-1"
               aria-label="Shopping Cart"
+              suppressHydrationWarning
             >
               <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5]" />
               {totalItems > 0 && (
@@ -125,7 +128,7 @@ export default function Header() {
       {/* Mobile Drawer Navigation */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-neutral-100 px-4 pt-4 pb-6 space-y-4">
-          <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2 border border-neutral-200 px-3 py-2">
+          <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2 border border-neutral-200 px-3 py-2" suppressHydrationWarning>
             <Search className="w-4 h-4 text-neutral-400" />
             <input
               type="text"
@@ -133,8 +136,9 @@ export default function Header() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full text-xs focus:outline-none"
+              suppressHydrationWarning
             />
-            <button type="submit" className="text-xs uppercase font-medium">
+            <button type="submit" className="text-xs uppercase font-medium" suppressHydrationWarning>
               Go
             </button>
           </form>

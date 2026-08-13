@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { DollarSign, TrendingUp, TrendingDown, Download, FileText, ShoppingBag, ArrowRight } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Download, ArrowRight } from 'lucide-react';
 import { exportLedgerCSVAction } from '@/app/actions/admin';
+import AdminHeader from '@/components/admin/AdminHeader';
 
 interface AdminDashboardViewProps {
   summary: {
@@ -48,43 +49,24 @@ export default function AdminDashboardView({ summary }: AdminDashboardViewProps)
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 font-light text-xs space-y-10">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-neutral-200 pb-6">
-        <div>
-          <span className="text-[10px] uppercase tracking-[0.4em] text-neutral-400 font-sans block mb-1">
-            EXECUTIVE FINANCIAL ANALYTICS
-          </span>
-          <h1 className="font-serif text-3xl font-light text-neutral-900">Atelier Admin Dashboard</h1>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <Link
-            href="/admin/orders"
-            className="bg-white border border-neutral-300 text-neutral-800 px-4 py-2.5 uppercase tracking-widest text-[10px] hover:border-black transition-colors flex items-center space-x-2"
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Manage Orders & Rentals</span>
-          </Link>
-
-          <Link
-            href="/admin/ledger"
-            className="bg-white border border-neutral-300 text-neutral-800 px-4 py-2.5 uppercase tracking-widest text-[10px] hover:border-black transition-colors flex items-center space-x-2"
-          >
-            <FileText className="w-3.5 h-3.5" />
-            <span>Ledger Audit Trail</span>
-          </Link>
-
+    <div className="space-y-8 pb-12 font-light text-xs">
+      <AdminHeader
+        title="Atelier Executive Dashboard"
+        subtitle="EXECUTIVE FINANCIAL ANALYTICS"
+        activeTab="dashboard"
+        action={
           <button
             onClick={handleExportCSV}
             disabled={isExporting}
-            className="bg-black text-white px-5 py-2.5 uppercase tracking-widest text-[10px] hover:bg-neutral-800 transition-colors flex items-center space-x-2"
+            className="bg-black text-white px-5 py-2.5 uppercase tracking-widest text-[10px] hover:bg-neutral-800 transition-colors flex items-center space-x-2 rounded-xs"
           >
             <Download className="w-3.5 h-3.5" />
             <span>{isExporting ? 'Exporting...' : 'Export Ledger CSV'}</span>
           </button>
-        </div>
-      </div>
+        }
+      />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
 
       {/* Top Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -194,5 +176,6 @@ export default function AdminDashboardView({ summary }: AdminDashboardViewProps)
         </Link>
       </div>
     </div>
+  </div>
   );
 }

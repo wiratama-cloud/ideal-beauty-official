@@ -21,7 +21,10 @@ export async function processPaymentCompletion(paymentId: string, providerTxId?:
     }
 
     if (payment.status === PaymentStatus.COMPLETED) {
-      return payment;
+      return {
+        ...payment,
+        amount: payment.amount ? Number(payment.amount) : null,
+      };
     }
 
     // 1. Update Payment status to COMPLETED
@@ -72,7 +75,10 @@ export async function processPaymentCompletion(paymentId: string, providerTxId?:
       },
     });
 
-    return updatedPayment;
+    return {
+      ...updatedPayment,
+      amount: updatedPayment.amount ? Number(updatedPayment.amount) : null,
+    };
   });
 }
 
@@ -126,5 +132,8 @@ export async function createFinalBalancePayment(
     },
   });
 
-  return payment;
+  return {
+    ...payment,
+    amount: payment.amount ? Number(payment.amount) : null,
+  };
 }

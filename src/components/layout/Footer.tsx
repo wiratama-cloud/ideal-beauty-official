@@ -51,15 +51,17 @@ export default function Footer() {
             <p className="text-xs text-neutral-400">
               Subscribe to receive private invitations to runway releases and bespoke trunk shows.
             </p>
-            <form onSubmit={(e) => e.preventDefault()} className="flex">
+            <form onSubmit={(e) => e.preventDefault()} className="flex" suppressHydrationWarning>
               <input
                 type="email"
                 placeholder="Enter email address"
                 className="bg-neutral-800 text-xs px-3 py-2 text-white border-none focus:outline-none w-full placeholder-neutral-500"
+                suppressHydrationWarning
               />
               <button
                 type="submit"
                 className="bg-white text-black px-4 py-2 text-xs tracking-widest uppercase hover:bg-neutral-200 transition-colors"
+                suppressHydrationWarning
               >
                 Join
               </button>

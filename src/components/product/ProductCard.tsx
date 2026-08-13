@@ -17,6 +17,7 @@ interface ProductCardProps {
       id: string;
       priceSale: any;
       priceRent: any;
+      compareAtPrice?: any;
       stockAvailable: number;
     }>;
   };
@@ -34,11 +35,25 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
   const rentPrices = product.variants
     .map((v) => (v.priceRent ? Number(v.priceRent) : null))
     .filter((p): p is number => p !== null);
+  const compareAtPrices = product.variants
+    .map((v) => (v.compareAtPrice ? Number(v.compareAtPrice) : null))
+    .filter((p): p is number => p !== null);
 
   const minSalePrice = salePrices.length > 0 ? Math.min(...salePrices) : null;
   const minRentPrice = rentPrices.length > 0 ? Math.min(...rentPrices) : null;
+  const minCompareAtPrice = compareAtPrices.length > 0 ? Math.min(...compareAtPrices) : null;
 
-  const mainImage = product.images[0] || 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop';
+  const hasDiscount = Boolean(
+    minCompareAtPrice && minSalePrice && minCompareAtPrice > minSalePrice
+  );
+  const discountPercent = hasDiscount
+    ? Math.round(((minCompareAtPrice! - minSalePrice!) / minCompareAtPrice!) * 100)
+    : 0;
+  const savingsAmount = hasDiscount && minCompareAtPrice && minSalePrice
+    ? minCompareAtPrice - minSalePrice
+    : 0;
+
+  const mainImage = product.images[0] || '/images/products/default-product.jpg';
   const hoverImage = product.images[1] || mainImage;
   const hasHoverImage = product.images.length > 1;
 
@@ -65,11 +80,11 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
   };
 
   return (
-    <div className="group relative flex flex-col bg-white">
-      {/* Whole card wrapped in Link for seamless mobile touch */}
+    <div className="group relative flex flex-col bg-white rounded-sm overflow-hidden border border-neutral-100/80 shadow-xs hover:shadow-md transition-all duration-300">
+      {/* Card wrapped in Link */}
       <Link href={`/products/${product.slug}`} className="block relative w-full flex-1">
         {/* Aspect Ratio Image Container */}
-        <div className="relative aspect-[5/7] w-full overflow-hidden bg-gray-100 rounded-sm">
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100">
           {/* Main Image */}
           <Image
             src={mainImage}
@@ -82,7 +97,7 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
             unoptimized
           />
 
-          {/* Hover Image (CSS only to prevent breaking touch events) */}
+          {/* Hover Image */}
           {hasHoverImage && (
             <Image
               src={hoverImage}
@@ -94,54 +109,87 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
             />
           )}
 
-          {/* Badges */}
-          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 z-10 pointer-events-none">
-            {minRentPrice !== null && (
-              <span className="bg-white/90 text-neutral-800 text-[8px] sm:text-[9px] uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 font-medium backdrop-blur-sm shadow-sm rounded-sm">
-                Rent Available
+          {/* Top Left Badges Overlay */}
+          <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1 z-10 pointer-events-none">
+            {hasDiscount && (
+              <span className="bg-red-600 text-white font-bold text-[9px] sm:text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-xs shadow-sm">
+                -{discountPercent}% OFF
               </span>
             )}
-            {product.category && (
-              <span className="bg-white/90 text-neutral-800 text-[8px] sm:text-[9px] uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 font-medium backdrop-blur-sm shadow-sm rounded-sm">
+            {minRentPrice !== null && (
+              <span className="bg-black/75 backdrop-blur-md text-white font-medium text-[8px] sm:text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-xs shadow-sm">
+                RENTAL
+              </span>
+            )}
+            {product.category && !hasDiscount && (
+              <span className="bg-white/90 backdrop-blur-md text-neutral-800 font-medium text-[8px] sm:text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-xs shadow-sm">
                 {product.category}
               </span>
             )}
           </div>
 
-          {/* Wishlist Button Overlay */}
+          {/* Top Right Wishlist Button */}
           <button
             onClick={handleWishlistToggle}
             disabled={isWishlistLoading}
-            className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors"
+            className="absolute top-2.5 right-2.5 z-20 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 backdrop-blur-md shadow-sm hover:bg-white hover:scale-110 active:scale-95 transition-all duration-200"
             aria-label="Wishlist"
           >
             <Heart
-              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors ${
-                isWishlisted ? 'fill-red-600 text-red-600' : 'text-neutral-700 hover:text-black'
+              className={`w-4 h-4 transition-colors ${
+                isWishlisted ? 'fill-red-600 text-red-600' : 'text-neutral-600 hover:text-black'
               }`}
             />
           </button>
         </div>
 
         {/* Product Information */}
-        <div className="pt-2 sm:pt-3 pb-2 px-0.5 space-y-1">
-          <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.1em] text-neutral-500 block">
-            {product.category || 'Collection'}
-          </span>
-          <h3 className="text-xs sm:text-sm text-neutral-900 font-medium group-hover:text-neutral-600 transition-colors line-clamp-1">
-            {product.name}
-          </h3>
+        <div className="p-3 sm:p-4 flex flex-col justify-between flex-1 bg-white">
+          <div>
+            <div className="flex items-center justify-between gap-1 mb-1">
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-neutral-400 truncate">
+                {product.category || 'Collection'}
+              </span>
+              {hasDiscount && (
+                <span className="text-[9px] font-semibold text-red-600 bg-red-50 border border-red-100/80 px-1.5 py-0.5 rounded-xs whitespace-nowrap">
+                  Save {formatIDR(savingsAmount)}
+                </span>
+              )}
+            </div>
 
-          <div className="pt-0.5 sm:pt-1 flex flex-col space-y-0.5">
+            <h3 className="text-xs sm:text-sm font-medium text-neutral-900 group-hover:text-black transition-colors line-clamp-1">
+              {product.name}
+            </h3>
+          </div>
+
+          <div className="mt-2.5 pt-2 border-t border-neutral-100 flex flex-col gap-1.5">
+            {/* Sale Price & Discount Compare */}
             {minSalePrice !== null && (
-              <span className="text-xs sm:text-sm font-semibold text-neutral-900 tracking-wide">
-                {formatIDR(minSalePrice)}
-              </span>
+              <div className="flex items-baseline justify-between flex-wrap gap-1">
+                <div className="flex items-baseline gap-1.5">
+                  <span className={`text-xs sm:text-sm font-bold tracking-tight ${hasDiscount ? 'text-red-700' : 'text-neutral-900'}`}>
+                    {formatIDR(minSalePrice)}
+                  </span>
+                  {hasDiscount && minCompareAtPrice && (
+                    <span className="text-[10px] sm:text-xs text-neutral-400 line-through font-normal">
+                      {formatIDR(minCompareAtPrice)}
+                    </span>
+                  )}
+                </div>
+              </div>
             )}
+
+            {/* Rental Price Row */}
             {minRentPrice !== null && (
-              <span className="text-[10px] sm:text-xs font-medium text-neutral-500 tracking-wide">
-                Rent from {formatIDR(minRentPrice)}
-              </span>
+              <div className="flex items-center justify-between text-[10px] sm:text-xs pt-1 border-t border-neutral-100/80">
+                <span className="text-neutral-500 font-medium tracking-wide flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Rent from
+                </span>
+                <span className="font-semibold text-neutral-800">
+                  {formatIDR(minRentPrice)}
+                </span>
+              </div>
             )}
           </div>
         </div>

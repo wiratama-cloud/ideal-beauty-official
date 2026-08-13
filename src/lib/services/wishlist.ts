@@ -24,6 +24,7 @@ export async function getUserWishlist(userId: string) {
         ...variant,
         priceSale: variant.priceSale ? Number(variant.priceSale) : null,
         priceRent: variant.priceRent ? Number(variant.priceRent) : null,
+        compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
         costPrice: variant.costPrice ? Number(variant.costPrice) : null,
       })),
     } : null,
@@ -31,6 +32,7 @@ export async function getUserWishlist(userId: string) {
       ...item.variant,
       priceSale: item.variant.priceSale ? Number(item.variant.priceSale) : null,
       priceRent: item.variant.priceRent ? Number(item.variant.priceRent) : null,
+      compareAtPrice: item.variant.compareAtPrice ? Number(item.variant.compareAtPrice) : null,
       costPrice: item.variant.costPrice ? Number(item.variant.costPrice) : null,
     } : null,
   }));

@@ -2,13 +2,16 @@ import React from 'react';
 import Link from 'next/link';
 import HeroBanner from '@/components/product/HeroBanner';
 import ProductGrid from '@/components/product/ProductGrid';
+import LandingSectionsRenderer from '@/components/home/LandingSectionsRenderer';
 import { getProducts } from '@/lib/services/product';
 import { getWishlistedProductIds } from '@/lib/services/wishlist';
+import { getLandingSections } from '@/lib/services/section';
 import { getSessionUserId } from '@/lib/session';
 
 export default async function HomePage() {
-  const [products, userId] = await Promise.all([
+  const [products, sections, userId] = await Promise.all([
     getProducts(),
+    getLandingSections(true),
     getSessionUserId(),
   ]);
 
@@ -20,29 +23,34 @@ export default async function HomePage() {
       {/* Hero Section */}
       <HeroBanner />
 
-      {/* Featured Collections Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="text-center space-y-2 mb-12">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-500 block font-medium">
-            ATELIER SELECTIONS
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-light text-neutral-900">
-            Featured Masterpieces
-          </h2>
-          <div className="w-12 h-px bg-neutral-300 mx-auto mt-6" />
-        </div>
+      {/* Dynamic Admin-Configured Landing Sections */}
+      {sections && sections.length > 0 ? (
+        <LandingSectionsRenderer sections={sections} wishlistedIds={wishlistedIds} />
+      ) : (
+        /* Fallback Featured Collections Grid */
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div className="text-center space-y-2 mb-12">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-500 block font-medium">
+              ATELIER SELECTIONS
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-light text-neutral-900">
+              Featured Masterpieces
+            </h2>
+            <div className="w-12 h-px bg-neutral-300 mx-auto mt-6" />
+          </div>
 
-        <ProductGrid products={featuredProducts} wishlistedIds={wishlistedIds} />
+          <ProductGrid products={featuredProducts} wishlistedIds={wishlistedIds} />
 
-        <div className="text-center pt-16">
-          <Link
-            href="/products"
-            className="inline-block border border-neutral-300 text-neutral-800 text-sm font-medium uppercase tracking-widest px-10 py-4 hover:border-black hover:bg-gray-50 transition-all rounded-sm"
-          >
-            View Entire Catalogue
-          </Link>
-        </div>
-      </section>
+          <div className="text-center pt-16">
+            <Link
+              href="/products"
+              className="inline-block border border-neutral-300 text-neutral-800 text-sm font-medium uppercase tracking-widest px-10 py-4 hover:border-black hover:bg-gray-50 transition-all rounded-sm"
+            >
+              View Entire Catalogue
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Bespoke Rental Highlight Banner */}
       <section className="bg-neutral-100 text-neutral-900 py-20 px-4 text-center my-16 rounded-sm max-w-7xl mx-auto">

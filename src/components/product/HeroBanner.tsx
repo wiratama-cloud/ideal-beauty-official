@@ -9,7 +9,7 @@ export default function HeroBanner() {
         className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity scale-105 transition-transform duration-1000"
         style={{
           backgroundImage:
-            'url("https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=2000&auto=format&fit=crop")',
+            'url("/images/hero/hero-banner.jpg")',
         }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />

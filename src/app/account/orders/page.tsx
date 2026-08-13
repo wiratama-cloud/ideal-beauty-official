@@ -86,11 +86,11 @@ export default async function OrderHistoryPage() {
               const product = firstItem?.variant?.product;
               const image =
                 product?.images?.[0] ||
-                'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop';
+                '/images/products/default-product.jpg';
 
               const completedPaymentsTotal = order.payments
-                .filter((p) => p.status === 'COMPLETED')
-                .reduce((sum, p) => sum + Number(p.amount), 0);
+                .filter((p: any) => p.status === 'COMPLETED')
+                .reduce((sum: number, p: any) => sum + Number(p.amount), 0);
 
               const remainingBalance = Number(order.totalAmount) - completedPaymentsTotal;
 

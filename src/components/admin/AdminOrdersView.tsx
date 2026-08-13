@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, ShoppingBag, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import { ShoppingBag, Calendar, CheckCircle2, Clock } from 'lucide-react';
 import { updateRentalStatusAction } from '@/app/actions/admin';
+import AdminHeader from '@/components/admin/AdminHeader';
 
 interface AdminOrdersViewProps {
   orders: any[];
@@ -42,22 +43,14 @@ export default function AdminOrdersView({ orders: initialOrders }: AdminOrdersVi
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 font-light text-xs space-y-8">
-      <div className="flex items-center space-x-2 text-neutral-500">
-        <Link href="/admin/dashboard" className="hover:text-black flex items-center space-x-1 uppercase tracking-widest text-[10px]">
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Dashboard</span>
-        </Link>
-      </div>
+    <div className="space-y-8 pb-12 font-light text-xs">
+      <AdminHeader
+        title={`Order Fulfillment & Rentals (${orders.length})`}
+        subtitle="ATELIER ORDERS & RENTAL TIMELINES"
+        activeTab="orders"
+      />
 
-      <div className="border-b border-neutral-200 pb-4">
-        <span className="text-[10px] uppercase tracking-[0.4em] text-neutral-400 font-sans block mb-1">
-          ATELIER MANAGEMENT
-        </span>
-        <h1 className="font-serif text-3xl font-light text-neutral-900">
-          Order Fulfillment & Rental Tracking ({orders.length})
-        </h1>
-      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
       {orders.length === 0 ? (
         <div className="bg-white border border-neutral-100 p-12 text-center space-y-4">
@@ -107,7 +100,7 @@ export default function AdminOrdersView({ orders: initialOrders }: AdminOrdersVi
                     const product = item.variant?.product;
                     const image =
                       product?.images?.[0] ||
-                      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop';
+                      '/images/products/default-product.jpg';
 
                     return (
                       <div key={item.id} className="pt-4 first:pt-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -171,5 +164,6 @@ export default function AdminOrdersView({ orders: initialOrders }: AdminOrdersVi
         </div>
       )}
     </div>
+  </div>
   );
 }

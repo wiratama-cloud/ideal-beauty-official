@@ -4,6 +4,8 @@ export async function main() {
   console.log('Seeding Ideal Beauty Official database with dummy data...');
 
   // Clean existing data
+  await prisma.landingSectionItem.deleteMany();
+  await prisma.landingSection.deleteMany();
   await prisma.ledgerEntry.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.orderItem.deleteMany();
@@ -123,14 +125,15 @@ export async function main() {
       description: 'An exquisite hand-embroidered velvet kaftan embellished with fine zardozi work and gold thread detailing. Designed for high-fashion evening galas.',
       category: 'Haute Couture',
       images: [
-        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=1200&auto=format&fit=crop',
+        '/images/products/kaftan-1.jpg',
+        '/images/products/kaftan-2.jpg',
       ],
       variants: [
         {
           sku: 'KAF-EME-S',
           attributes: { size: 'S', color: 'Emerald Green' },
           priceSale: 4500000.00,
+          compareAtPrice: 6000000.00,
           priceRent: 750000.00,
           costPrice: 2100000.00,
           stockTotal: 10,
@@ -140,6 +143,7 @@ export async function main() {
           sku: 'KAF-EME-M',
           attributes: { size: 'M', color: 'Emerald Green' },
           priceSale: 4500000.00,
+          compareAtPrice: 6000000.00,
           priceRent: 750000.00,
           costPrice: 2100000.00,
           stockTotal: 12,
@@ -149,6 +153,7 @@ export async function main() {
           sku: 'KAF-EME-L',
           attributes: { size: 'L', color: 'Emerald Green' },
           priceSale: 4500000.00,
+          compareAtPrice: 6000000.00,
           priceRent: 750000.00,
           costPrice: 2100000.00,
           stockTotal: 8,
@@ -162,14 +167,15 @@ export async function main() {
       description: 'Timeless crimson silk lehenga intricately woven with traditional motifs, paired with a fitted blouse and net dupatta.',
       category: 'Bridal Wear',
       images: [
-        'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1200&auto=format&fit=crop',
+        '/images/products/lehenga-1.jpg',
+        '/images/products/lehenga-2.jpg',
       ],
       variants: [
         {
           sku: 'LEH-CRM-S',
           attributes: { size: 'S', color: 'Crimson Red' },
           priceSale: 12500000.00,
+          compareAtPrice: 15000000.00,
           priceRent: 2200000.00,
           costPrice: 5800000.00,
           stockTotal: 5,
@@ -179,6 +185,7 @@ export async function main() {
           sku: 'LEH-CRM-M',
           attributes: { size: 'M', color: 'Crimson Red' },
           priceSale: 12500000.00,
+          compareAtPrice: 15000000.00,
           priceRent: 2200000.00,
           costPrice: 5800000.00,
           stockTotal: 6,
@@ -192,8 +199,8 @@ export async function main() {
       description: 'Ethereal ivory chiffon Anarkali silhouette studded with hand-sewn pearls and delicate silver tilla embroidery.',
       category: 'Ready To Wear',
       images: [
-        'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop',
+        '/images/products/anarkali-1.jpg',
+        '/images/products/anarkali-2.jpg',
       ],
       variants: [
         {
@@ -222,8 +229,8 @@ export async function main() {
       description: 'Sophisticated men’s tailored jacquard sherwani jacket with antique gold buttons and sleek mandarin collar.',
       category: 'Menswear',
       images: [
-        'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1200&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=1200&auto=format&fit=crop',
+        '/images/products/sherwani-1.jpg',
+        '/images/products/sherwani-2.jpg',
       ],
       variants: [
         {
@@ -252,8 +259,8 @@ export async function main() {
       description: 'Modern pre-stitched draped saree in shimmering rose gold metallic fabric with structured pleats and corset bodice.',
       category: 'Haute Couture',
       images: [
-        'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?q=80&w=1200&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200&auto=format&fit=crop',
+        '/images/products/saree-1.jpg',
+        '/images/products/saree-2.jpg',
       ],
       variants: [
         {
@@ -282,8 +289,8 @@ export async function main() {
       description: 'Royal sapphire blue silk short kurta featuring elaborate zardozi gold bullion embroidery, paired with flared sharara pants.',
       category: 'Bridal Wear',
       images: [
-        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop',
+        '/images/products/sharara-1.jpg',
+        '/images/products/sharara-2.jpg',
       ],
       variants: [
         {
@@ -312,8 +319,8 @@ export async function main() {
       description: 'Glamorous floor-length sheer cape drenched in champagne gold sequins and glass beads.',
       category: 'Eveningwear',
       images: [
-        'https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=1200&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop',
+        '/images/products/cape-1.jpg',
+        '/images/products/cape-2.jpg',
       ],
       variants: [
         {
@@ -333,14 +340,15 @@ export async function main() {
       description: 'Bespoke cathedral length bridal veil adorned with scattered freshwater pearls and hand-carved silver tiara.',
       category: 'Accessories',
       images: [
-        'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1200&auto=format&fit=crop',
+        '/images/products/veil-1.jpg',
+        '/images/products/veil-2.jpg',
       ],
       variants: [
         {
           sku: 'ACC-PRL-OS',
           attributes: { size: 'One Size', color: 'Ivory/Silver' },
           priceSale: 1800000.00,
+          compareAtPrice: 2400000.00,
           priceRent: 350000.00,
           costPrice: 750000.00,
           stockTotal: 20,
@@ -635,6 +643,141 @@ export async function main() {
   });
 
   console.log('Created operational expense ledger entries');
+
+  // 7. Landing Page Configurable Sections
+  const newArrivalsSection = await prisma.landingSection.create({
+    data: {
+      title: 'New Arrivals',
+      subtitle: 'Explore the latest runway releases curated for every wardrobe',
+      type: 'NEW_ARRIVALS',
+      viewAllUrl: '/products',
+      displayOrder: 1,
+      isActive: true,
+      tabs: ['Women', 'Men', 'Kids'],
+      items: {
+        create: [
+          {
+            title: 'Royal Velvet Emerald Kaftan',
+            categoryTab: 'Women',
+            productId: createdProducts[0].id,
+            displayOrder: 1,
+          },
+          {
+            title: 'Blush Silk Lehenga Set',
+            categoryTab: 'Women',
+            productId: createdProducts[1].id,
+            displayOrder: 2,
+          },
+          {
+            title: 'Royal Black Velvet Sherwani',
+            categoryTab: 'Men',
+            productId: createdProducts[2].id,
+            displayOrder: 3,
+          },
+          {
+            title: 'Satin Silk Evening Gown',
+            categoryTab: 'Women',
+            productId: createdProducts[3].id,
+            displayOrder: 4,
+          },
+          {
+            title: 'Little Princess Tulle Dress',
+            categoryTab: 'Kids',
+            productId: createdProducts[4].id,
+            displayOrder: 5,
+          },
+          {
+            title: 'Junior Heir Embroidered Kurta',
+            categoryTab: 'Kids',
+            productId: createdProducts[5].id,
+            displayOrder: 6,
+          },
+        ],
+      },
+    },
+  });
+
+  const featuredBrandsSection = await prisma.landingSection.create({
+    data: {
+      title: 'Featured Brands',
+      subtitle: 'World-renowned luxury ateliers and haute couture design houses',
+      type: 'FEATURED_BRANDS',
+      viewAllUrl: '/products',
+      displayOrder: 2,
+      isActive: true,
+      tabs: [],
+      items: {
+        create: [
+          {
+            title: 'Atelier Ideal',
+            subtitle: 'Parisian High Fashion',
+            imageUrl: '/images/sections/brand-atelier.jpg',
+            linkUrl: '/products?search=Atelier',
+            displayOrder: 1,
+          },
+          {
+            title: 'Royal Velvet',
+            subtitle: 'Heritage Kaftans & Robes',
+            imageUrl: '/images/sections/brand-kaftan.jpg',
+            linkUrl: '/products?category=Haute%20Couture',
+            displayOrder: 2,
+          },
+          {
+            title: 'Maison Silk',
+            subtitle: 'Handwoven Bridal Lehengas',
+            imageUrl: '/images/sections/brand-silk.jpg',
+            linkUrl: '/products?category=Bridal%20Wear',
+            displayOrder: 3,
+          },
+          {
+            title: 'Imperial Groom',
+            subtitle: 'Besponsored Menswear & Sherwanis',
+            imageUrl: '/images/sections/brand-groom.jpg',
+            linkUrl: '/products?category=Menswear',
+            displayOrder: 4,
+          },
+        ],
+      },
+    },
+  });
+
+  const editorsPicksSection = await prisma.landingSection.create({
+    data: {
+      title: "Editor's Picks",
+      subtitle: 'Masterpieces handpicked by our creative directors for statement elegance',
+      type: 'EDITORS_PICKS',
+      viewAllUrl: '/products?type=SALE',
+      displayOrder: 3,
+      isActive: true,
+      tabs: [],
+      items: {
+        create: [
+          {
+            title: 'Embroidered Silk Anarkali Suit',
+            productId: createdProducts[4].id,
+            displayOrder: 1,
+          },
+          {
+            title: 'Crystal Beaded Evening Cape',
+            productId: createdProducts[6].id,
+            displayOrder: 2,
+          },
+          {
+            title: 'Handcrafted Pearl Tulle Veil Crown',
+            productId: createdProducts[7].id,
+            displayOrder: 3,
+          },
+          {
+            title: 'Royal Velvet Emerald Kaftan',
+            productId: createdProducts[0].id,
+            displayOrder: 4,
+          },
+        ],
+      },
+    },
+  });
+
+  console.log('Created landing page configurable sections');
   console.log('Seeding completed successfully!');
 }
 

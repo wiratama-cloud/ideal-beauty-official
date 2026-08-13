@@ -64,7 +64,7 @@ export default function CartDrawer() {
                 const unitPrice =
                   item.type === 'RENTAL' ? Number(item.variant?.priceRent || 0) : Number(item.variant?.priceSale || 0);
 
-                const image = product?.images?.[0] || 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop';
+                const image = product?.images?.[0] || '/images/products/default-product.jpg';
 
                 return (
                   <div key={item.id} className="pt-4 first:pt-0 flex space-x-4">

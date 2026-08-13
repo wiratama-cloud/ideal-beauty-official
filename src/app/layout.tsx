@@ -20,8 +20,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans bg-white text-neutral-900 selection:bg-black selection:text-white">
+    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
+      <body className="min-h-full flex flex-col font-sans bg-white text-neutral-900 selection:bg-black selection:text-white" suppressHydrationWarning>
         <CartProvider>
           <AnnouncementBar />
           <Suspense fallback={<div className="h-20 border-b border-neutral-100 bg-white" />}>

@@ -42,6 +42,11 @@ export async function createOrder(input: CreateOrderInput) {
     throw new Error('Your shopping bag is empty.');
   }
 
+  const hasRentalItems = cart.items.some((item) => item.type === 'RENTAL');
+  if (hasRentalItems && paymentType === 'DOWN_PAYMENT') {
+    throw new Error('Rental items require 100% full payment upon checkout.');
+  }
+
   // Calculate order total
   let totalAmount = 0;
   for (const item of cart.items) {
@@ -157,10 +162,43 @@ export async function createOrder(input: CreateOrderInput) {
     });
 
     return {
-      order,
-      payment,
+      order: serializeOrder(order),
+      payment: serializePayment(payment),
     };
   });
+}
+
+export function serializePayment(payment: any) {
+  if (!payment) return null;
+  return {
+    ...payment,
+    amount: payment.amount !== undefined && payment.amount !== null ? Number(payment.amount) : null,
+  };
+}
+
+export function serializeOrder(order: any) {
+  if (!order) return null;
+  return {
+    ...order,
+    totalAmount: order.totalAmount !== undefined && order.totalAmount !== null ? Number(order.totalAmount) : null,
+    shippingCost: order.shippingCost !== undefined && order.shippingCost !== null ? Number(order.shippingCost) : null,
+    items: order.items
+      ? order.items.map((item: any) => ({
+          ...item,
+          priceAtTime: item.priceAtTime !== undefined && item.priceAtTime !== null ? Number(item.priceAtTime) : null,
+          variant: item.variant
+            ? {
+                ...item.variant,
+                priceSale: item.variant.priceSale !== undefined && item.variant.priceSale !== null ? Number(item.variant.priceSale) : null,
+                priceRent: item.variant.priceRent !== undefined && item.variant.priceRent !== null ? Number(item.variant.priceRent) : null,
+                compareAtPrice: item.variant.compareAtPrice !== undefined && item.variant.compareAtPrice !== null ? Number(item.variant.compareAtPrice) : null,
+                costPrice: item.variant.costPrice !== undefined && item.variant.costPrice !== null ? Number(item.variant.costPrice) : null,
+              }
+            : null,
+        }))
+      : [],
+    payments: order.payments ? order.payments.map((payment: any) => serializePayment(payment)) : [],
+  };
 }
 
 export async function getOrderById(orderId: string) {
@@ -188,25 +226,7 @@ export async function getOrderById(orderId: string) {
 
   if (!order) return null;
 
-  return {
-    ...order,
-    totalAmount: order.totalAmount ? Number(order.totalAmount) : null,
-    shippingCost: order.shippingCost ? Number(order.shippingCost) : null,
-    items: order.items.map((item) => ({
-      ...item,
-      priceAtTime: item.priceAtTime ? Number(item.priceAtTime) : null,
-      variant: item.variant ? {
-        ...item.variant,
-        priceSale: item.variant.priceSale ? Number(item.variant.priceSale) : null,
-        priceRent: item.variant.priceRent ? Number(item.variant.priceRent) : null,
-        costPrice: item.variant.costPrice ? Number(item.variant.costPrice) : null,
-      } : null,
-    })),
-    payments: order.payments.map((payment) => ({
-      ...payment,
-      amount: payment.amount ? Number(payment.amount) : null,
-    })),
-  };
+  return serializeOrder(order);
 }
 
 export async function getUserOrders(userId: string) {
@@ -233,23 +253,5 @@ export async function getUserOrders(userId: string) {
     },
   });
 
-  return orders.map(order => ({
-    ...order,
-    totalAmount: order.totalAmount ? Number(order.totalAmount) : null,
-    shippingCost: order.shippingCost ? Number(order.shippingCost) : null,
-    items: order.items.map((item) => ({
-      ...item,
-      priceAtTime: item.priceAtTime ? Number(item.priceAtTime) : null,
-      variant: item.variant ? {
-        ...item.variant,
-        priceSale: item.variant.priceSale ? Number(item.variant.priceSale) : null,
-        priceRent: item.variant.priceRent ? Number(item.variant.priceRent) : null,
-        costPrice: item.variant.costPrice ? Number(item.variant.costPrice) : null,
-      } : null,
-    })),
-    payments: order.payments.map((payment) => ({
-      ...payment,
-      amount: payment.amount ? Number(payment.amount) : null,
-    })),
-  }));
+  return orders.map(order => serializeOrder(order));
 }

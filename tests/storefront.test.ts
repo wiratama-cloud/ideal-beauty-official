@@ -8,6 +8,14 @@ import { addItemToCart, getOrCreateCart, mergeGuestCartToUser } from '../src/lib
 import { createOrder, getOrderById } from '../src/lib/services/order';
 import { processPaymentCompletion, createFinalBalancePayment } from '../src/lib/services/payment';
 import { getFinancialSummary, createExpenseEntry, generateLedgerCSV } from '../src/lib/services/ledger';
+import {
+  createLandingSection,
+  getLandingSections,
+  updateLandingSection,
+  deleteLandingSection,
+  createLandingSectionItem,
+  deleteLandingSectionItem,
+} from '../src/lib/services/section';
 
 describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
   let sampleUser: any;
@@ -208,6 +216,96 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
     const csvContent = await generateLedgerCSV();
     expect(csvContent).toContain('Date,Type,Category,Amount (IDR)');
     expect(csvContent).toContain('MANUFACTURING_COGS');
+  });
+
+  test('9. Rental Items Require 100% Full Payment Enforcement', async () => {
+    // Clear user cart
+    const userCart = await getOrCreateCart(sampleUser.id);
+    await prisma.cartItem.deleteMany({ where: { cartId: userCart.id } });
+
+    // Add rental item to cart
+    await addItemToCart(sampleUser.id, {
+      variantId: sampleVariant.id,
+      type: 'RENTAL',
+      quantity: 1,
+    });
+
+    // Attempting DOWN_PAYMENT for rental item must be rejected
+    await expect(
+      createOrder({
+        userId: sampleUser.id,
+        shippingAddress: {
+          recipientName: 'Rental Patron',
+          phone: '+628111111111',
+          addressLine1: 'Jl. Senopati 45',
+          city: 'Jakarta',
+          province: 'DKI Jakarta',
+          postalCode: '12190',
+        },
+        paymentType: 'DOWN_PAYMENT',
+        paymentMethod: 'QRIS',
+      })
+    ).rejects.toThrow(/Rental items require 100% full payment/);
+
+    // FULL_PAYMENT for rental item succeeds
+    const rentalOrderRes = await createOrder({
+      userId: sampleUser.id,
+      shippingAddress: {
+        recipientName: 'Rental Patron',
+        phone: '+628111111111',
+        addressLine1: 'Jl. Senopati 45',
+        city: 'Jakarta',
+        province: 'DKI Jakarta',
+        postalCode: '12190',
+      },
+      paymentType: 'FULL_PAYMENT',
+      paymentMethod: 'QRIS',
+    });
+
+    expect(rentalOrderRes.order.status).toBe('PENDING');
+    expect(Number(rentalOrderRes.payment.amount)).toBe(1000000.0);
+  });
+
+  test('10. Landing Page Configurable Sections & Admin Console Management', async () => {
+    // Create new landing section with subcategory tabs
+    const createdSection = await createLandingSection({
+      title: 'New Arrivals Test Section',
+      subtitle: 'Curated test releases',
+      type: 'NEW_ARRIVALS',
+      viewAllUrl: '/products',
+      displayOrder: 1,
+      isActive: true,
+      tabs: ['Women', 'Men', 'Kids'],
+    });
+
+    expect(createdSection.title).toBe('New Arrivals Test Section');
+    expect(createdSection.tabs).toEqual(['Women', 'Men', 'Kids']);
+
+    // Add item to Women tab
+    const createdItem = await createLandingSectionItem({
+      sectionId: createdSection.id,
+      title: 'Emerald Kaftan',
+      categoryTab: 'Women',
+      productId: sampleProduct.id,
+      displayOrder: 1,
+    });
+
+    expect(createdItem.categoryTab).toBe('Women');
+
+    // Retrieve active landing sections
+    const activeSections = await getLandingSections(true);
+    const foundSection = activeSections.find((s) => s.id === createdSection.id);
+    expect(foundSection).toBeDefined();
+    expect(foundSection?.items.length).toBe(1);
+
+    // Update section active state
+    await updateLandingSection(createdSection.id, { isActive: false });
+    const inactiveCheck = await getLandingSections(true);
+    expect(inactiveCheck.some((s) => s.id === createdSection.id)).toBe(false);
+
+    // Clean up test section
+    await deleteLandingSectionItem(createdItem.id);
+    await deleteLandingSection(createdSection.id);
   });
 
   afterAll(async () => {

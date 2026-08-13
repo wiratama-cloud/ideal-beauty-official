@@ -61,6 +61,14 @@ enum IncomeCategory {
   OTHER
 }
 
+enum SectionType {
+  NEW_ARRIVALS
+  FEATURED_BRANDS
+  EDITORS_PICKS
+  CUSTOM_GRID
+  PROMO_BANNER
+}
+
 model User {
   id        String         @id @default(uuid())
   email     String         @unique
@@ -92,18 +100,19 @@ model Address {
 }
 
 model Product {
-  id            String           @id @default(uuid())
+  id            String               @id @default(uuid())
   name          String
-  slug          String           @unique
+  slug          String               @unique
   description   String?
-  category      String?          @default("Ready To Wear")
-  images        String[]         @default([])
-  isActive      Boolean          @default(true)
+  category      String?              @default("Ready To Wear")
+  images        String[]             @default([])
+  isActive      Boolean              @default(true)
   variants      ProductVariant[]
   ledgerEntries LedgerEntry[]
   wishlistedBy  WishlistItem[]
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  sectionItems  LandingSectionItem[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
 
   @@index([isActive, slug])
 }
@@ -116,6 +125,7 @@ model ProductVariant {
   attributes     Json
   priceSale      Decimal?        @db.Decimal(10, 2)
   priceRent      Decimal?        @db.Decimal(10, 2)
+  compareAtPrice Decimal?        @db.Decimal(10, 2)
   costPrice      Decimal?        @db.Decimal(10, 2)
   stockTotal     Int             @default(0)
   stockAvailable Int             @default(0)
@@ -240,4 +250,38 @@ model LedgerEntry {
   updatedAt       DateTime         @updatedAt
 
   @@index([createdAt, type])
+}
+
+model LandingSection {
+  id           String               @id @default(uuid())
+  title        String
+  subtitle     String?
+  type         SectionType          @default(CUSTOM_GRID)
+  viewAllUrl   String?
+  displayOrder Int                  @default(0)
+  isActive     Boolean              @default(true)
+  tabs         String[]             @default([])
+  items        LandingSectionItem[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([isActive, displayOrder])
+}
+
+model LandingSectionItem {
+  id           String         @id @default(uuid())
+  sectionId    String
+  section      LandingSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  title        String?
+  subtitle     String?
+  imageUrl     String?
+  linkUrl      String?
+  categoryTab  String?
+  productId    String?
+  product      Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+  displayOrder Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([sectionId, displayOrder])
 }

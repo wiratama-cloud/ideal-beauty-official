@@ -20,6 +20,7 @@ interface ProductDetailViewProps {
       attributes: any;
       priceSale: any;
       priceRent: any;
+      compareAtPrice?: any;
       stockAvailable: number;
     }>;
   };
@@ -30,7 +31,7 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
   const { addToCart } = useCart();
 
   const [selectedImage, setSelectedImage] = useState(
-    product.images[0] || 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop'
+    product.images[0] || '/images/products/default-product.jpg'
   );
 
   const [selectedVariantId, setSelectedVariantId] = useState(product.variants[0]?.id || '');
@@ -49,6 +50,16 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
   const [addedSuccess, setAddedSuccess] = useState(false);
 
   const selectedVariant = product.variants.find((v) => v.id === selectedVariantId) || product.variants[0];
+
+  // Auto adjust optionType if selected variant does not support current optionType
+  React.useEffect(() => {
+    if (!selectedVariant) return;
+    if (optionType === 'SALE' && !selectedVariant.priceSale && selectedVariant.priceRent) {
+      setOptionType('RENTAL');
+    } else if (optionType === 'RENTAL' && !selectedVariant.priceRent && selectedVariant.priceSale) {
+      setOptionType('SALE');
+    }
+  }, [selectedVariantId, selectedVariant, optionType]);
 
   const handleWishlistToggle = async () => {
     setIsWishlistLoading(true);
@@ -168,16 +179,26 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
             </div>
 
             {/* Price Display */}
-            <div className="pt-2 font-mono text-lg sm:text-xl text-neutral-900 font-light">
+            <div className="pt-2 font-mono text-lg sm:text-xl text-neutral-900 font-light flex items-center flex-wrap gap-2">
               {optionType === 'SALE' ? (
-                <div>
-                  <span className="text-xs sm:text-sm uppercase tracking-widest font-sans text-neutral-400 mr-2">Sale Price:</span>
-                  {formatIDR(selectedVariant?.priceSale)}
+                <div className="flex items-center space-x-2 flex-wrap">
+                  <span className="text-xs sm:text-sm uppercase tracking-widest font-sans text-neutral-400">Sale Price:</span>
+                  <span className="font-semibold">{formatIDR(selectedVariant?.priceSale)}</span>
+                  {selectedVariant?.compareAtPrice && Number(selectedVariant.compareAtPrice) > Number(selectedVariant.priceSale) && (
+                    <>
+                      <span className="text-xs sm:text-sm text-neutral-400 line-through">
+                        {formatIDR(selectedVariant.compareAtPrice)}
+                      </span>
+                      <span className="bg-red-600 text-white font-sans text-[10px] uppercase font-bold px-2 py-0.5 rounded-sm">
+                        -{Math.round(((Number(selectedVariant.compareAtPrice) - Number(selectedVariant.priceSale)) / Number(selectedVariant.compareAtPrice)) * 100)}% OFF
+                      </span>
+                    </>
+                  )}
                 </div>
               ) : (
-                <div>
-                  <span className="text-xs sm:text-sm uppercase tracking-widest font-sans text-neutral-400 mr-2">Rental Rate:</span>
-                  {formatIDR(selectedVariant?.priceRent)}
+                <div className="flex items-center space-x-2 flex-wrap">
+                  <span className="text-xs sm:text-sm uppercase tracking-widest font-sans text-neutral-400">Rental Rate:</span>
+                  <span className="font-semibold">{formatIDR(selectedVariant?.priceRent)}</span>
                 </div>
               )}
             </div>

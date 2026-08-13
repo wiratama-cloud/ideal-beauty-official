@@ -29,8 +29,10 @@ export default function CheckoutPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const items = cart?.items || [];
+  const hasRentalItems = items.some((item: any) => item.type === 'RENTAL');
 
-  const initialAmountDue = paymentType === 'DOWN_PAYMENT' ? subtotal * 0.5 : subtotal;
+  const effectivePaymentType = hasRentalItems ? 'FULL_PAYMENT' : paymentType;
+  const initialAmountDue = effectivePaymentType === 'DOWN_PAYMENT' ? subtotal * 0.5 : subtotal;
 
   const formatIDR = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -50,7 +52,7 @@ export default function CheckoutPage() {
     try {
       const res = await submitCheckoutAction({
         shippingAddress: address,
-        paymentType,
+        paymentType: effectivePaymentType,
         paymentMethod,
         bankName,
       });
@@ -182,12 +184,18 @@ export default function CheckoutPage() {
                 2. Payment Plan Options
               </h2>
 
+              {hasRentalItems && (
+                <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-sans">
+                  Note: Your bag contains rental item(s). Rentals require 100% full payment upon checkout.
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
                   type="button"
                   onClick={() => setPaymentType('FULL_PAYMENT')}
                   className={`p-4 border text-left transition-all ${
-                    paymentType === 'FULL_PAYMENT'
+                    effectivePaymentType === 'FULL_PAYMENT'
                       ? 'border-black bg-neutral-900 text-white'
                       : 'border-neutral-200 text-neutral-800 hover:border-neutral-400'
                   }`}
@@ -199,16 +207,25 @@ export default function CheckoutPage() {
 
                 <button
                   type="button"
-                  onClick={() => setPaymentType('DOWN_PAYMENT')}
+                  disabled={hasRentalItems}
+                  onClick={() => !hasRentalItems && setPaymentType('DOWN_PAYMENT')}
                   className={`p-4 border text-left transition-all ${
-                    paymentType === 'DOWN_PAYMENT'
+                    hasRentalItems
+                      ? 'border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-60'
+                      : effectivePaymentType === 'DOWN_PAYMENT'
                       ? 'border-black bg-neutral-900 text-white'
                       : 'border-neutral-200 text-neutral-800 hover:border-neutral-400'
                   }`}
                 >
                   <div className="font-medium uppercase tracking-wider">Down Payment (50% Deposit)</div>
-                  <div className="text-[11px] opacity-80 mt-1 font-mono">{formatIDR(subtotal * 0.5)} now</div>
-                  <div className="text-[10px] opacity-60 mt-1">Reserve bespoke piece now, pay balance prior to dispatch.</div>
+                  <div className="text-[11px] opacity-80 mt-1 font-mono">
+                    {hasRentalItems ? 'N/A for Rentals' : `${formatIDR(subtotal * 0.5)} now`}
+                  </div>
+                  <div className="text-[10px] opacity-60 mt-1">
+                    {hasRentalItems
+                      ? 'Rental items must be paid in full.'
+                      : 'Reserve bespoke piece now, pay balance prior to dispatch.'}
+                  </div>
                 </button>
               </div>
             </div>
@@ -312,7 +329,7 @@ export default function CheckoutPage() {
                   const unitPrice =
                     item.type === 'RENTAL' ? Number(item.variant?.priceRent || 0) : Number(item.variant?.priceSale || 0);
 
-                  const image = product?.images?.[0] || 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1200&auto=format&fit=crop';
+                  const image = product?.images?.[0] || '/images/products/default-product.jpg';
 
                   return (
                     <div key={item.id} className="pt-4 first:pt-0 flex space-x-3">
@@ -341,7 +358,7 @@ export default function CheckoutPage() {
                   <span className="text-emerald-700 font-sans uppercase text-[10px]">Complimentary</span>
                 </div>
 
-                {paymentType === 'DOWN_PAYMENT' && (
+                {effectivePaymentType === 'DOWN_PAYMENT' && (
                   <div className="flex justify-between text-amber-800 bg-amber-50 p-2 text-[11px]">
                     <span className="font-sans uppercase">Remaining Balance Later</span>
                     <span>{formatIDR(subtotal * 0.5)}</span>

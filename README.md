@@ -9,6 +9,7 @@ The platform manages haute couture sales, bridal & eveningwear rentals, flexible
 ## Key Features
 
 - **LAAM-Inspired High-Fashion UX**: Clean, minimalist design system with top announcement ticker, sticky navigation header, multi-image hover previews, quick view modals, and a slide-over cart drawer.
+- **Configurable Landing Page Sections**: Dynamic home page sections (New Arrivals with Women, Men, Kids subcategories, Featured Brands, Editor's Picks) fully manageable via the Admin Console.
 - **Product Catalog & URL-Driven Filtering**: Server-side product listing page (PLP) with instant filtering by category, search query, price range, and availability using Next.js Server Components and URL search parameters.
 - **Bespoke Sales & Rentals**: Support for `SALE` (`priceSale`) and `RENTAL` (`priceRent`) item types, including rental start/end date pickers on the Product Detail Page (PDP).
 - **Guest Cart & Account Session Sync**: Cookie-backed `sessionId` persistence for guest carts that auto-merges into the user account upon login/registration.
@@ -151,5 +152,7 @@ npx tsx tests/run-tests.ts
 - **Order Tracking & Balance Payment**: `/account/orders/[id]`
 - **Customer Wishlist**: `/account/wishlist`
 - **Admin Dashboard**: `/admin/dashboard`
+- **Admin Inventory Management**: `/admin/inventory`
+- **Admin Landing Sections Manager**: `/admin/sections`
 - **Admin Order & Rental Management**: `/admin/orders`
 - **Admin Financial Ledger & CSV Export**: `/admin/ledger`

@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, PlusCircle, Download, FileSpreadsheet, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { PlusCircle, Download, FileSpreadsheet, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { logExpenseAction, exportLedgerCSVAction } from '@/app/actions/admin';
+import AdminHeader from '@/components/admin/AdminHeader';
 
 interface AdminLedgerViewProps {
   entries: any[];
@@ -74,31 +75,24 @@ export default function AdminLedgerView({ entries: initialEntries }: AdminLedger
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 font-light text-xs space-y-10">
-      <div className="flex items-center space-x-2 text-neutral-500">
-        <Link href="/admin/dashboard" className="hover:text-black flex items-center space-x-1 uppercase tracking-widest text-[10px]">
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Dashboard</span>
-        </Link>
-      </div>
+    <div className="space-y-8 pb-12 font-light text-xs">
+      <AdminHeader
+        title={`Financial Ledger Audit Trail (${entries.length})`}
+        subtitle="DOUBLE-ENTRY ACCOUNTING AUDIT LOG"
+        activeTab="ledger"
+        action={
+          <button
+            onClick={handleExportCSV}
+            disabled={isExporting}
+            className="bg-black text-white px-5 py-2.5 uppercase tracking-widest text-[10px] hover:bg-neutral-800 transition-colors flex items-center space-x-2 rounded-xs"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>{isExporting ? 'Exporting...' : 'Export Ledger CSV'}</span>
+          </button>
+        }
+      />
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-neutral-200 pb-4">
-        <div>
-          <span className="text-[10px] uppercase tracking-[0.4em] text-neutral-400 font-sans block mb-1">
-            DOUBLE-ENTRY ACCOUNTING AUDIT LOG
-          </span>
-          <h1 className="font-serif text-3xl font-light text-neutral-900">Financial Ledger ({entries.length})</h1>
-        </div>
-
-        <button
-          onClick={handleExportCSV}
-          disabled={isExporting}
-          className="bg-black text-white px-5 py-2.5 uppercase tracking-widest text-[10px] hover:bg-neutral-800 transition-colors flex items-center space-x-2"
-        >
-          <Download className="w-3.5 h-3.5" />
-          <span>{isExporting ? 'Exporting...' : 'Export Ledger CSV'}</span>
-        </button>
-      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
 
       {/* Expense Entry Form */}
       <div className="bg-white p-6 sm:p-8 border border-neutral-100 space-y-4 shadow-sm">
@@ -223,5 +217,6 @@ export default function AdminLedgerView({ entries: initialEntries }: AdminLedger
         </table>
       </div>
     </div>
+  </div>
   );
 }
