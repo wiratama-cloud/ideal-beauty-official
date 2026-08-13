@@ -1,12 +1,18 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { redirect } from 'next/navigation';
 import { getUserOrders } from '@/lib/services/order';
-import { getSessionUserId } from '@/lib/session';
+import { getLoggedInUserId } from '@/lib/session';
 import { Package, Clock, CheckCircle2, ChevronRight, AlertCircle } from 'lucide-react';
 
 export default async function OrderHistoryPage() {
-  const userId = await getSessionUserId();
+  const userId = await getLoggedInUserId();
+
+  if (!userId) {
+    redirect('/login?redirect=/account/orders');
+  }
+
   const orders = await getUserOrders(userId);
 
   const formatIDR = (amount: number) => {

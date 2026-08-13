@@ -1,11 +1,17 @@
 import React from 'react';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getUserWishlist } from '@/lib/services/wishlist';
-import { getSessionUserId } from '@/lib/session';
+import { getLoggedInUserId } from '@/lib/session';
 import ProductGrid from '@/components/product/ProductGrid';
 
 export default async function WishlistPage() {
-  const userId = await getSessionUserId();
+  const userId = await getLoggedInUserId();
+
+  if (!userId) {
+    redirect('/login?redirect=/account/wishlist');
+  }
+
   const wishlistItems = await getUserWishlist(userId);
 
   const products = wishlistItems

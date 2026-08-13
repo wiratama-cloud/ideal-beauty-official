@@ -5,6 +5,7 @@ import Link from 'next/link';
 import ProfileTab from './ProfileTab';
 import SecurityTab from './SecurityTab';
 import AddressTab from './AddressTab';
+import { logoutUserAction } from '@/app/actions/auth';
 import {
   User,
   Shield,
@@ -14,6 +15,7 @@ import {
   ChevronRight,
   ExternalLink,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 
 export interface UserAccountData {
@@ -46,6 +48,17 @@ interface AccountViewProps {
 
 export default function AccountView({ account }: AccountViewProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'addresses'>('profile');
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await logoutUserAction();
+      window.location.href = '/login';
+    } catch {
+      setSigningOut(false);
+    }
+  };
 
   const defaultAddress = account.addresses.find((addr) => addr.isDefault) || account.addresses[0];
 
@@ -66,7 +79,7 @@ export default function AccountView({ account }: AccountViewProps) {
               <p className="text-neutral-500 font-mono text-[11px]">{account.email}</p>
             </div>
 
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Link
                 href="/account/orders"
                 className="bg-black text-white text-[11px] uppercase tracking-[0.15em] px-4 py-2.5 font-light hover:bg-neutral-800 transition-colors flex items-center space-x-1.5"
@@ -81,6 +94,14 @@ export default function AccountView({ account }: AccountViewProps) {
                 <Heart className="w-3.5 h-3.5" />
                 <span>Wishlist ({account._count.wishlist})</span>
               </Link>
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="border border-rose-200 text-rose-800 hover:bg-rose-50 text-[11px] uppercase tracking-[0.15em] px-4 py-2.5 font-light transition-colors flex items-center space-x-1.5 disabled:opacity-50"
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                <span>{signingOut ? 'Signing Out...' : 'Sign Out'}</span>
+              </button>
             </div>
           </div>
 
@@ -227,6 +248,15 @@ export default function AccountView({ account }: AccountViewProps) {
                   </div>
                   <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
                 </Link>
+
+                <button
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  className="w-full text-left px-4 py-3 text-xs uppercase tracking-[0.15em] flex items-center space-x-3 text-rose-700 hover:bg-rose-50 transition-colors disabled:opacity-50"
+                >
+                  <LogOut className="w-4 h-4 text-rose-600" />
+                  <span>{signingOut ? 'Signing Out...' : 'Sign Out'}</span>
+                </button>
               </div>
             </div>
           </aside>

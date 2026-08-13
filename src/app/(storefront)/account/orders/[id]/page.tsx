@@ -1,6 +1,7 @@
 import React from 'react';
-import { notFound } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { getOrderById } from '@/lib/services/order';
+import { getLoggedInUserId } from '@/lib/session';
 import OrderDetailView from '@/components/account/OrderDetailView';
 
 interface PageProps {
@@ -11,9 +12,15 @@ interface PageProps {
 
 export default async function OrderDetailPage({ params }: PageProps) {
   const { id } = await params;
+  const userId = await getLoggedInUserId();
+
+  if (!userId) {
+    redirect(`/login?redirect=${encodeURIComponent(`/account/orders/${id}`)}`);
+  }
+
   const order = await getOrderById(id);
 
-  if (!order) {
+  if (!order || order.userId !== userId) {
     notFound();
   }
 

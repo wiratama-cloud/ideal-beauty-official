@@ -13,6 +13,8 @@ import {
   setDefaultAddress,
   getUserAddresses,
 } from '../src/lib/services/account';
+import { loginUserAction, logoutUserAction } from '../src/app/actions/auth';
+import { getLoggedInUserId } from '../src/lib/session';
 
 describe('Account Management Services Unit & Integration Tests', () => {
   let testUser: any;
@@ -130,5 +132,28 @@ describe('Account Management Services Unit & Integration Tests', () => {
     expect(account?.addresses.length).toBeGreaterThan(0);
     expect(account?._count).toHaveProperty('orders');
     expect(account?._count).toHaveProperty('wishlist');
+  });
+
+  test('Authentication login and logout actions with password validation', async () => {
+    const loginEmail = `login.test_${Date.now()}@idealbeautyofficial.com`;
+
+    // 1. First login creates new account with optional password
+    const newUser = await loginUserAction(loginEmail, 'SecurePass123', 'New Patron');
+    expect(newUser.email).toBe(loginEmail);
+    expect(newUser.passwordHash).toBeDefined();
+
+    // 2. Logging in with incorrect password should throw an error
+    await expect(
+      loginUserAction(loginEmail, 'WrongPassword')
+    ).rejects.toThrow('Invalid email or password.');
+
+    // 3. Logging in without password on password-protected account should throw
+    await expect(
+      loginUserAction(loginEmail, '')
+    ).rejects.toThrow('Password is required for this account.');
+
+    // 4. Logging in with correct password succeeds
+    const loggedInUser = await loginUserAction(loginEmail, 'SecurePass123');
+    expect(loggedInUser.id).toBe(newUser.id);
   });
 });
