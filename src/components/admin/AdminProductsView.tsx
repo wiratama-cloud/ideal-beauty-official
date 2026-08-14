@@ -518,11 +518,18 @@ export default function AdminProductsView({ initialProducts }: AdminProductsView
   const handleDeleteProduct = async (productId: string) => {
     setIsDeleting(true);
     try {
-      await deleteProductAction(productId);
-      setProducts(products.filter((p) => p.id !== productId));
+      const res = await deleteProductAction(productId);
+      if (res?.deactivated) {
+        setProducts(products.map((p) => (p.id === productId ? { ...p, isActive: false } : p)));
+        setSuccessMessage('Product was deactivated because it has linked order history or records.');
+      } else {
+        setProducts(products.filter((p) => p.id !== productId));
+        setSuccessMessage('Product deleted successfully.');
+      }
       setDeletingProductId(null);
     } catch (err) {
       console.error('Failed to delete product', err);
+      setErrorMessage('Failed to delete or deactivate product.');
     } finally {
       setIsDeleting(false);
     }

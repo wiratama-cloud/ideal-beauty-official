@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { getCategoryAndDescendantNames } from './nav-category';
 
 export interface GetProductsParams {
   category?: string;
@@ -16,8 +17,9 @@ export async function getProducts(params: GetProductsParams = {}) {
   };
 
   if (category && category !== 'All') {
+    const names = await getCategoryAndDescendantNames(category);
     whereClause.category = {
-      equals: category,
+      in: names,
       mode: 'insensitive',
     };
   }

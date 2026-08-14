@@ -14,6 +14,9 @@ import {
   updateLandingSectionItem,
   deleteLandingSectionItem,
   getLandingSections,
+  getHeroBannerData,
+  updateHeroBannerData,
+  HeroBannerData,
   CreateSectionInput,
   CreateSectionItemInput,
 } from '@/lib/services/section';
@@ -26,9 +29,16 @@ import {
   resetDefaultNavCategories,
 } from '@/lib/services/nav-category';
 import { RentalStatus } from '@prisma/client';
+import { recordAuditLog, getAuditLogs } from '@/lib/services/audit';
 
 export async function logExpenseAction(data: CreateExpenseInput) {
   const result = await createExpenseEntry(data);
+  await recordAuditLog({
+    action: 'LOG_EXPENSE',
+    entity: 'LEDGER',
+    entityId: result.id,
+    details: data,
+  });
   revalidatePath('/admin/dashboard');
   revalidatePath('/admin/ledger');
   return {
@@ -47,6 +57,13 @@ export async function updateRentalStatusAction(orderItemId: string, rentalStatus
     data: {
       rentalStatus: RentalStatus[rentalStatus],
     },
+  });
+
+  await recordAuditLog({
+    action: 'UPDATE_RENTAL_STATUS',
+    entity: 'ORDER_ITEM',
+    entityId: orderItemId,
+    details: { rentalStatus },
   });
 
   revalidatePath('/admin/orders');
@@ -87,17 +104,46 @@ export async function getAllOrdersAdminAction() {
 
 export async function updateOrderStatusAction(orderId: string, status: any) {
   const order = await updateOrderStatus(orderId, status);
+  await recordAuditLog({
+    action: 'UPDATE_ORDER_STATUS',
+    entity: 'ORDER',
+    entityId: orderId,
+    details: { status },
+  });
   revalidatePath('/admin/orders');
   return order;
 }
 
 export async function updateOrderShippingInfoAction(orderId: string, courierName?: string, trackingNumber?: string) {
   const order = await updateOrderShippingInfo(orderId, courierName, trackingNumber);
+  await recordAuditLog({
+    action: 'UPDATE_ORDER_SHIPPING_INFO',
+    entity: 'ORDER',
+    entityId: orderId,
+    details: { courierName, trackingNumber },
+  });
   revalidatePath('/admin/orders');
   return order;
 }
 
 // Landing Section Actions
+export async function getHeroBannerAction() {
+  return getHeroBannerData();
+}
+
+export async function updateHeroBannerAction(data: HeroBannerData) {
+  const res = await updateHeroBannerData(data);
+  await recordAuditLog({
+    action: 'UPDATE_HERO_BANNER',
+    entity: 'LANDING_SECTION',
+    entityId: res.id,
+    details: data,
+  });
+  safeRevalidatePath('/');
+  safeRevalidatePath('/admin/sections');
+  return res;
+}
+
 export async function getAdminLandingSectionsAction() {
   return getLandingSections(false);
 }
@@ -118,43 +164,89 @@ export async function getAdminProductsAction() {
 
 export async function createLandingSectionAction(data: CreateSectionInput) {
   const res = await createLandingSection(data);
-  revalidatePath('/');
-  revalidatePath('/admin/sections');
+  if (res) {
+    await recordAuditLog({
+      action: 'CREATE_LANDING_SECTION',
+      entity: 'LANDING_SECTION',
+      entityId: res.id,
+      details: data,
+    });
+  }
+  safeRevalidatePath('/');
+  safeRevalidatePath('/admin/sections');
   return res;
 }
 
 export async function updateLandingSectionAction(id: string, data: Partial<CreateSectionInput>) {
   const res = await updateLandingSection(id, data);
-  revalidatePath('/');
-  revalidatePath('/admin/sections');
+  if (res) {
+    await recordAuditLog({
+      action: 'UPDATE_LANDING_SECTION',
+      entity: 'LANDING_SECTION',
+      entityId: id,
+      details: data,
+    });
+  }
+  safeRevalidatePath('/');
+  safeRevalidatePath('/admin/sections');
   return res;
 }
 
 export async function deleteLandingSectionAction(id: string) {
   const res = await deleteLandingSection(id);
-  revalidatePath('/');
-  revalidatePath('/admin/sections');
+  if (res) {
+    await recordAuditLog({
+      action: 'DELETE_LANDING_SECTION',
+      entity: 'LANDING_SECTION',
+      entityId: id,
+    });
+  }
+  safeRevalidatePath('/');
+  safeRevalidatePath('/admin/sections');
   return res;
 }
 
 export async function createLandingSectionItemAction(data: CreateSectionItemInput) {
   const res = await createLandingSectionItem(data);
-  revalidatePath('/');
-  revalidatePath('/admin/sections');
+  if (res) {
+    await recordAuditLog({
+      action: 'CREATE_LANDING_SECTION_ITEM',
+      entity: 'LANDING_SECTION_ITEM',
+      entityId: res.id,
+      details: data,
+    });
+  }
+  safeRevalidatePath('/');
+  safeRevalidatePath('/admin/sections');
   return res;
 }
 
 export async function updateLandingSectionItemAction(id: string, data: Partial<CreateSectionItemInput>) {
   const res = await updateLandingSectionItem(id, data);
-  revalidatePath('/');
-  revalidatePath('/admin/sections');
+  if (res) {
+    await recordAuditLog({
+      action: 'UPDATE_LANDING_SECTION_ITEM',
+      entity: 'LANDING_SECTION_ITEM',
+      entityId: res.id || id,
+      details: data,
+    });
+  }
+  safeRevalidatePath('/');
+  safeRevalidatePath('/admin/sections');
   return res;
 }
 
 export async function deleteLandingSectionItemAction(id: string) {
   const res = await deleteLandingSectionItem(id);
-  revalidatePath('/');
-  revalidatePath('/admin/sections');
+  if (res) {
+    await recordAuditLog({
+      action: 'DELETE_LANDING_SECTION_ITEM',
+      entity: 'LANDING_SECTION_ITEM',
+      entityId: id,
+    });
+  }
+  safeRevalidatePath('/');
+  safeRevalidatePath('/admin/sections');
   return res;
 }
 
@@ -184,6 +276,12 @@ export async function getAdminInventoryAction() {
 
 export async function adjustInventoryStockAction(data: RecordStockAdjustmentInput) {
   const result = await recordStockAdjustment(data);
+  await recordAuditLog({
+    action: 'ADJUST_INVENTORY_STOCK',
+    entity: 'INVENTORY',
+    entityId: data.variantId,
+    details: data,
+  });
   revalidatePath('/admin/inventory');
   revalidatePath('/admin/products');
   revalidatePath('/admin/ledger');
@@ -243,6 +341,13 @@ export async function updateVariantStockAction(
       },
     });
   }
+
+  await recordAuditLog({
+    action: 'UPDATE_VARIANT_STOCK',
+    entity: 'PRODUCT_VARIANT',
+    entityId: variantId,
+    details: { stockSaleTotal, stockSaleAvailable, stockRentTotal, stockRentAvailable, reason, cost },
+  });
 
   revalidatePath('/admin/inventory');
   revalidatePath('/admin/products');
@@ -356,6 +461,13 @@ export async function createProductAction(data: CreateProductInput) {
   revalidatePath('/products');
   revalidatePath('/');
 
+  await recordAuditLog({
+    action: 'CREATE_PRODUCT',
+    entity: 'PRODUCT',
+    entityId: product.id,
+    details: { name: data.name, slug: data.slug, category: data.category },
+  });
+
   return {
     ...product,
     variants: product.variants.map((v) => ({
@@ -468,34 +580,93 @@ export async function updateProductAction(productId: string, data: CreateProduct
   revalidatePath('/products');
   revalidatePath('/');
 
+  await recordAuditLog({
+    action: 'UPDATE_PRODUCT',
+    entity: 'PRODUCT',
+    entityId: productId,
+    details: { name: data.name, slug: data.slug, category: data.category },
+  });
+
   return result;
 }
 
+function safeRevalidatePath(path: string) {
+  try {
+    revalidatePath(path);
+  } catch (err) {
+    // revalidatePath is ignored outside Next.js request context (e.g. in unit tests)
+  }
+}
+
 export async function deleteProductAction(productId: string) {
+  if (!productId) {
+    return { success: false, error: 'Product ID is required' };
+  }
+
+  const existingProduct = await prisma.product.findUnique({
+    where: { id: productId },
+  });
+
+  if (!existingProduct) {
+    safeRevalidatePath('/admin/products');
+    safeRevalidatePath('/admin/inventory');
+    safeRevalidatePath('/products');
+    safeRevalidatePath('/');
+    return { success: true, deleted: true, deactivated: false };
+  }
+
+  let deleted = false;
+  let deactivated = false;
+
   try {
     await prisma.product.delete({
       where: { id: productId },
     });
+    deleted = true;
   } catch (err) {
     // If delete fails due to relations (e.g. past orders), deactivate
-    await prisma.product.update({
-      where: { id: productId },
-      data: { isActive: false },
-    });
+    try {
+      await prisma.product.update({
+        where: { id: productId },
+        data: { isActive: false },
+      });
+      deactivated = true;
+    } catch (updateErr) {
+      console.error('Failed to deactivate product after delete failed:', updateErr);
+      return { success: false, error: 'Failed to delete or deactivate product' };
+    }
   }
 
-  revalidatePath('/admin/products');
-  revalidatePath('/admin/inventory');
-  revalidatePath('/products');
-  revalidatePath('/');
+  await recordAuditLog({
+    action: deleted ? 'DELETE_PRODUCT' : 'DEACTIVATE_PRODUCT',
+    entity: 'PRODUCT',
+    entityId: productId,
+    details: {
+      productName: existingProduct.name,
+      deleted,
+      deactivated,
+    },
+  });
 
-  return { success: true };
+  safeRevalidatePath('/admin/products');
+  safeRevalidatePath('/admin/inventory');
+  safeRevalidatePath('/products');
+  safeRevalidatePath('/');
+
+  return { success: true, deleted, deactivated };
 }
 
 export async function toggleProductActiveAction(productId: string, isActive: boolean) {
   const updated = await prisma.product.update({
     where: { id: productId },
     data: { isActive },
+  });
+
+  await recordAuditLog({
+    action: 'TOGGLE_PRODUCT_ACTIVE',
+    entity: 'PRODUCT',
+    entityId: productId,
+    details: { isActive },
   });
 
   revalidatePath('/admin/products');
@@ -509,6 +680,12 @@ export async function toggleProductActiveAction(productId: string, isActive: boo
 // Voucher Actions
 export async function createVoucherAction(data: CreateVoucherInput) {
   const result = await createVoucher(data);
+  await recordAuditLog({
+    action: 'CREATE_VOUCHER',
+    entity: 'VOUCHER',
+    entityId: result.id,
+    details: { code: data.code, discountType: data.discountType, discountValue: data.discountValue },
+  });
   revalidatePath('/admin/vouchers');
   return result;
 }
@@ -519,12 +696,22 @@ export async function getVouchersAction() {
 
 export async function toggleVoucherStatusAction(id: string) {
   const result = await toggleVoucherStatus(id);
+  await recordAuditLog({
+    action: 'TOGGLE_VOUCHER_STATUS',
+    entity: 'VOUCHER',
+    entityId: id,
+  });
   revalidatePath('/admin/vouchers');
   return result;
 }
 
 export async function deleteVoucherAction(id: string) {
   const result = await deleteVoucher(id);
+  await recordAuditLog({
+    action: 'DELETE_VOUCHER',
+    entity: 'VOUCHER',
+    entityId: id,
+  });
   revalidatePath('/admin/vouchers');
   return result;
 }
@@ -553,11 +740,20 @@ export async function createNavCategoryAction(data: {
   href: string;
   displayOrder?: number;
   isActive?: boolean;
+  parentId?: string | null;
+  imageUrl?: string | null;
 }) {
   const result = await createNavCategory(data);
+  await recordAuditLog({
+    action: 'CREATE_NAV_CATEGORY',
+    entity: 'NAV_CATEGORY',
+    entityId: result.id,
+    details: data,
+  });
   revalidatePath('/', 'layout');
   revalidatePath('/products');
   revalidatePath('/admin/navigation');
+  revalidatePath('/admin/collection');
   return result;
 }
 
@@ -568,35 +764,72 @@ export async function updateNavCategoryAction(
     href: string;
     displayOrder: number;
     isActive: boolean;
+    parentId: string | null;
+    imageUrl: string | null;
   }>
 ) {
   const result = await updateNavCategory(id, data);
+  await recordAuditLog({
+    action: 'UPDATE_NAV_CATEGORY',
+    entity: 'NAV_CATEGORY',
+    entityId: id,
+    details: data,
+  });
   revalidatePath('/', 'layout');
   revalidatePath('/products');
   revalidatePath('/admin/navigation');
+  revalidatePath('/admin/collection');
   return result;
 }
 
 export async function deleteNavCategoryAction(id: string) {
   const result = await deleteNavCategory(id);
+  await recordAuditLog({
+    action: 'DELETE_NAV_CATEGORY',
+    entity: 'NAV_CATEGORY',
+    entityId: id,
+  });
   revalidatePath('/', 'layout');
   revalidatePath('/products');
   revalidatePath('/admin/navigation');
+  revalidatePath('/admin/collection');
   return result;
 }
 
 export async function reorderNavCategoriesAction(orderedIds: string[]) {
   await reorderNavCategories(orderedIds);
+  await recordAuditLog({
+    action: 'REORDER_NAV_CATEGORIES',
+    entity: 'NAV_CATEGORY',
+    entityId: 'ALL',
+    details: { orderedIds },
+  });
   revalidatePath('/', 'layout');
   revalidatePath('/products');
   revalidatePath('/admin/navigation');
+  revalidatePath('/admin/collection');
   return { success: true };
 }
 
 export async function resetDefaultNavCategoriesAction() {
   const result = await resetDefaultNavCategories();
+  await recordAuditLog({
+    action: 'RESET_NAV_CATEGORIES',
+    entity: 'NAV_CATEGORY',
+    entityId: 'ALL',
+  });
   revalidatePath('/', 'layout');
   revalidatePath('/products');
   revalidatePath('/admin/navigation');
+  revalidatePath('/admin/collection');
   return result;
+}
+
+export async function getAuditLogsAction(params?: {
+  search?: string;
+  entity?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  return getAuditLogs(params);
 }

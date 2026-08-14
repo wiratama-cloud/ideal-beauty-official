@@ -1,0 +1,118 @@
+- generic [active] [ref=f11e1]:
+  - generic [ref=f11e3]:
+    - generic [ref=f11e4]: IDEAL BEAUTY OFFICIAL • LUXURY COUTURE
+    - generic [ref=f11e5]: COMPLIMENTARY EXPRESS SHIPPING ACROSS INDONESIA • RENTAL & BESPOKE TAILORING AVAILABLE
+    - generic [ref=f11e6]: IDR (Rp)
+  - banner [ref=f11e7]:
+    - generic [ref=f11e8]:
+      - generic [ref=f11e9]:
+        - generic [ref=f11e11]:
+          - textbox "Search products..." [ref=f11e12]
+          - button "Search" [ref=f11e13]
+        - link "IDEAL BEAUTY OFFICIAL LUXURY" [ref=f11e18] [cursor=pointer]:
+          - /url: /
+          - text: IDEAL BEAUTY
+          - generic [ref=f11e19]: OFFICIAL LUXURY
+        - generic [ref=f11e20]:
+          - link "Wishlist" [ref=f11e21] [cursor=pointer]:
+            - /url: /account/wishlist
+          - link "Account Portal" [ref=f11e24] [cursor=pointer]:
+            - /url: /account
+          - button "Shopping Cart" [ref=f11e28]
+      - navigation [ref=f11e32]:
+        - link "Parent Cat" [ref=f11e34] [cursor=pointer]:
+          - /url: /parent
+  - main [ref=f11e38]:
+    - generic [ref=f11e39]:
+      - generic [ref=f11e40]:
+        - generic [ref=f11e41]: THE IDEAL BEAUTY CATALOGUE
+        - heading "All Luxury Collections" [level=1] [ref=f11e42]
+        - paragraph [ref=f11e43]: 0 Masterpieces Available
+      - generic [ref=f11e45]:
+        - complementary [ref=f11e47]:
+          - heading "Categories" [level=3] [ref=f11e53]
+          - generic [ref=f11e54]:
+            - button "All Collections" [ref=f11e55]
+            - generic [ref=f11e60]:
+              - button "Parent Cat" [ref=f11e61]
+              - button "Expand subcategories" [ref=f11e62]
+        - main [ref=f11e65]:
+          - generic [ref=f11e66]:
+            - generic [ref=f11e67]: 0 Pieces Found
+            - generic [ref=f11e71]:
+              - generic [ref=f11e72]:
+                - generic [ref=f11e73]: Search Catalogue
+                - generic [ref=f11e74]:
+                  - textbox "Search pieces, fabrics..." [ref=f11e75]
+                  - button "Submit search" [ref=f11e76]
+              - generic [ref=f11e80]:
+                - generic [ref=f11e81]: Acquisition Mode
+                - generic [ref=f11e82]:
+                  - button "All" [ref=f11e83]
+                  - button "Purchase Only" [ref=f11e84]
+                  - button "Bespoke Rental" [ref=f11e85]
+              - generic [ref=f11e86]:
+                - generic [ref=f11e87]: Price Range ($)
+                - generic [ref=f11e88]:
+                  - spinbutton "Min" [ref=f11e89]
+                  - generic [ref=f11e90]: "-"
+                  - spinbutton "Max" [ref=f11e91]
+                  - button "Apply" [ref=f11e92]
+          - generic [ref=f11e93]:
+            - heading "No Masterpieces Found" [level=3] [ref=f11e94]
+            - paragraph [ref=f11e95]: We couldn't find any luxury pieces matching your exact criteria. Try adjusting your filters or search terms.
+  - contentinfo [ref=f11e96]:
+    - generic [ref=f11e97]:
+      - generic [ref=f11e98]:
+        - generic [ref=f11e99]:
+          - heading "IDEAL BEAUTY" [level=3] [ref=f11e100]
+          - paragraph [ref=f11e101]: Crafting bespoke luxury fashion, bridal lehengas, haute couture kaftans, and evening gowns inspired by South Asian craftsmanship and modern elegance.
+          - paragraph [ref=f11e102]: Jakarta • Bali • Worldwide Delivery
+        - generic [ref=f11e103]:
+          - heading "Collections" [level=4] [ref=f11e104]
+          - list [ref=f11e105]:
+            - listitem [ref=f11e106]:
+              - link "Haute Couture" [ref=f11e107] [cursor=pointer]:
+                - /url: /products?category=Haute+Couture
+            - listitem [ref=f11e108]:
+              - link "Bridal Collection" [ref=f11e109] [cursor=pointer]:
+                - /url: /products?category=Bridal+Wear
+            - listitem [ref=f11e110]:
+              - link "Ready To Wear" [ref=f11e111] [cursor=pointer]:
+                - /url: /products?category=Ready+To+Wear
+            - listitem [ref=f11e112]:
+              - link "Men's Collection" [ref=f11e113] [cursor=pointer]:
+                - /url: /products?category=Men
+            - listitem [ref=f11e114]:
+              - link "Luxury Rental Boutique" [ref=f11e115] [cursor=pointer]:
+                - /url: /products?type=RENTAL
+        - generic [ref=f11e116]:
+          - heading "Customer Care" [level=4] [ref=f11e117]
+          - list [ref=f11e118]:
+            - listitem [ref=f11e119]:
+              - link "Order Tracking" [ref=f11e120] [cursor=pointer]:
+                - /url: /account/orders
+            - listitem [ref=f11e121]:
+              - link "Saved Wishlist" [ref=f11e122] [cursor=pointer]:
+                - /url: /account/wishlist
+            - listitem [ref=f11e123]: QRIS & Virtual Account Payment
+            - listitem [ref=f11e124]: Bespoke Fitting Appointment
+            - listitem [ref=f11e125]:
+              - link "Admin Portal" [ref=f11e126] [cursor=pointer]:
+                - /url: /admin/dashboard
+        - generic [ref=f11e127]:
+          - heading "Privé Club" [level=4] [ref=f11e128]
+          - paragraph [ref=f11e129]: Subscribe to receive private invitations to runway releases and bespoke trunk shows.
+          - generic [ref=f11e130]:
+            - textbox "Enter email address" [ref=f11e131]
+            - button "Join" [ref=f11e132]
+      - generic [ref=f11e133]:
+        - paragraph [ref=f11e134]: © 2026 Ideal Beauty Official. All Rights Reserved.
+        - generic [ref=f11e135]:
+          - generic [ref=f11e136]: QRIS Integrated
+          - generic [ref=f11e137]: Bank Virtual Account
+          - generic [ref=f11e138]: Midtrans Secured
+  - generic [ref=f11e139]:
+    - paragraph [ref=f11e140]: Enable notifications to stay updated on your order status.
+    - button "Enable Notifications" [ref=f11e141]
+  - button "Open Next.js Dev Tools" [ref=f11e147] [cursor=pointer]

@@ -1,0 +1,230 @@
+- generic [active] [ref=f13e1]:
+  - generic [ref=f13e3]:
+    - generic [ref=f13e4]: IDEAL BEAUTY OFFICIAL • LUXURY COUTURE
+    - generic [ref=f13e5]: COMPLIMENTARY EXPRESS SHIPPING ACROSS INDONESIA • RENTAL & BESPOKE TAILORING AVAILABLE
+    - generic [ref=f13e6]: IDR (Rp)
+  - banner [ref=f13e7]:
+    - generic [ref=f13e8]:
+      - generic [ref=f13e9]:
+        - generic [ref=f13e11]:
+          - textbox "Search products..." [ref=f13e12]
+          - button "Search" [ref=f13e13]
+        - link "IDEAL BEAUTY OFFICIAL LUXURY" [ref=f13e18] [cursor=pointer]:
+          - /url: /
+          - text: IDEAL BEAUTY
+          - generic [ref=f13e19]: OFFICIAL LUXURY
+        - generic [ref=f13e20]:
+          - link "Wishlist" [ref=f13e21] [cursor=pointer]:
+            - /url: /account/wishlist
+          - link "Account Portal" [ref=f13e24] [cursor=pointer]:
+            - /url: /account
+          - button "Shopping Cart" [ref=f13e28]
+      - navigation [ref=f13e32]:
+        - link "All Collections" [ref=f13e34] [cursor=pointer]:
+          - /url: /products
+        - link "Women" [ref=f13e37] [cursor=pointer]:
+          - /url: /products?category=Women
+        - link "Men" [ref=f13e42] [cursor=pointer]:
+          - /url: /products?category=Men
+        - link "Jewelry & Accessories" [ref=f13e47] [cursor=pointer]:
+          - /url: /products?category=Accessories
+        - link "Rentals" [ref=f13e50] [cursor=pointer]:
+          - /url: /products?type=RENTAL
+  - main [ref=f13e52]:
+    - generic [ref=f13e53]:
+      - generic [ref=f13e54]:
+        - generic [ref=f13e55]: THE IDEAL BEAUTY CATALOGUE
+        - heading "Lehengas" [level=1] [ref=f13e600]
+        - paragraph [ref=f13e57]: 4 Masterpieces Available
+      - generic [ref=f13e59]:
+        - complementary [ref=f13e61]:
+          - generic [ref=f13e62]:
+            - heading "Categories" [level=3] [ref=f13e67]
+            - button "Clear Filter" [ref=f13e601]
+          - generic [ref=f13e68]:
+            - button "All Collections" [ref=f13e69]
+            - generic [ref=f13e73]:
+              - generic [ref=f13e74]:
+                - button "Women" [ref=f13e75]
+                - button "Collapse subcategories" [ref=f13e517]
+              - generic [ref=f13e520]:
+                - button "Bridal Wear" [ref=f13e522]
+                - button "Haute Couture" [ref=f13e527]
+                - button "Ready To Wear" [ref=f13e532]
+                - button "Unstitched & Lawn" [ref=f13e537]
+                - button "Accessories" [ref=f13e542]
+                - button "Footwear" [ref=f13e547]
+            - generic [ref=f13e79]:
+              - generic [ref=f13e80]:
+                - button "Men" [ref=f13e81]
+                - button "Collapse subcategories" [ref=f13e551]
+              - generic [ref=f13e554]:
+                - button "Formals & Wedding" [ref=f13e556]
+                - button "Men Kurta Sets" [ref=f13e561]
+                - button "Accessories" [ref=f13e566]
+                - button "Footwear" [ref=f13e571]
+            - button "Jewelry & Accessories" [ref=f13e87]
+            - button "Rentals" [ref=f13e90]
+        - main [ref=f13e91]:
+          - generic [ref=f13e92]:
+            - generic [ref=f13e93]:
+              - generic [ref=f13e94]: 4 Pieces Found
+              - button "Reset Filters" [ref=f13e602]
+            - generic [ref=f13e97]:
+              - generic [ref=f13e98]:
+                - generic [ref=f13e99]: Search Catalogue
+                - generic [ref=f13e100]:
+                  - textbox "Search pieces, fabrics..." [ref=f13e101]
+                  - button "Submit search" [ref=f13e102]
+              - generic [ref=f13e106]:
+                - generic [ref=f13e107]: Acquisition Mode
+                - generic [ref=f13e108]:
+                  - button "All" [ref=f13e109]
+                  - button "Purchase Only" [ref=f13e110]
+                  - button "Bespoke Rental" [ref=f13e111]
+              - generic [ref=f13e112]:
+                - generic [ref=f13e113]: Price Range ($)
+                - generic [ref=f13e114]:
+                  - spinbutton "Min" [ref=f13e115]
+                  - generic [ref=f13e116]: "-"
+                  - spinbutton "Max" [ref=f13e117]
+                  - button "Apply" [ref=f13e118]
+            - generic [ref=f13e607]:
+              - generic [ref=f13e608]: "Active Filters:"
+              - generic [ref=f13e609]:
+                - text: "Category:"
+                - strong [ref=f13e610]: Lehengas
+                - button "Remove category filter" [ref=f13e611]
+          - generic [ref=f13e119]:
+            - link "Midnight Velvet Bridal Lehenga Midnight Velvet Bridal Lehenga hover RENTAL Lehengas Wishlist Lehengas Midnight Velvet Bridal Lehenga Rp 11.800.000 Rent from Rp 2.000.000" [ref=f13e289] [cursor=pointer]:
+              - /url: /products/midnight-velvet-bridal-lehenga
+              - generic [ref=f13e290]:
+                - img "Midnight Velvet Bridal Lehenga" [ref=f13e291]
+                - img "Midnight Velvet Bridal Lehenga hover" [ref=f13e292]
+                - generic:
+                  - generic: RENTAL
+                  - generic: Lehengas
+                - button "Wishlist" [ref=f13e293]
+              - generic [ref=f13e296]:
+                - generic [ref=f13e297]:
+                  - generic [ref=f13e298]: Lehengas
+                  - heading "Midnight Velvet Bridal Lehenga" [level=3] [ref=f13e300]
+                - generic [ref=f13e301]:
+                  - generic [ref=f13e302]: Rp 11.800.000
+                  - generic [ref=f13e305]:
+                    - generic [ref=f13e306]: Rent from
+                    - generic [ref=f13e308]: Rp 2.000.000
+            - link "Pastel Floral Organza Lehenga Pastel Floral Organza Lehenga hover RENTAL Lehengas Wishlist Lehengas Pastel Floral Organza Lehenga Rp 8.900.000 Rent from Rp 1.500.000" [ref=f13e310] [cursor=pointer]:
+              - /url: /products/pastel-floral-organza-lehenga
+              - generic [ref=f13e311]:
+                - img "Pastel Floral Organza Lehenga" [ref=f13e312]
+                - img "Pastel Floral Organza Lehenga hover" [ref=f13e313]
+                - generic:
+                  - generic: RENTAL
+                  - generic: Lehengas
+                - button "Wishlist" [ref=f13e314]
+              - generic [ref=f13e317]:
+                - generic [ref=f13e318]:
+                  - generic [ref=f13e319]: Lehengas
+                  - heading "Pastel Floral Organza Lehenga" [level=3] [ref=f13e321]
+                - generic [ref=f13e322]:
+                  - generic [ref=f13e323]: Rp 8.900.000
+                  - generic [ref=f13e326]:
+                    - generic [ref=f13e327]: Rent from
+                    - generic [ref=f13e329]: Rp 1.500.000
+            - link "Crimson Gold Zardozi Lehenga Crimson Gold Zardozi Lehenga hover RENTAL Lehengas Wishlist Lehengas Crimson Gold Zardozi Lehenga Rp 14.000.000 Rent from Rp 2.500.000" [ref=f13e331] [cursor=pointer]:
+              - /url: /products/crimson-gold-zardozi-lehenga
+              - generic [ref=f13e332]:
+                - img "Crimson Gold Zardozi Lehenga" [ref=f13e333]
+                - img "Crimson Gold Zardozi Lehenga hover" [ref=f13e334]
+                - generic:
+                  - generic: RENTAL
+                  - generic: Lehengas
+                - button "Wishlist" [ref=f13e335]
+              - generic [ref=f13e338]:
+                - generic [ref=f13e339]:
+                  - generic [ref=f13e340]: Lehengas
+                  - heading "Crimson Gold Zardozi Lehenga" [level=3] [ref=f13e342]
+                - generic [ref=f13e343]:
+                  - generic [ref=f13e344]: Rp 14.000.000
+                  - generic [ref=f13e347]:
+                    - generic [ref=f13e348]: Rent from
+                    - generic [ref=f13e350]: Rp 2.500.000
+            - link "Royal Bridal Lehenga Royal Bridal Lehenga hover -17% OFF RENTAL Wishlist Lehengas Save Rp 2.500.000 Royal Bridal Lehenga Rp 12.500.000 Rp 15.000.000 Rent from Rp 2.200.000" [ref=f13e352] [cursor=pointer]:
+              - /url: /products/royal-bridal-lehenga
+              - generic [ref=f13e353]:
+                - img "Royal Bridal Lehenga" [ref=f13e354]
+                - img "Royal Bridal Lehenga hover" [ref=f13e355]
+                - generic:
+                  - generic: "-17% OFF"
+                  - generic: RENTAL
+                - button "Wishlist" [ref=f13e356]
+              - generic [ref=f13e359]:
+                - generic [ref=f13e360]:
+                  - generic [ref=f13e361]:
+                    - generic [ref=f13e362]: Lehengas
+                    - generic [ref=f13e363]: Save Rp 2.500.000
+                  - heading "Royal Bridal Lehenga" [level=3] [ref=f13e364]
+                - generic [ref=f13e365]:
+                  - generic [ref=f13e367]:
+                    - generic [ref=f13e368]: Rp 12.500.000
+                    - generic [ref=f13e369]: Rp 15.000.000
+                  - generic [ref=f13e370]:
+                    - generic [ref=f13e371]: Rent from
+                    - generic [ref=f13e373]: Rp 2.200.000
+  - contentinfo [ref=f13e462]:
+    - generic [ref=f13e463]:
+      - generic [ref=f13e464]:
+        - generic [ref=f13e465]:
+          - heading "IDEAL BEAUTY" [level=3] [ref=f13e466]
+          - paragraph [ref=f13e467]: Crafting bespoke luxury fashion, bridal lehengas, haute couture kaftans, and evening gowns inspired by South Asian craftsmanship and modern elegance.
+          - paragraph [ref=f13e468]: Jakarta • Bali • Worldwide Delivery
+        - generic [ref=f13e469]:
+          - heading "Collections" [level=4] [ref=f13e470]
+          - list [ref=f13e471]:
+            - listitem [ref=f13e472]:
+              - link "Haute Couture" [ref=f13e473] [cursor=pointer]:
+                - /url: /products?category=Haute+Couture
+            - listitem [ref=f13e474]:
+              - link "Bridal Collection" [ref=f13e475] [cursor=pointer]:
+                - /url: /products?category=Bridal+Wear
+            - listitem [ref=f13e476]:
+              - link "Ready To Wear" [ref=f13e477] [cursor=pointer]:
+                - /url: /products?category=Ready+To+Wear
+            - listitem [ref=f13e478]:
+              - link "Men's Collection" [ref=f13e479] [cursor=pointer]:
+                - /url: /products?category=Men
+            - listitem [ref=f13e480]:
+              - link "Luxury Rental Boutique" [ref=f13e481] [cursor=pointer]:
+                - /url: /products?type=RENTAL
+        - generic [ref=f13e482]:
+          - heading "Customer Care" [level=4] [ref=f13e483]
+          - list [ref=f13e484]:
+            - listitem [ref=f13e485]:
+              - link "Order Tracking" [ref=f13e486] [cursor=pointer]:
+                - /url: /account/orders
+            - listitem [ref=f13e487]:
+              - link "Saved Wishlist" [ref=f13e488] [cursor=pointer]:
+                - /url: /account/wishlist
+            - listitem [ref=f13e489]: QRIS & Virtual Account Payment
+            - listitem [ref=f13e490]: Bespoke Fitting Appointment
+            - listitem [ref=f13e491]:
+              - link "Admin Portal" [ref=f13e492] [cursor=pointer]:
+                - /url: /admin/dashboard
+        - generic [ref=f13e493]:
+          - heading "Privé Club" [level=4] [ref=f13e494]
+          - paragraph [ref=f13e495]: Subscribe to receive private invitations to runway releases and bespoke trunk shows.
+          - generic [ref=f13e496]:
+            - textbox "Enter email address" [ref=f13e497]
+            - button "Join" [ref=f13e498]
+      - generic [ref=f13e499]:
+        - paragraph [ref=f13e500]: © 2026 Ideal Beauty Official. All Rights Reserved.
+        - generic [ref=f13e501]:
+          - generic [ref=f13e502]: QRIS Integrated
+          - generic [ref=f13e503]: Bank Virtual Account
+          - generic [ref=f13e504]: Midtrans Secured
+  - generic [ref=f13e505]:
+    - paragraph [ref=f13e506]: Enable notifications to stay updated on your order status.
+    - button "Enable Notifications" [ref=f13e507]
+  - button "Open Next.js Dev Tools" [ref=f13e513] [cursor=pointer]
+  - alert [ref=f13e575]

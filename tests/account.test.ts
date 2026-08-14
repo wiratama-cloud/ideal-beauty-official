@@ -14,6 +14,12 @@ import {
   setDefaultAddress,
   getUserAddresses,
 } from '../src/lib/services/account';
+import { getUserOrders } from '../src/lib/services/order';
+import { getUserWishlist, toggleWishlistItem } from '../src/lib/services/wishlist';
+import {
+  createFinalPaymentAction,
+  simulatePaymentCompletionAction,
+} from '../src/app/actions/checkout';
 import {
   loginUserAction,
   logoutUserAction,
@@ -418,5 +424,128 @@ describe('Account Management Services Unit & Integration Tests', () => {
     // 5. Re-verifying phone via linkPhoneToUserAction marks isPhoneVerified = true
     const reVerifiedPhoneUser = await linkPhoneToUserAction('valid_phone_token');
     expect(reVerifiedPhoneUser.isPhoneVerified).toBe(true);
+  });
+
+  test('getUserAccount Returns Complete Account Overview & Counts', async () => {
+    const accountData = await getUserAccount(testUser.id);
+    expect(accountData).toBeDefined();
+    expect(accountData?.id).toBe(testUser.id);
+    expect(accountData?._count).toBeDefined();
+    expect(typeof accountData?._count.orders).toBe('number');
+    expect(typeof accountData?._count.wishlist).toBe('number');
+    expect(Array.isArray(accountData?.addresses)).toBe(true);
+  });
+
+  test('Multi-Order Batch Payment Generation & Settlement', async () => {
+    // 1. Create 2 pending orders with down payments for test user
+    const order1 = await prisma.order.create({
+      data: {
+        userId: testUser.id,
+        totalAmount: 1000000,
+        status: 'PARTIALLY_PAID',
+        payments: {
+          create: {
+            amount: 500000,
+            type: 'DOWN_PAYMENT',
+            status: 'COMPLETED',
+            paymentMethod: 'QRIS',
+          },
+        },
+      },
+      include: { payments: true },
+    });
+
+    const order2 = await prisma.order.create({
+      data: {
+        userId: testUser.id,
+        totalAmount: 2000000,
+        status: 'PARTIALLY_PAID',
+        payments: {
+          create: {
+            amount: 1000000,
+            type: 'DOWN_PAYMENT',
+            status: 'COMPLETED',
+            paymentMethod: 'BANK_TRANSFER',
+          },
+        },
+      },
+      include: { payments: true },
+    });
+
+    // 2. Fetch orders via getUserOrders
+    const userOrders = await getUserOrders(testUser.id);
+    expect(userOrders.length).toBeGreaterThanOrEqual(2);
+
+    const fetchedOrder1 = userOrders.find((o) => o.id === order1.id);
+    const fetchedOrder2 = userOrders.find((o) => o.id === order2.id);
+
+    expect(fetchedOrder1).toBeDefined();
+    expect(fetchedOrder2).toBeDefined();
+
+    // 3. Generate batch payments for selected orders
+    const payment1 = await createFinalPaymentAction(order1.id, 'QRIS');
+    const payment2 = await createFinalPaymentAction(order2.id, 'BANK_TRANSFER', 'BCA');
+
+    expect(payment1.amount).toBe(500000);
+    expect(payment1.status).toBe('PENDING');
+    expect(payment2.amount).toBe(1000000);
+    expect(payment2.status).toBe('PENDING');
+
+    // 4. Simulate payment completion for both payments in batch
+    await simulatePaymentCompletionAction(payment1.id);
+    await simulatePaymentCompletionAction(payment2.id);
+
+    // 5. Verify order status updated to PAID
+    const updatedOrder1 = await prisma.order.findUnique({ where: { id: order1.id } });
+    const updatedOrder2 = await prisma.order.findUnique({ where: { id: order2.id } });
+
+    expect(updatedOrder1?.status).toBe('PAID');
+    expect(updatedOrder2?.status).toBe('PAID');
+  });
+
+  test('Wishlist Management & Retrieval', async () => {
+    // 1. Create dummy product & variant for wishlist testing
+    const product = await prisma.product.create({
+      data: {
+        name: 'Royal Bridal Lehenga',
+        slug: `royal-bridal-lehenga-${Date.now()}`,
+        category: 'Bridal',
+        description: 'Haute couture bridal masterpiece with gold embroidery.',
+        images: ['/images/products/bridal-1.jpg'],
+        variants: {
+          create: {
+            sku: `LEHENGA-${Date.now()}`,
+            attributes: { size: 'M', color: 'Crimson Gold' },
+            priceSale: 15000000,
+            priceRent: 5000000,
+            stockSaleAvailable: 2,
+            stockRentAvailable: 3,
+          },
+        },
+      },
+      include: { variants: true },
+    });
+
+    const variant = product.variants[0];
+
+    // 2. Toggle item into wishlist
+    const addRes = await toggleWishlistItem(testUser.id, product.id, variant.id);
+    expect(addRes.wishlisted).toBe(true);
+
+    // 3. Retrieve wishlist
+    const wishlist = await getUserWishlist(testUser.id);
+    expect(wishlist.length).toBeGreaterThanOrEqual(1);
+
+    const savedItem = wishlist.find((w) => w.productId === product.id);
+    expect(savedItem).toBeDefined();
+    expect(savedItem?.product?.name).toBe('Royal Bridal Lehenga');
+    expect(savedItem?.variant?.priceSale).toBe(15000000);
+
+    // 4. Toggle item out of wishlist
+    const removeRes = await toggleWishlistItem(testUser.id, product.id, variant.id);
+    expect(removeRes.wishlisted).toBe(false);
+
+    const wishlistAfter = await getUserWishlist(testUser.id);
+    expect(wishlistAfter.find((w) => w.productId === product.id)).toBeUndefined();
   });
 });

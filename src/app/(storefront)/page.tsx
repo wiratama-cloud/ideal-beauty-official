@@ -5,13 +5,14 @@ import ProductGrid from '@/components/product/ProductGrid';
 import LandingSectionsRenderer from '@/components/home/LandingSectionsRenderer';
 import { getProducts } from '@/lib/services/product';
 import { getWishlistedProductIds } from '@/lib/services/wishlist';
-import { getLandingSections } from '@/lib/services/section';
+import { getLandingSections, getHeroBannerData } from '@/lib/services/section';
 import { getSessionUserId } from '@/lib/session';
 
 export default async function HomePage() {
-  const [products, sections, userId] = await Promise.all([
+  const [products, sections, heroBanner, userId] = await Promise.all([
     getProducts(),
     getLandingSections(true),
+    getHeroBannerData(),
     getSessionUserId(),
   ]);
 
@@ -21,7 +22,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-16 pb-20 bg-white">
       {/* Hero Section */}
-      <HeroBanner />
+      <HeroBanner data={heroBanner} />
 
       {/* Dynamic Admin-Configured Landing Sections */}
       {sections && sections.length > 0 ? (

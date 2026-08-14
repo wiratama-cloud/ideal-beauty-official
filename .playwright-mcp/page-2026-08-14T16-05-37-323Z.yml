@@ -1,0 +1,184 @@
+- generic [ref=f4e3]:
+  - region "Notifications (F8)":
+    - list
+  - generic [ref=f4e5]:
+    - generic [ref=f4e7]:
+      - link [ref=f4e8] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f4e16]:
+        - generic [ref=f4e17]: All
+        - textbox "Search for \"red wedding dress\"" [ref=f4e29]
+    - generic [ref=f4e33]:
+      - generic [ref=f4e34]:
+        - generic [ref=f4e35]:
+          - link [ref=f4e36] [cursor=pointer]:
+            - /url: /
+            - button "All" [ref=f4e37]
+          - link [ref=f4e38] [cursor=pointer]:
+            - /url: /new-in
+            - button "New in" [ref=f4e39]
+          - button [ref=f4e43] [cursor=pointer]:
+            - link "Women" [ref=f4e45]:
+              - /url: /women
+          - button [ref=f4e52] [cursor=pointer]:
+            - link "Men" [ref=f4e54]:
+              - /url: /men
+          - button [ref=f4e61] [cursor=pointer]:
+            - link "Kids" [ref=f4e63]:
+              - /url: /kids
+          - link [ref=f4e67] [cursor=pointer]:
+            - /url: /west
+            - button "West" [ref=f4e68]
+          - link [ref=f4e69] [cursor=pointer]:
+            - /url: /jewellery
+            - button "Jewellery" [ref=f4e70]
+          - link "Brands" [ref=f4e71] [cursor=pointer]:
+            - /url: /brands
+          - button "Top Curations" [ref=f4e73] [cursor=pointer]
+        - generic [ref=f4e75]:
+          - link "Orders" [ref=f4e77] [cursor=pointer]:
+            - /url: /orders
+          - link "Wishlist" [ref=f4e79] [cursor=pointer]:
+            - /url: /wishlist
+          - link "Become a Seller" [ref=f4e81] [cursor=pointer]:
+            - /url: https://sellers.laam.pk/login
+          - link "Help center" [ref=f4e83] [cursor=pointer]:
+            - /url: /help-center
+      - generic [ref=f4e89]:
+        - heading "LAAM" [level=1] [ref=f4e90]
+        - generic:
+          - region "Gallery":
+            - generic:
+              - list:
+                - listitem:
+                  - link "https://cdn.shopify.com/s/files/1/2337/7003/files/20260806063237-bc3af291f5e34478-media_image-f3844410dd204823ac130041aae9305a.jpg":
+                    - /url: /collections/all-products?sale_percentage=30%25_and_above
+                    - img "https://cdn.shopify.com/s/files/1/2337/7003/files/20260806063237-bc3af291f5e34478-media_image-f3844410dd204823ac130041aae9305a.jpg"
+                - listitem:
+                  - link "https://cdn.shopify.com/s/files/1/2337/7003/files/20260731201158-a6c3939bcd7d4691-media_image-0f5c050921f148ea8c13eb2f99bbd350.jpg":
+                    - /url: /collections/all-products?sale_percentage=30%25_and_above
+                    - img "https://cdn.shopify.com/s/files/1/2337/7003/files/20260731201158-a6c3939bcd7d4691-media_image-0f5c050921f148ea8c13eb2f99bbd350.jpg"
+            - generic [ref=f4e91]: Item 1 of 2
+        - generic [ref=f4e93]:
+          - region "Gallery" [ref=f4e94]:
+            - list [ref=f4e96]:
+              - listitem [ref=f4e97]:
+                - generic [ref=f4e100]:
+                  - img "Hanif Jewellers"
+              - listitem [ref=f4e101]:
+                - link [ref=f4e103] [cursor=pointer]:
+                  - /url: /brands/mizyan-new-york
+                  - generic [ref=f4e104]:
+                    - img "Mizyan"
+              - listitem [ref=f4e105]:
+                - generic [ref=f4e108]:
+                  - img "Broadway Deal"
+              - listitem [ref=f4e109]:
+                - link [ref=f4e111] [cursor=pointer]:
+                  - /url: /brands/ecrin
+                  - generic [ref=f4e112]:
+                    - 'img "Ecrin #2"'
+            - generic [ref=f4e113]: Item 1 of 4
+          - button [ref=f4e114] [cursor=pointer]
+        - generic [ref=f4e118]:
+          - heading "Featured Brands" [level=2] [ref=f4e120]
+          - generic [ref=f4e121]:
+            - generic [ref=f4e122]:
+              - link "Ad Tehzeeb Libas Upto 75% off Tehzeeb Libas 3.8 200 items" [ref=f4e124] [cursor=pointer]:
+                - /url: /brands/tehzeeb-libas?undefined
+                - generic [ref=f4e125]:
+                  - generic [ref=f4e126]: Ad
+                  - img "Tehzeeb Libas"
+                  - generic [ref=f4e127]: Upto 75% off
+                - generic [ref=f4e128]:
+                  - heading "Tehzeeb Libas" [level=3] [ref=f4e129]
+                  - generic [ref=f4e130]:
+                    - generic [ref=f4e134]: "3.8"
+                    - generic [ref=f4e135]: •
+                    - generic [ref=f4e136]: 200 items
+              - link "Ad Aik Pret Upto 40% off Aik Pret 3.9 217 items" [ref=f4e138] [cursor=pointer]:
+                - /url: /brands/aik-pret?undefined
+                - generic [ref=f4e139]:
+                  - generic [ref=f4e140]: Ad
+                  - img "Aik Pret"
+                  - generic [ref=f4e141]: Upto 40% off
+                - generic [ref=f4e142]:
+                  - heading "Aik Pret" [level=3] [ref=f4e143]
+                  - generic [ref=f4e144]:
+                    - generic [ref=f4e148]: "3.9"
+                    - generic [ref=f4e149]: •
+                    - generic [ref=f4e150]: 217 items
+              - link "Ad Diara Couture Upto 70% off Diara Couture 3.9 358 items" [ref=f4e152] [cursor=pointer]:
+                - /url: /brands/diara-couture?undefined
+                - generic [ref=f4e153]:
+                  - generic [ref=f4e154]: Ad
+                  - img "Diara Couture"
+                  - generic [ref=f4e155]: Upto 70% off
+                - generic [ref=f4e156]:
+                  - heading "Diara Couture" [level=3] [ref=f4e157]
+                  - generic [ref=f4e158]:
+                    - generic [ref=f4e162]: "3.9"
+                    - generic [ref=f4e163]: •
+                    - generic [ref=f4e164]: 358 items
+              - link "Ad Haseens Official Upto 62% off Haseens Official 4.2 514 items" [ref=f4e166] [cursor=pointer]:
+                - /url: /brands/haseens-official?undefined
+                - generic [ref=f4e167]:
+                  - generic [ref=f4e168]: Ad
+                  - img "Haseens Official"
+                  - generic [ref=f4e169]: Upto 62% off
+                - generic [ref=f4e170]:
+                  - heading "Haseens Official" [level=3] [ref=f4e171]
+                  - generic [ref=f4e172]:
+                    - generic [ref=f4e176]: "4.2"
+                    - generic [ref=f4e177]: •
+                    - generic [ref=f4e178]: 514 items
+              - link "Ad Chaudhary Arts Upto 70% off Chaudhary Arts 3.7 86 items" [ref=f4e180] [cursor=pointer]:
+                - /url: /brands/chaudhary-arts?undefined
+                - generic [ref=f4e181]:
+                  - generic [ref=f4e182]: Ad
+                  - img "Chaudhary Arts"
+                  - generic [ref=f4e183]: Upto 70% off
+                - generic [ref=f4e184]:
+                  - heading "Chaudhary Arts" [level=3] [ref=f4e185]
+                  - generic [ref=f4e186]:
+                    - generic [ref=f4e190]: "3.7"
+                    - generic [ref=f4e191]: •
+                    - generic [ref=f4e192]: 86 items
+              - link "Ad Agha Jaan Upto 79% off Agha Jaan 4.1 186 items" [ref=f4e194] [cursor=pointer]:
+                - /url: /brands/agha-jaan?undefined
+                - generic [ref=f4e195]:
+                  - generic [ref=f4e196]: Ad
+                  - img "Agha Jaan"
+                  - generic [ref=f4e197]: Upto 79% off
+                - generic [ref=f4e198]:
+                  - heading "Agha Jaan" [level=3] [ref=f4e199]
+                  - generic [ref=f4e200]:
+                    - generic [ref=f4e204]: "4.1"
+                    - generic [ref=f4e205]: •
+                    - generic [ref=f4e206]: 186 items
+              - link "Ad Bin Tayyab Upto 47% off Bin Tayyab 4.3 273 items" [ref=f4e208] [cursor=pointer]:
+                - /url: /brands/bin-tayyab?undefined
+                - generic [ref=f4e209]:
+                  - generic [ref=f4e210]: Ad
+                  - img "Bin Tayyab"
+                  - generic [ref=f4e211]: Upto 47% off
+                - generic [ref=f4e212]:
+                  - heading "Bin Tayyab" [level=3] [ref=f4e213]
+                  - generic [ref=f4e214]:
+                    - generic [ref=f4e218]: "4.3"
+                    - generic [ref=f4e219]: •
+                    - generic [ref=f4e220]: 273 items
+              - link "Ad Momin Online Upto 80% off Momin Online 3.8 269 items" [ref=f4e222] [cursor=pointer]:
+                - /url: /brands/momin-online?undefined
+                - generic [ref=f4e223]:
+                  - generic [ref=f4e224]: Ad
+                  - img "Momin Online"
+                  - generic [ref=f4e225]: Upto 80% off
+                - generic [ref=f4e226]:
+                  - heading "Momin Online" [level=3] [ref=f4e227]
+                  - generic [ref=f4e228]:
+                    - generic [ref=f4e232]: "3.8"
+                    - generic [ref=f4e233]: •
+                    - generic [ref=f4e234]: 269 items
+            - button "View More" [ref=f4e236] [cursor=pointer]
+        - generic [ref=f4e237]: Loading more sections...

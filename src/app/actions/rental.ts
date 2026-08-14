@@ -217,7 +217,7 @@ export async function getAdminRentalCalendarDataAction() {
     orderBy: { name: 'asc' },
   });
 
-  return products.map((product) => ({
+  const formattedProducts = products.map((product) => ({
     ...product,
     variants: product.variants.map((v) => ({
       ...v,
@@ -225,6 +225,7 @@ export async function getAdminRentalCalendarDataAction() {
       priceRent: v.priceRent ? Number(v.priceRent) : null,
       compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : null,
       costPrice: v.costPrice ? Number(v.costPrice) : null,
+      purchaseCost: v.purchaseCost ? Number(v.purchaseCost) : null,
       rentalBlocks: v.rentalBlocks.map((b) => ({
         ...b,
         startDate: b.startDate.toISOString().split('T')[0],
@@ -238,9 +239,12 @@ export async function getAdminRentalCalendarDataAction() {
         order: {
           ...oi.order,
           totalAmount: Number(oi.order.totalAmount),
+          discountAmount: oi.order.discountAmount ? Number(oi.order.discountAmount) : 0,
           shippingCost: oi.order.shippingCost ? Number(oi.order.shippingCost) : null,
         },
       })),
     })),
   }));
+
+  return JSON.parse(JSON.stringify(formattedProducts));
 }

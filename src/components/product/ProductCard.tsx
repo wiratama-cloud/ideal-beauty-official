@@ -57,6 +57,9 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
   const hoverImage = product.images[1] || mainImage;
   const hasHoverImage = product.images.length > 1;
 
+  const [mainImgSrc, setMainImgSrc] = useState(mainImage);
+  const [hoverImgSrc, setHoverImgSrc] = useState(hoverImage);
+
   const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -87,7 +90,7 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100">
           {/* Main Image */}
           <Image
-            src={mainImage}
+            src={mainImgSrc}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
@@ -95,17 +98,19 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
               hasHoverImage ? 'group-hover:opacity-0' : 'group-hover:scale-105'
             }`}
             unoptimized
+            onError={() => setMainImgSrc('/images/products/default-product.jpg')}
           />
 
           {/* Hover Image */}
           {hasHoverImage && (
             <Image
-              src={hoverImage}
+              src={hoverImgSrc}
               alt={`${product.name} hover`}
               fill
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               className="object-cover object-center transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105"
               unoptimized
+              onError={() => setHoverImgSrc('/images/products/default-product.jpg')}
             />
           )}
 

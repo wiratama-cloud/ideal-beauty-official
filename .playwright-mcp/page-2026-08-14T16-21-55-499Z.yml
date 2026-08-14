@@ -1,0 +1,124 @@
+- generic [active] [ref=f9e1]:
+  - generic [ref=f9e3]:
+    - generic [ref=f9e4]: IDEAL BEAUTY OFFICIAL • LUXURY COUTURE
+    - generic [ref=f9e5]: COMPLIMENTARY EXPRESS SHIPPING ACROSS INDONESIA • RENTAL & BESPOKE TAILORING AVAILABLE
+    - generic [ref=f9e6]: IDR (Rp)
+  - banner [ref=f9e7]:
+    - generic [ref=f9e8]:
+      - generic [ref=f9e9]:
+        - generic [ref=f9e11]:
+          - textbox "Search products..." [ref=f9e12]
+          - button "Search" [ref=f9e13]
+        - link "IDEAL BEAUTY OFFICIAL LUXURY" [ref=f9e18] [cursor=pointer]:
+          - /url: /
+          - text: IDEAL BEAUTY
+          - generic [ref=f9e19]: OFFICIAL LUXURY
+        - generic [ref=f9e20]:
+          - link "Wishlist" [ref=f9e21] [cursor=pointer]:
+            - /url: /account/wishlist
+          - link "Account Portal" [ref=f9e24] [cursor=pointer]:
+            - /url: /account
+          - button "Shopping Cart" [ref=f9e28]
+      - navigation [ref=f9e32]:
+        - link "Parent Cat" [ref=f9e34] [cursor=pointer]:
+          - /url: /parent
+  - main [ref=f9e38]:
+    - generic [ref=f9e39]:
+      - generic [ref=f9e40]:
+        - generic [ref=f9e41]: THE IDEAL BEAUTY CATALOGUE
+        - heading "All Luxury Collections" [level=1] [ref=f9e42]
+        - paragraph [ref=f9e43]: 0 Masterpieces Available
+      - generic [ref=f9e45]:
+        - generic [ref=f9e47]:
+          - heading "Categories" [level=3] [ref=f9e49]
+          - generic [ref=f9e50]:
+            - generic [ref=f9e51]:
+              - button "All Collections" [ref=f9e52]
+              - button "Parent Cat" [ref=f9e55]
+            - generic [ref=f9e60]:
+              - generic [ref=f9e61]:
+                - generic [ref=f9e62]: Parent Cat
+                - button "View All" [ref=f9e63]
+              - button [ref=f9e66]:
+                - img "Item Cat" [ref=f9e68]
+                - paragraph [ref=f9e69]: Item Cat
+        - main [ref=f9e70]:
+          - generic [ref=f9e71]:
+            - generic [ref=f9e72]: 0 Pieces Found
+            - generic [ref=f9e76]:
+              - generic [ref=f9e77]:
+                - generic [ref=f9e78]: Search Catalogue
+                - generic [ref=f9e79]:
+                  - textbox "Search pieces, fabrics..." [ref=f9e80]
+                  - button "Submit search" [ref=f9e81]
+              - generic [ref=f9e85]:
+                - generic [ref=f9e86]: Acquisition Mode
+                - generic [ref=f9e87]:
+                  - button "All" [ref=f9e88]
+                  - button "Purchase Only" [ref=f9e89]
+                  - button "Bespoke Rental" [ref=f9e90]
+              - generic [ref=f9e91]:
+                - generic [ref=f9e92]: Price Range ($)
+                - generic [ref=f9e93]:
+                  - spinbutton "Min" [ref=f9e94]
+                  - generic [ref=f9e95]: "-"
+                  - spinbutton "Max" [ref=f9e96]
+                  - button "Apply" [ref=f9e97]
+          - generic [ref=f9e98]:
+            - heading "No Masterpieces Found" [level=3] [ref=f9e99]
+            - paragraph [ref=f9e100]: We couldn't find any luxury pieces matching your exact criteria. Try adjusting your filters or search terms.
+  - contentinfo [ref=f9e101]:
+    - generic [ref=f9e102]:
+      - generic [ref=f9e103]:
+        - generic [ref=f9e104]:
+          - heading "IDEAL BEAUTY" [level=3] [ref=f9e105]
+          - paragraph [ref=f9e106]: Crafting bespoke luxury fashion, bridal lehengas, haute couture kaftans, and evening gowns inspired by South Asian craftsmanship and modern elegance.
+          - paragraph [ref=f9e107]: Jakarta • Bali • Worldwide Delivery
+        - generic [ref=f9e108]:
+          - heading "Collections" [level=4] [ref=f9e109]
+          - list [ref=f9e110]:
+            - listitem [ref=f9e111]:
+              - link "Haute Couture" [ref=f9e112] [cursor=pointer]:
+                - /url: /products?category=Haute+Couture
+            - listitem [ref=f9e113]:
+              - link "Bridal Collection" [ref=f9e114] [cursor=pointer]:
+                - /url: /products?category=Bridal+Wear
+            - listitem [ref=f9e115]:
+              - link "Ready To Wear" [ref=f9e116] [cursor=pointer]:
+                - /url: /products?category=Ready+To+Wear
+            - listitem [ref=f9e117]:
+              - link "Men's Collection" [ref=f9e118] [cursor=pointer]:
+                - /url: /products?category=Men
+            - listitem [ref=f9e119]:
+              - link "Luxury Rental Boutique" [ref=f9e120] [cursor=pointer]:
+                - /url: /products?type=RENTAL
+        - generic [ref=f9e121]:
+          - heading "Customer Care" [level=4] [ref=f9e122]
+          - list [ref=f9e123]:
+            - listitem [ref=f9e124]:
+              - link "Order Tracking" [ref=f9e125] [cursor=pointer]:
+                - /url: /account/orders
+            - listitem [ref=f9e126]:
+              - link "Saved Wishlist" [ref=f9e127] [cursor=pointer]:
+                - /url: /account/wishlist
+            - listitem [ref=f9e128]: QRIS & Virtual Account Payment
+            - listitem [ref=f9e129]: Bespoke Fitting Appointment
+            - listitem [ref=f9e130]:
+              - link "Admin Portal" [ref=f9e131] [cursor=pointer]:
+                - /url: /admin/dashboard
+        - generic [ref=f9e132]:
+          - heading "Privé Club" [level=4] [ref=f9e133]
+          - paragraph [ref=f9e134]: Subscribe to receive private invitations to runway releases and bespoke trunk shows.
+          - generic [ref=f9e135]:
+            - textbox "Enter email address" [ref=f9e136]
+            - button "Join" [ref=f9e137]
+      - generic [ref=f9e138]:
+        - paragraph [ref=f9e139]: © 2026 Ideal Beauty Official. All Rights Reserved.
+        - generic [ref=f9e140]:
+          - generic [ref=f9e141]: QRIS Integrated
+          - generic [ref=f9e142]: Bank Virtual Account
+          - generic [ref=f9e143]: Midtrans Secured
+  - generic [ref=f9e144]:
+    - paragraph [ref=f9e145]: Enable notifications to stay updated on your order status.
+    - button "Enable Notifications" [ref=f9e146]
+  - button "Open Next.js Dev Tools" [ref=f9e152] [cursor=pointer]

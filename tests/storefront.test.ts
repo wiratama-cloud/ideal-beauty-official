@@ -629,15 +629,15 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
   });
 
   test('16. Customizable Header & Search Sidebar Navigation Collections', async () => {
-    // 1. Fetch navigation categories (should auto-seed default 6 collections if empty)
+    // 1. Fetch navigation categories (should auto-seed default category tree if empty)
     const initialNavs = await getNavCategories(false);
-    expect(initialNavs.length).toBe(6);
-    expect(initialNavs.map((n) => n.name)).toEqual([
+    expect(initialNavs.length).toBe(39);
+    const rootNavs = initialNavs.filter((n) => !n.parentId);
+    expect(rootNavs.map((n) => n.name)).toEqual([
       'All Collections',
-      'Haute Couture',
-      'Bridal Wear',
-      'Ready To Wear',
-      'Menswear',
+      'Women',
+      'Men',
+      'Jewelry & Accessories',
       'Rentals',
     ]);
 
@@ -650,7 +650,7 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
     expect(customNav.name).toBe('Bespoke Kaftans');
 
     const updatedNavs = await getNavCategories(true);
-    expect(updatedNavs.length).toBe(7);
+    expect(updatedNavs.length).toBe(40);
 
     // 3. Update navigation item
     const editedNav = await updateNavCategory(customNav.id, {
@@ -671,7 +671,7 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
 
     // 6. Reset defaults
     const resetList = await resetDefaultNavCategories();
-    expect(resetList.length).toBe(6);
+    expect(resetList.length).toBe(39);
     expect(resetList[0].name).toBe('All Collections');
   });
 

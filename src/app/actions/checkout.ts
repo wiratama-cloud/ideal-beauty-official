@@ -13,16 +13,20 @@ export async function submitCheckoutAction(input: Omit<CreateOrderInput, 'userId
     userId,
   });
 
-  revalidatePath('/account/orders');
-  revalidatePath('/products');
+  try {
+    revalidatePath('/account/orders');
+    revalidatePath('/products');
+  } catch {}
   return result;
 }
 
 export async function simulatePaymentCompletionAction(paymentId: string) {
   const payment = await processPaymentCompletion(paymentId, `SIM-${Date.now()}`);
-  revalidatePath('/account/orders');
-  revalidatePath('/admin/dashboard');
-  revalidatePath('/admin/ledger');
+  try {
+    revalidatePath('/account/orders');
+    revalidatePath('/admin/dashboard');
+    revalidatePath('/admin/ledger');
+  } catch {}
   return payment;
 }
 
@@ -32,7 +36,10 @@ export async function createFinalPaymentAction(
   bankName?: string
 ) {
   const payment = await createFinalBalancePayment(orderId, paymentMethod, bankName);
-  revalidatePath(`/account/orders/${orderId}`);
+  try {
+    revalidatePath(`/account/orders/${orderId}`);
+    revalidatePath('/account/orders');
+  } catch {}
   return payment;
 }
 

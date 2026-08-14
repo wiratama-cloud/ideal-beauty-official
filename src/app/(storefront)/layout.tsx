@@ -3,11 +3,11 @@ import AnnouncementBar from '@/components/layout/AnnouncementBar';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import CartDrawer from '@/components/cart/CartDrawer';
-import { getNavCategories } from '@/lib/services/nav-category';
+import { getNavCategoryTree } from '@/lib/services/nav-category';
 import FcmNotificationPrompt from '@/components/common/FcmNotificationPrompt';
 
 export default async function StorefrontLayout({ children }: { children: React.ReactNode }) {
-  const navCategories = await getNavCategories();
+  const navCategories = await getNavCategoryTree();
   
   return (
     <>

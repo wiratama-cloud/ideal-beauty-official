@@ -1,9 +1,10 @@
 import React, { Suspense } from 'react';
-import { getProducts, getCategories } from '@/lib/services/product';
-import { getNavCategories } from '@/lib/services/nav-category';
+import { getProducts } from '@/lib/services/product';
+import { getNavCategoryTree } from '@/lib/services/nav-category';
 import { getWishlistedProductIds } from '@/lib/services/wishlist';
 import { getSessionUserId } from '@/lib/session';
-import FilterSidebar from '@/components/product/FilterSidebar';
+import CategoryTreeSidebar from '@/components/product/CategoryTreeSidebar';
+import TopFilterBar from '@/components/product/TopFilterBar';
 import ProductGrid from '@/components/product/ProductGrid';
 
 interface PageProps {
@@ -22,7 +23,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const minPrice = resolvedParams.minPrice ? parseFloat(resolvedParams.minPrice) : undefined;
   const maxPrice = resolvedParams.maxPrice ? parseFloat(resolvedParams.maxPrice) : undefined;
 
-  const [products, categories, navCategories, userId] = await Promise.all([
+  const [products, categoriesTree, userId] = await Promise.all([
     getProducts({
       category: resolvedParams.category,
       minPrice,
@@ -30,8 +31,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       type: resolvedParams.type,
       query: resolvedParams.query,
     }),
-    getCategories(),
-    getNavCategories(),
+    getNavCategoryTree(),
     getSessionUserId(),
   ]);
 
@@ -52,12 +52,20 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
-        <div className="flex flex-col lg:flex-row gap-10">
-          <Suspense fallback={<div className="w-64 bg-white p-6 h-64 animate-pulse" />}>
-            <FilterSidebar categories={categories} navCategories={navCategories} />
-          </Suspense>
-          <main className="flex-1">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pt-10 pb-12">
+        <div className="flex flex-col lg:flex-row gap-8 items-stretch min-h-[calc(100vh-16rem)]">
+          {/* Sidebar on left side of page */}
+          <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 lg:sticky lg:top-24 z-30 h-auto lg:h-self-stretch">
+            <Suspense fallback={<div className="w-full bg-white p-6 h-full min-h-[400px] animate-pulse rounded-lg border border-neutral-200" />}>
+              <CategoryTreeSidebar categoriesTree={categoriesTree} />
+            </Suspense>
+          </div>
+
+          {/* TopFilterBar + ProductGrid on right */}
+          <main className="flex-1 space-y-6 min-w-0">
+            <Suspense fallback={<div className="h-24 bg-white animate-pulse rounded-lg border border-neutral-200" />}>
+              <TopFilterBar totalResults={products.length} />
+            </Suspense>
             <ProductGrid products={products} wishlistedIds={wishlistedIds} />
           </main>
         </div>

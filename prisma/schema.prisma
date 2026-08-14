@@ -79,6 +79,7 @@ enum IncomeCategory {
 }
 
 enum SectionType {
+  HERO_BANNER
   NEW_ARRIVALS
   FEATURED_BRANDS
   EDITORS_PICKS
@@ -417,13 +418,34 @@ model VoucherUsage {
 }
 
 model NavCategory {
-  id           String   @id @default(uuid())
+  id           String        @id @default(uuid())
   name         String
   href         String
-  displayOrder Int      @default(0)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  displayOrder Int           @default(0)
+  isActive     Boolean       @default(true)
+  parentId     String?
+  parent       NavCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children     NavCategory[] @relation("CategoryHierarchy")
+  imageUrl     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@index([isActive, displayOrder])
+  @@index([parentId])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  userEmail String
+  userName  String
+  action    String
+  entity    String
+  entityId  String
+  details   Json
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity])
+  @@index([userId])
 }

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import AccountNavigationHeader from './AccountNavigationHeader';
 import ProfileTab from './ProfileTab';
 import SecurityTab from './SecurityTab';
 import AddressTab from './AddressTab';
@@ -13,9 +14,11 @@ import {
   Package,
   Heart,
   ChevronRight,
-  ExternalLink,
-  Sparkles,
   LogOut,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles,
+  Crown,
 } from 'lucide-react';
 
 export interface UserAccountData {
@@ -66,41 +69,68 @@ export default function AccountView({ account }: AccountViewProps) {
   const defaultAddress = account.addresses.find((addr) => addr.isDefault) || account.addresses[0];
 
   return (
-    <div className="bg-neutral-50/50 min-h-screen py-8 sm:py-12 font-light text-xs">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Header Summary Banner */}
-        <div className="bg-white border border-neutral-100 p-6 sm:p-8 space-y-6 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-100 pb-6">
-            <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-[0.4em] text-neutral-400 font-sans block">
-                PATRON ACCOUNT PORTAL
-              </span>
-              <h1 className="font-serif text-2xl sm:text-3xl font-light text-neutral-900 flex items-center space-x-2">
-                <span>Welcome, {account.name || 'Valued Patron'}</span>
-                <Sparkles className="w-5 h-5 text-amber-600 inline-block" />
-              </h1>
-              <p className="text-neutral-500 font-mono text-[11px]">{account.email || account.phone || 'No contact email'}</p>
+    <div className="bg-neutral-50/60 min-h-screen pb-16 font-light text-xs">
+      {/* Shared Luxury Navigation Header */}
+      <AccountNavigationHeader
+        ordersCount={account._count.orders}
+        wishlistCount={account._count.wishlist}
+        patronName={account.name || 'Valued Patron'}
+        patronEmail={account.email || account.phone || undefined}
+      />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* Patron Banner & Verification Badges */}
+        <div className="bg-white border border-neutral-200/80 p-6 sm:p-8 space-y-6 shadow-xs">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-neutral-100 pb-6">
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Crown className="w-4 h-4 text-amber-600" />
+                <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-amber-900/80">
+                  PATRON PROFILE OVERVIEW
+                </span>
+              </div>
+              <h2 className="font-serif text-2xl sm:text-3xl font-light text-neutral-900 tracking-wide">
+                {account.name || 'Valued Patron'}
+              </h2>
+              <p className="text-neutral-500 font-mono text-[11px] tracking-wider">
+                Member since {new Date(account.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </p>
             </div>
 
+            {/* Verification & Contact Badges */}
             <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href="/account/orders"
-                className="bg-black text-white text-[11px] uppercase tracking-[0.15em] px-4 py-2.5 font-light hover:bg-neutral-800 transition-colors flex items-center space-x-1.5"
-              >
-                <Package className="w-3.5 h-3.5" />
-                <span>My Orders ({account._count.orders})</span>
-              </Link>
-              <Link
-                href="/account/wishlist"
-                className="border border-neutral-300 text-neutral-800 text-[11px] uppercase tracking-[0.15em] px-4 py-2.5 font-light hover:bg-neutral-100 transition-colors flex items-center space-x-1.5"
-              >
-                <Heart className="w-3.5 h-3.5" />
-                <span>Wishlist ({account._count.wishlist})</span>
-              </Link>
+              <div className="flex items-center space-x-1.5 px-3 py-2 bg-neutral-50 border border-neutral-200/70 text-[10px] font-mono tracking-wider">
+                <span className="text-neutral-500">EMAIL:</span>
+                <span className="text-neutral-900 font-medium">{account.email || 'Not provided'}</span>
+                {account.isEmailVerified ? (
+                  <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 ml-1 flex items-center gap-0.5">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
+                  </span>
+                ) : (
+                  <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 ml-1 flex items-center gap-0.5">
+                    <AlertCircle className="w-3 h-3 text-amber-600" /> Unverified
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-1.5 px-3 py-2 bg-neutral-50 border border-neutral-200/70 text-[10px] font-mono tracking-wider">
+                <span className="text-neutral-500">PHONE:</span>
+                <span className="text-neutral-900 font-medium">{account.phone || 'Not provided'}</span>
+                {account.isPhoneVerified ? (
+                  <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 ml-1 flex items-center gap-0.5">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
+                  </span>
+                ) : (
+                  <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 ml-1 flex items-center gap-0.5">
+                    <AlertCircle className="w-3 h-3 text-amber-600" /> Unverified
+                  </span>
+                )}
+              </div>
+
               <button
                 onClick={handleSignOut}
                 disabled={signingOut}
-                className="border border-rose-200 text-rose-800 hover:bg-rose-50 text-[11px] uppercase tracking-[0.15em] px-4 py-2.5 font-light transition-colors flex items-center space-x-1.5 disabled:opacity-50"
+                className="border border-rose-200 text-rose-800 hover:bg-rose-50 text-[10px] uppercase tracking-[0.15em] px-4 py-2 font-light transition-colors flex items-center space-x-1.5 disabled:opacity-50 ml-auto sm:ml-0"
               >
                 <LogOut className="w-3.5 h-3.5 text-rose-600" />
                 <span>{signingOut ? 'Signing Out...' : 'Sign Out'}</span>
@@ -108,69 +138,69 @@ export default function AccountView({ account }: AccountViewProps) {
             </div>
           </div>
 
-          {/* Patron Dashboard Overview Quick Stats */}
+          {/* Quick Stats Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
             {/* Orders Summary Card */}
             <Link
               href="/account/orders"
-              className="group bg-neutral-50/60 hover:bg-neutral-100/80 p-5 border border-neutral-100 hover:border-neutral-300 transition-all space-y-2 block"
+              className="group bg-neutral-50/80 hover:bg-amber-50/30 p-5 border border-neutral-200/80 hover:border-amber-300 transition-all space-y-2 block"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-medium">
-                  Total Orders
+                <span className="text-[10px] uppercase tracking-[0.2em] text-neutral-500 font-mono">
+                  Orders History
                 </span>
-                <Package className="w-4 h-4 text-neutral-400 group-hover:text-black transition-colors" />
+                <Package className="w-4 h-4 text-neutral-400 group-hover:text-amber-700 transition-colors" />
               </div>
               <div className="flex items-baseline space-x-2">
-                <span className="font-serif text-2xl font-normal text-neutral-900">
+                <span className="font-serif text-3xl font-light text-neutral-900">
                   {account._count.orders}
                 </span>
-                <span className="text-[10px] text-neutral-500">placed to date</span>
+                <span className="text-[10px] text-neutral-500 font-mono">placed to date</span>
               </div>
-              <p className="text-[10px] text-neutral-500 flex items-center space-x-1 group-hover:text-black transition-colors pt-1">
-                <span>View Order History & Tracking</span>
-                <ChevronRight className="w-3 h-3" />
+              <p className="text-[10px] uppercase tracking-wider text-neutral-600 group-hover:text-amber-900 transition-colors pt-2 flex items-center justify-between border-t border-neutral-200/50">
+                <span>View Order History & Multi-Checkout</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </p>
             </Link>
 
             {/* Wishlist Summary Card */}
             <Link
               href="/account/wishlist"
-              className="group bg-neutral-50/60 hover:bg-neutral-100/80 p-5 border border-neutral-100 hover:border-neutral-300 transition-all space-y-2 block"
+              className="group bg-neutral-50/80 hover:bg-amber-50/30 p-5 border border-neutral-200/80 hover:border-amber-300 transition-all space-y-2 block"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-medium">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-neutral-500 font-mono">
                   Saved Wishlist
                 </span>
-                <Heart className="w-4 h-4 text-neutral-400 group-hover:text-red-500 transition-colors" />
+                <Heart className="w-4 h-4 text-neutral-400 group-hover:text-amber-700 transition-colors" />
               </div>
               <div className="flex items-baseline space-x-2">
-                <span className="font-serif text-2xl font-normal text-neutral-900">
+                <span className="font-serif text-3xl font-light text-neutral-900">
                   {account._count.wishlist}
                 </span>
-                <span className="text-[10px] text-neutral-500">items saved</span>
+                <span className="text-[10px] text-neutral-500 font-mono">pieces saved</span>
               </div>
-              <p className="text-[10px] text-neutral-500 flex items-center space-x-1 group-hover:text-black transition-colors pt-1">
-                <span>View Saved Favorites</span>
-                <ChevronRight className="w-3 h-3" />
+              <p className="text-[10px] uppercase tracking-wider text-neutral-600 group-hover:text-amber-900 transition-colors pt-2 flex items-center justify-between border-t border-neutral-200/50">
+                <span>View Atelier Favorites</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </p>
             </Link>
 
-            {/* Default Address Preview Card */}
+            {/* Default Shipping Address Preview Card */}
             <div
               onClick={() => setActiveTab('addresses')}
-              className="cursor-pointer group bg-neutral-50/60 hover:bg-neutral-100/80 p-5 border border-neutral-100 hover:border-neutral-300 transition-all space-y-2"
+              className="cursor-pointer group bg-neutral-50/80 hover:bg-amber-50/30 p-5 border border-neutral-200/80 hover:border-amber-300 transition-all space-y-2"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-medium">
-                  Default Shipping Location
+                <span className="text-[10px] uppercase tracking-[0.2em] text-neutral-500 font-mono">
+                  Default Shipping Address
                 </span>
-                <MapPin className="w-4 h-4 text-neutral-400 group-hover:text-black transition-colors" />
+                <MapPin className="w-4 h-4 text-neutral-400 group-hover:text-amber-700 transition-colors" />
               </div>
               {defaultAddress ? (
                 <div className="space-y-0.5 text-[11px] font-light text-neutral-800">
                   <p className="font-medium text-neutral-900 truncate">
-                    {defaultAddress.recipientName} ({defaultAddress.label || 'Home'})
+                    {defaultAddress.recipientName} {defaultAddress.label && `(${defaultAddress.label})`}
                   </p>
                   <p className="text-neutral-500 truncate">{defaultAddress.addressLine1}</p>
                   <p className="text-neutral-500 truncate">
@@ -178,93 +208,64 @@ export default function AccountView({ account }: AccountViewProps) {
                   </p>
                 </div>
               ) : (
-                <p className="text-neutral-400 italic text-[11px]">No default shipping address set</p>
+                <p className="text-neutral-400 italic text-[11px]">No default shipping address saved</p>
               )}
-              <p className="text-[10px] text-neutral-500 flex items-center space-x-1 group-hover:text-black transition-colors pt-1">
+              <p className="text-[10px] uppercase tracking-wider text-neutral-600 group-hover:text-amber-900 transition-colors pt-2 flex items-center justify-between border-t border-neutral-200/50">
                 <span>Manage Address Book ({account.addresses.length})</span>
-                <ChevronRight className="w-3 h-3" />
+                <ChevronRight className="w-3.5 h-3.5" />
               </p>
             </div>
           </div>
         </div>
 
-        {/* Main Layout with Sidebar Navigation Tabs */}
+        {/* Main Layout with Tabs */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Navigation Sidebar */}
+          {/* Tabs Navigation Sidebar */}
           <aside className="lg:col-span-1 space-y-2">
-            <div className="bg-white border border-neutral-100 p-2 space-y-1 shadow-sm">
+            <div className="bg-white border border-neutral-200/80 p-2 space-y-1 shadow-xs">
+              <span className="text-[9px] font-mono uppercase tracking-[0.3em] text-neutral-400 px-3 pt-2 pb-1 block">
+                ACCOUNT SETTINGS
+              </span>
+
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-[0.15em] flex items-center space-x-3 transition-colors ${
+                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-[0.18em] flex items-center space-x-3 transition-colors ${
                   activeTab === 'profile'
-                    ? 'bg-black text-white font-medium'
-                    : 'text-neutral-600 hover:bg-neutral-50 hover:text-black'
+                    ? 'bg-neutral-900 text-white font-medium border-l-2 border-amber-500'
+                    : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
                 }`}
               >
-                <User className="w-4 h-4" />
+                <User className="w-4 h-4 text-amber-600" />
                 <span>Profile Details</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('security')}
-                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-[0.15em] flex items-center space-x-3 transition-colors ${
+                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-[0.18em] flex items-center space-x-3 transition-colors ${
                   activeTab === 'security'
-                    ? 'bg-black text-white font-medium'
-                    : 'text-neutral-600 hover:bg-neutral-50 hover:text-black'
+                    ? 'bg-neutral-900 text-white font-medium border-l-2 border-amber-500'
+                    : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
                 }`}
               >
-                <Shield className="w-4 h-4" />
+                <Shield className="w-4 h-4 text-amber-600" />
                 <span>Sign In & Security</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('addresses')}
-                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-[0.15em] flex items-center space-x-3 transition-colors ${
+                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-[0.18em] flex items-center space-x-3 transition-colors ${
                   activeTab === 'addresses'
-                    ? 'bg-black text-white font-medium'
-                    : 'text-neutral-600 hover:bg-neutral-50 hover:text-black'
+                    ? 'bg-neutral-900 text-white font-medium border-l-2 border-amber-500'
+                    : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
                 }`}
               >
-                <MapPin className="w-4 h-4" />
+                <MapPin className="w-4 h-4 text-amber-600" />
                 <span>Address Book ({account.addresses.length})</span>
               </button>
-
-              <div className="pt-2 border-t border-neutral-100 mt-2 space-y-1">
-                <Link
-                  href="/account/orders"
-                  className="w-full text-left px-4 py-3 text-xs uppercase tracking-[0.15em] flex items-center justify-between text-neutral-600 hover:bg-neutral-50 hover:text-black transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <Package className="w-4 h-4" />
-                    <span>Order History</span>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
-                </Link>
-
-                <Link
-                  href="/account/wishlist"
-                  className="w-full text-left px-4 py-3 text-xs uppercase tracking-[0.15em] flex items-center justify-between text-neutral-600 hover:bg-neutral-50 hover:text-black transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <Heart className="w-4 h-4" />
-                    <span>Saved Wishlist</span>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
-                </Link>
-
-                <button
-                  onClick={handleSignOut}
-                  disabled={signingOut}
-                  className="w-full text-left px-4 py-3 text-xs uppercase tracking-[0.15em] flex items-center space-x-3 text-rose-700 hover:bg-rose-50 transition-colors disabled:opacity-50"
-                >
-                  <LogOut className="w-4 h-4 text-rose-600" />
-                  <span>{signingOut ? 'Signing Out...' : 'Sign Out'}</span>
-                </button>
-              </div>
             </div>
           </aside>
 
-          {/* Active Tab Panel */}
+          {/* Active Tab Content Panel */}
           <main className="lg:col-span-3">
             {activeTab === 'profile' && <ProfileTab user={account} />}
             {activeTab === 'security' && (

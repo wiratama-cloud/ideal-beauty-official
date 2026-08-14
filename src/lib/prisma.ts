@@ -27,7 +27,11 @@ function createPrismaClient() {
 }
 
 if (process.env.NODE_ENV !== 'production' && globalForPrisma.prisma) {
-  if (globalForPrisma.dmmfHash !== currentDmmfHash) {
+  if (
+    globalForPrisma.dmmfHash !== currentDmmfHash ||
+    !(globalForPrisma.prisma as any).auditLog ||
+    !(globalForPrisma.prisma as any).navCategory
+  ) {
     globalForPrisma.prisma = undefined;
     globalForPrisma.dmmfHash = undefined;
   }

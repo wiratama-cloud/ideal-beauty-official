@@ -126,6 +126,7 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover object-center"
               unoptimized
+              onError={() => setSelectedImage('/images/products/default-product.jpg')}
             />
           </div>
 
@@ -140,7 +141,19 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
                     selectedImage === img ? 'border-black' : 'border-transparent opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <Image src={img} alt={`Thumbnail ${idx}`} fill className="object-cover" unoptimized />
+                  <Image
+                    src={img}
+                    alt={`Thumbnail ${idx}`}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (target.src !== '/images/products/default-product.jpg') {
+                        target.src = '/images/products/default-product.jpg';
+                      }
+                    }}
+                  />
                 </button>
               ))}
             </div>

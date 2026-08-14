@@ -1,18 +1,5 @@
-import React from 'react';
-import { getNavCategories } from '@/lib/services/nav-category';
-import { getCategories } from '@/lib/services/product';
-import AdminNavigationView from '@/components/admin/AdminNavigationView';
+import { redirect } from 'next/navigation';
 
-export default async function AdminNavigationPage() {
-  const [initialCategories, availableCategories] = await Promise.all([
-    getNavCategories(false),
-    getCategories(),
-  ]);
-
-  return (
-    <AdminNavigationView
-      initialCategories={initialCategories}
-      availableCategories={availableCategories}
-    />
-  );
+export default function AdminNavigationRedirectPage() {
+  redirect('/admin/collection');
 }

@@ -28,7 +28,7 @@ export default function Footer() {
               <li><Link href="/products?category=Haute+Couture" className="hover:text-white transition-colors">Haute Couture</Link></li>
               <li><Link href="/products?category=Bridal+Wear" className="hover:text-white transition-colors">Bridal Collection</Link></li>
               <li><Link href="/products?category=Ready+To+Wear" className="hover:text-white transition-colors">Ready To Wear</Link></li>
-              <li><Link href="/products?category=Menswear" className="hover:text-white transition-colors">Menswear Sherwanis</Link></li>
+              <li><Link href="/products?category=Men" className="hover:text-white transition-colors">Men's Collection</Link></li>
               <li><Link href="/products?type=RENTAL" className="hover:text-white transition-colors">Luxury Rental Boutique</Link></li>
             </ul>
           </div>

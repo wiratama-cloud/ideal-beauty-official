@@ -30,7 +30,9 @@ import {
   createLandingSectionItemAction,
   updateLandingSectionItemAction,
   deleteLandingSectionItemAction,
+  updateHeroBannerAction,
 } from '@/app/actions/admin';
+import { HeroBannerData, DEFAULT_HERO_BANNER } from '@/lib/types/hero-banner';
 import AdminHeader from '@/components/admin/AdminHeader';
 
 type SectionType = 'NEW_ARRIVALS' | 'FEATURED_BRANDS' | 'EDITORS_PICKS' | 'CUSTOM_GRID' | 'PROMO_BANNER';
@@ -38,10 +40,22 @@ type SectionType = 'NEW_ARRIVALS' | 'FEATURED_BRANDS' | 'EDITORS_PICKS' | 'CUSTO
 interface AdminSectionsViewProps {
   initialSections: any[];
   products: any[];
+  initialHeroBanner?: HeroBannerData | null;
 }
 
-export default function AdminSectionsView({ initialSections, products }: AdminSectionsViewProps) {
-  const [sections, setSections] = useState(initialSections);
+export default function AdminSectionsView({
+  initialSections,
+  products,
+  initialHeroBanner,
+}: AdminSectionsViewProps) {
+  const [sections, setSections] = useState(
+    initialSections.filter((s) => s.type !== 'HERO_BANNER')
+  );
+  const [heroBanner, setHeroBanner] = useState<HeroBannerData>(
+    initialHeroBanner || DEFAULT_HERO_BANNER
+  );
+  const [isEditingHero, setIsEditingHero] = useState(false);
+  const [isSavingHero, setIsSavingHero] = useState(false);
   const [isCreatingSection, setIsCreatingSection] = useState(false);
   const [editingSection, setEditingSection] = useState<any | null>(null);
   const [expandedSectionId, setExpandedSectionId] = useState<string | null>(
@@ -83,6 +97,21 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
   const showNotification = (msg: string) => {
     setSuccessMessage(msg);
     setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  const handleSaveHeroBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingHero(true);
+    try {
+      await updateHeroBannerAction(heroBanner);
+      setIsEditingHero(false);
+      showNotification('Hero banner updated successfully');
+    } catch (err) {
+      console.error('Failed to save hero banner:', err);
+      alert('Failed to save hero banner');
+    } finally {
+      setIsSavingHero(false);
+    }
   };
 
   // Upload handler for image files
@@ -179,12 +208,14 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
         displayOrder: Number(editSectionDisplayOrder) || 0,
       });
 
-      setSections((prev) =>
-        prev.map((s) => (s.id === editingSection.id ? { ...s, ...updated } : s))
-      );
+      if (updated) {
+        setSections((prev) =>
+          prev.map((s) => (s.id === editingSection.id ? { ...s, ...updated } : s))
+        );
+        showNotification('Section updated successfully');
+      }
 
       setEditingSection(null);
-      showNotification('Section updated successfully');
     } catch (err) {
       console.error('Failed to update section:', err);
     } finally {
@@ -197,10 +228,12 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
       const updated = await updateLandingSectionAction(section.id, {
         isActive: !section.isActive,
       });
-      setSections((prev) =>
-        prev.map((s) => (s.id === section.id ? { ...s, isActive: updated.isActive } : s))
-      );
-      showNotification(`Section status updated to ${updated.isActive ? 'Active' : 'Inactive'}`);
+      if (updated) {
+        setSections((prev) =>
+          prev.map((s) => (s.id === section.id ? { ...s, isActive: updated.isActive } : s))
+        );
+        showNotification(`Section status updated to ${updated.isActive ? 'Active' : 'Inactive'}`);
+      }
     } catch (err) {
       console.error('Failed to toggle active status:', err);
     }
@@ -234,30 +267,48 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
   const startEditingItem = (item: any) => {
     setEditingItem(item);
     setAddingItemToSectionId(null);
-    setItemTitle(item.title || '');
-    setItemSubtitle(item.subtitle || '');
-    setItemImageUrl(item.imageUrl || '');
-    setItemLinkUrl(item.linkUrl || '');
     setItemCategoryTab(item.categoryTab || '');
     setItemProductId(item.productId || '');
     setItemDisplayOrder(item.displayOrder || 0);
+
+    const selectedP = products.find((p) => p.id === item.productId);
+    if (selectedP) {
+      setItemTitle(selectedP.name);
+      setItemSubtitle(selectedP.category || '');
+      setItemImageUrl(selectedP.images?.[0] || '/images/products/default-product.jpg');
+      setItemLinkUrl(`/products/${selectedP.slug}`);
+    } else {
+      setItemTitle(item.title || '');
+      setItemSubtitle(item.subtitle || '');
+      setItemImageUrl(item.imageUrl || '');
+      setItemLinkUrl(item.linkUrl || '');
+    }
   };
 
   const handleAddItem = async (sectionId: string) => {
+    if (!itemProductId) {
+      alert('Please select an existing product to link.');
+      return;
+    }
+
+    const selectedProduct = products.find((p) => p.id === itemProductId);
+    const finalTitle = selectedProduct ? selectedProduct.name : itemTitle;
+    const finalSubtitle = selectedProduct ? selectedProduct.category : itemSubtitle;
+    const finalImageUrl = selectedProduct ? (selectedProduct.images?.[0] || '/images/products/default-product.jpg') : itemImageUrl;
+    const finalLinkUrl = selectedProduct ? `/products/${selectedProduct.slug}` : itemLinkUrl;
+
     setIsLoading(true);
     try {
       const created = await createLandingSectionItemAction({
         sectionId,
-        title: itemTitle || undefined,
-        subtitle: itemSubtitle || undefined,
-        imageUrl: itemImageUrl || undefined,
-        linkUrl: itemLinkUrl || undefined,
+        title: finalTitle || undefined,
+        subtitle: finalSubtitle || undefined,
+        imageUrl: finalImageUrl || undefined,
+        linkUrl: finalLinkUrl || undefined,
         categoryTab: itemCategoryTab || undefined,
         productId: itemProductId || undefined,
         displayOrder: Number(itemDisplayOrder) || 0,
       });
-
-      const selectedProduct = products.find((p) => p.id === itemProductId);
 
       setSections((prev) =>
         prev.map((s) => {
@@ -281,27 +332,50 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
   };
 
   const handleUpdateItem = async (sectionId: string, itemId: string) => {
+    if (!itemProductId) {
+      alert('Please select an existing product to link.');
+      return;
+    }
+
+    const selectedProduct = products.find((p) => p.id === itemProductId);
+    const finalTitle = selectedProduct ? selectedProduct.name : itemTitle;
+    const finalSubtitle = selectedProduct ? selectedProduct.category : itemSubtitle;
+    const finalImageUrl = selectedProduct ? (selectedProduct.images?.[0] || '/images/products/default-product.jpg') : itemImageUrl;
+    const finalLinkUrl = selectedProduct ? `/products/${selectedProduct.slug}` : itemLinkUrl;
+
     setIsLoading(true);
     try {
       const updated = await updateLandingSectionItemAction(itemId, {
-        title: itemTitle || undefined,
-        subtitle: itemSubtitle || undefined,
-        imageUrl: itemImageUrl || undefined,
-        linkUrl: itemLinkUrl || undefined,
+        sectionId,
+        title: finalTitle || undefined,
+        subtitle: finalSubtitle || undefined,
+        imageUrl: finalImageUrl || undefined,
+        linkUrl: finalLinkUrl || undefined,
         categoryTab: itemCategoryTab || undefined,
         productId: itemProductId || undefined,
         displayOrder: Number(itemDisplayOrder) || 0,
       });
 
-      const selectedProduct = products.find((p) => p.id === itemProductId);
+      if (!updated) {
+        showNotification('Section item not found or could not be updated');
+        setEditingItem(null);
+        return;
+      }
 
       setSections((prev) =>
         prev.map((s) => {
           if (s.id === sectionId) {
+            const exists = s.items.some((i: any) => i.id === itemId || i.id === updated.id);
+            if (!exists) {
+              return {
+                ...s,
+                items: [...s.items, { ...updated, product: selectedProduct || null }],
+              };
+            }
             return {
               ...s,
               items: s.items.map((i: any) =>
-                i.id === itemId
+                i.id === itemId || i.id === updated.id
                   ? { ...i, ...updated, product: selectedProduct || null }
                   : i
               ),
@@ -370,6 +444,263 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
             </button>
           </div>
         )}
+
+        {/* Hero Banner Management Card */}
+        <div className="bg-neutral-900 text-white p-6 sm:p-8 space-y-6 shadow-md rounded-sm border border-neutral-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 font-mono">
+                  Homepage Hero Banner Configuration
+                </span>
+              </div>
+              <h2 className="font-serif text-xl sm:text-2xl font-light text-white">
+                {heroBanner.title || 'Haute Couture Hero Banner'}
+              </h2>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={() => setHeroBanner((prev) => ({ ...prev, isActive: !prev.isActive }))}
+                className={`px-3 py-1.5 uppercase tracking-widest text-[10px] border font-mono transition-colors flex items-center space-x-1.5 rounded-xs ${
+                  heroBanner.isActive
+                    ? 'border-emerald-500/50 text-emerald-400 bg-emerald-950/30'
+                    : 'border-neutral-700 text-neutral-400 bg-neutral-800/50'
+                }`}
+              >
+                {heroBanner.isActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                <span>{heroBanner.isActive ? 'Active on Live Site' : 'Hidden'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsEditingHero(!isEditingHero)}
+                className="px-4 py-2 uppercase tracking-widest text-[10px] bg-white text-black font-medium hover:bg-neutral-200 transition-colors flex items-center space-x-1.5 rounded-xs"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>{isEditingHero ? 'Close Editor' : 'Edit Hero Banner'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Live Banner Preview Box */}
+          {!isEditingHero && (
+            <div className="relative overflow-hidden rounded-sm border border-neutral-800 min-h-[200px] sm:min-h-[240px] flex items-center justify-center bg-neutral-950 p-6 text-center">
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-50 scale-105"
+                style={{ backgroundImage: `url(${heroBanner.imageUrl || '/images/hero/hero-banner.jpg'})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30" />
+
+              <div className="relative z-10 max-w-2xl space-y-3">
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-neutral-300 font-sans block">
+                  {heroBanner.tagline}
+                </span>
+                <h3 className="font-serif text-2xl sm:text-4xl text-white font-light leading-tight">
+                  {heroBanner.title}
+                </h3>
+                <p className="text-neutral-300 font-light text-xs max-w-lg mx-auto leading-relaxed line-clamp-2">
+                  {heroBanner.description}
+                </p>
+                <div className="pt-2 flex items-center justify-center gap-3">
+                  <span className="bg-white text-black text-[10px] uppercase tracking-widest px-4 py-2 font-medium rounded-xs">
+                    {heroBanner.primaryCtaLabel || 'Explore Collections'}
+                  </span>
+                  {heroBanner.secondaryCtaLabel && (
+                    <span className="border border-white/60 text-white text-[10px] uppercase tracking-widest px-4 py-2 font-medium rounded-xs">
+                      {heroBanner.secondaryCtaLabel}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Hero Banner Form Fields */}
+          {isEditingHero && (
+            <form onSubmit={handleSaveHeroBanner} className="space-y-6 pt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-1">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                    Season Tagline
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="AUTUMN / WINTER HAUTE COUTURE 2026"
+                    value={heroBanner.tagline}
+                    onChange={(e) => setHeroBanner({ ...heroBanner, tagline: e.target.value })}
+                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                    Main Headline Title
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Elegance Woven in Gold & Velvet"
+                    value={heroBanner.title}
+                    onChange={(e) => setHeroBanner({ ...heroBanner, title: e.target.value })}
+                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                    Banner Description Paragraph
+                  </label>
+                  <textarea
+                    rows={2}
+                    required
+                    placeholder="Discover hand-crafted bridal ensembles, imperial kaftans, and couture rentals..."
+                    value={heroBanner.description}
+                    onChange={(e) => setHeroBanner({ ...heroBanner, description: e.target.value })}
+                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                    Primary Button Label
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Explore Collections"
+                    value={heroBanner.primaryCtaLabel}
+                    onChange={(e) => setHeroBanner({ ...heroBanner, primaryCtaLabel: e.target.value })}
+                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                    Primary Button Link URL
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="/products"
+                    value={heroBanner.primaryCtaUrl}
+                    onChange={(e) => setHeroBanner({ ...heroBanner, primaryCtaUrl: e.target.value })}
+                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs font-mono text-amber-300 focus:outline-none focus:border-amber-400 rounded-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                    Secondary Button Label (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Rent Luxury Wear"
+                    value={heroBanner.secondaryCtaLabel || ''}
+                    onChange={(e) => setHeroBanner({ ...heroBanner, secondaryCtaLabel: e.target.value })}
+                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                    Secondary Button Link URL
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="/products?type=RENTAL"
+                    value={heroBanner.secondaryCtaUrl || ''}
+                    onChange={(e) => setHeroBanner({ ...heroBanner, secondaryCtaUrl: e.target.value })}
+                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs font-mono text-amber-300 focus:outline-none focus:border-amber-400 rounded-sm"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                    Hero Background Image
+                  </label>
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    {heroBanner.imageUrl && (
+                      <div className="relative w-32 h-20 bg-neutral-800 overflow-hidden rounded-sm border border-neutral-700 shrink-0">
+                        <img
+                          src={heroBanner.imageUrl}
+                          alt="Background Preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            if (target.src !== '/images/hero/hero-banner.jpg') {
+                              target.src = '/images/hero/hero-banner.jpg';
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="w-full space-y-2">
+                      <input
+                        type="text"
+                        placeholder="/images/hero/hero-banner.jpg or uploaded image URL"
+                        value={heroBanner.imageUrl || ''}
+                        onChange={(e) => setHeroBanner({ ...heroBanner, imageUrl: e.target.value })}
+                        className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs font-mono text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                      />
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label className="cursor-pointer bg-neutral-800 border border-neutral-700 hover:border-amber-400 text-neutral-200 px-3 py-1.5 text-[10px] uppercase tracking-wider font-mono flex items-center space-x-1.5 rounded-xs transition-colors">
+                          <Upload className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Upload Image File</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleFileUpload(file, (url) =>
+                                  setHeroBanner((prev) => ({ ...prev, imageUrl: url }))
+                                );
+                                e.target.value = '';
+                              }
+                            }}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setHeroBanner((prev) => ({ ...prev, imageUrl: '/images/hero/hero-banner.jpg' }))}
+                          className="bg-neutral-800 border border-neutral-700 hover:border-neutral-500 text-neutral-400 hover:text-white px-3 py-1.5 text-[10px] uppercase tracking-wider font-mono transition-colors rounded-xs"
+                        >
+                          Reset Default Image
+                        </button>
+                        {isUploadingImage && (
+                          <span className="text-[10px] font-mono text-amber-400 animate-pulse">
+                            Uploading file...
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-800">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingHero(false)}
+                  className="px-5 py-2.5 uppercase tracking-widest text-[10px] border border-neutral-700 text-neutral-300 hover:border-white transition-colors rounded-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingHero}
+                  className="px-6 py-2.5 uppercase tracking-widest text-[10px] bg-amber-500 text-black font-medium hover:bg-amber-400 transition-colors flex items-center space-x-1.5 rounded-sm"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{isSavingHero ? 'Saving Hero Banner...' : 'Save Hero Banner'}</span>
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
 
         {/* New Section Creation Drawer */}
         {isCreatingSection && (
@@ -611,7 +942,9 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
 
         {/* Landing Sections List */}
         <div className="space-y-6">
-          {sections.map((section) => {
+          {sections
+            .filter((section) => section.type !== 'HERO_BANNER')
+            .map((section) => {
             const isExpanded = expandedSectionId === section.id;
 
             return (
@@ -725,10 +1058,10 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Select Existing Product (Optional) */}
+                          {/* Select Existing Product */}
                           <div className="space-y-1 md:col-span-2">
                             <label className="block text-[10px] uppercase tracking-wider font-medium text-neutral-600">
-                              Link Existing Product (Optional)
+                              Link Existing Product
                             </label>
                             <select
                               value={itemProductId}
@@ -737,14 +1070,15 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
                                 setItemProductId(pId);
                                 const selectedP = products.find((p) => p.id === pId);
                                 if (selectedP) {
-                                  if (!itemTitle) setItemTitle(selectedP.name);
-                                  if (!itemImageUrl && selectedP.images?.[0]) setItemImageUrl(selectedP.images[0]);
-                                  if (!itemLinkUrl) setItemLinkUrl(`/products/${selectedP.slug}`);
+                                  setItemTitle(selectedP.name);
+                                  setItemSubtitle(selectedP.category || '');
+                                  setItemImageUrl(selectedP.images?.[0] || '/images/products/default-product.jpg');
+                                  setItemLinkUrl(`/products/${selectedP.slug}`);
                                 }
                               }}
                               className="w-full bg-white border border-neutral-300 p-2 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
                             >
-                              <option value="">-- Custom Brand / Banner / Item (No Product) --</option>
+                              <option value="">-- Select Product --</option>
                               {products.map((p) => (
                                 <option key={p.id} value={p.id}>
                                   {p.name} ({p.category || 'Collection'})
@@ -753,77 +1087,39 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
                             </select>
                           </div>
 
-                          <div className="space-y-1">
-                            <label className="block text-[10px] uppercase tracking-wider font-medium text-neutral-600">
-                              Item Title / Brand Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="e.g., Royal Velvet, Emerald Kaftan"
-                              value={itemTitle}
-                              onChange={(e) => setItemTitle(e.target.value)}
-                              className="w-full bg-white border border-neutral-300 p-2 text-xs text-neutral-900 focus:outline-none focus:border-black rounded-sm"
-                            />
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="block text-[10px] uppercase tracking-wider font-medium text-neutral-600">
-                              Subtitle / Tagline
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="e.g., Heritage Kaftans & Robes"
-                              value={itemSubtitle}
-                              onChange={(e) => setItemSubtitle(e.target.value)}
-                              className="w-full bg-white border border-neutral-300 p-2 text-xs text-neutral-900 focus:outline-none focus:border-black rounded-sm"
-                            />
-                          </div>
-
-                          {/* Image URL & Local Upload Button */}
-                          <div className="space-y-1 md:col-span-2">
-                            <label className="block text-[10px] uppercase tracking-wider font-medium text-neutral-600">
-                              Image Path / URL or Server File Upload
-                            </label>
-                            <div className="flex gap-2 items-center">
-                              <input
-                                type="text"
-                                placeholder="/images/products/... or /uploads/..."
-                                value={itemImageUrl}
-                                onChange={(e) => setItemImageUrl(e.target.value)}
-                                className="w-full bg-white border border-neutral-300 p-2 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
-                              />
-                              <label className="bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-wider cursor-pointer font-medium flex items-center space-x-1 whitespace-nowrap rounded-sm transition-colors">
-                                <Upload className="w-3.5 h-3.5" />
-                                <span>{isUploadingImage ? 'Uploading...' : 'Upload Image'}</span>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  className="hidden"
-                                  disabled={isUploadingImage}
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      handleFileUpload(file, setItemImageUrl);
-                                    }
-                                  }}
-                                />
-                              </label>
+                          {/* Selected Product Details Preview */}
+                          {itemProductId && (
+                            <div className="md:col-span-2 bg-neutral-50 border border-neutral-200 p-3 flex items-center space-x-3 rounded-sm">
+                              {(() => {
+                                const p = products.find((prod) => prod.id === itemProductId);
+                                if (!p) return null;
+                                return (
+                                  <>
+                                    <div className="relative w-12 aspect-[3/4] bg-neutral-200 rounded-sm overflow-hidden shrink-0">
+                                      <Image
+                                        src={p.images?.[0] || '/images/products/default-product.jpg'}
+                                        alt={p.name}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                      />
+                                    </div>
+                                    <div className="text-xs space-y-0.5">
+                                      <span className="font-serif font-medium text-neutral-900 block">{p.name}</span>
+                                      <span className="text-[10px] text-neutral-500 font-mono uppercase block">
+                                        Category: {p.category || 'Collection'} • Slug: /products/{p.slug}
+                                      </span>
+                                      <span className="text-[10px] text-emerald-700 font-mono font-medium block">
+                                        Locked to catalog item
+                                      </span>
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </div>
-                          </div>
+                          )}
 
-                          <div className="space-y-1">
-                            <label className="block text-[10px] uppercase tracking-wider font-medium text-neutral-600">
-                              Link Target URL
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="/products?category=Women"
-                              value={itemLinkUrl}
-                              onChange={(e) => setItemLinkUrl(e.target.value)}
-                              className="w-full bg-white border border-neutral-300 p-2 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
-                            />
-                          </div>
-
+                          {/* Display Order */}
                           <div className="space-y-1">
                             <label className="block text-[10px] uppercase tracking-wider font-medium text-neutral-600">
                               Display Order
@@ -838,9 +1134,9 @@ export default function AdminSectionsView({ initialSections, products }: AdminSe
 
                           {/* Category Tab Selector for New Arrivals */}
                           {section.tabs && section.tabs.length > 0 && (
-                            <div className="space-y-1 md:col-span-2">
+                            <div className="space-y-1">
                               <label className="block text-[10px] uppercase tracking-wider font-medium text-neutral-600">
-                                Subcategory Tab Assignment (e.g., Women, Men, Kids)
+                                Subcategory Tab Assignment
                               </label>
                               <select
                                 value={itemCategoryTab}

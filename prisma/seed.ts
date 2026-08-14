@@ -1,9 +1,15 @@
 import { prisma } from '../src/lib/prisma';
+import { seedDefaultCategoryTree } from '../src/lib/services/nav-category';
 
 export async function main() {
   console.log('Seeding Ideal Beauty Official database with dummy data...');
 
-  // Clean existing data
+  // Clean existing data in proper foreign-key order
+  await prisma.auditLog.deleteMany();
+  await prisma.voucherUsage.deleteMany();
+  await prisma.voucher.deleteMany();
+  await prisma.inventoryTransaction.deleteMany();
+  await prisma.rentalBlock.deleteMany();
   await prisma.navCategory.deleteMany();
   await prisma.landingSectionItem.deleteMany();
   await prisma.landingSection.deleteMany();
@@ -118,13 +124,14 @@ export async function main() {
 
   console.log(`Created 4 sample users (${user1.name}, ${user2.name}, ${user3.name}, ${user4.name})`);
 
-  // 2. Create Sample Luxury Fashion Products & Variants
+  // 2. Create Sample Luxury Fashion Products & Variants (16 products across 4 categories)
   const productsData = [
+    // --- CATEGORY 1: KAFTANS (4 items) ---
     {
       name: 'Velvet Royal Emerald Kaftan',
       slug: 'velvet-royal-emerald-kaftan',
       description: 'An exquisite hand-embroidered velvet kaftan embellished with fine zardozi work and gold thread detailing. Designed for high-fashion evening galas.',
-      category: 'Haute Couture',
+      category: 'Kaftans',
       images: [
         '/images/products/kaftan-1.jpg',
         '/images/products/kaftan-2.jpg',
@@ -137,8 +144,13 @@ export async function main() {
           compareAtPrice: 6000000.00,
           priceRent: 750000.00,
           costPrice: 2100000.00,
-          stockTotal: 10,
-          stockAvailable: 9,
+          purchaseCost: 2100000.00,
+          stockSaleTotal: 10,
+          stockSaleAvailable: 9,
+          stockRentTotal: 5,
+          stockRentAvailable: 4,
+          stockTotal: 15,
+          stockAvailable: 13,
         },
         {
           sku: 'KAF-EME-M',
@@ -147,8 +159,13 @@ export async function main() {
           compareAtPrice: 6000000.00,
           priceRent: 750000.00,
           costPrice: 2100000.00,
-          stockTotal: 12,
-          stockAvailable: 12,
+          purchaseCost: 2100000.00,
+          stockSaleTotal: 12,
+          stockSaleAvailable: 12,
+          stockRentTotal: 6,
+          stockRentAvailable: 6,
+          stockTotal: 18,
+          stockAvailable: 18,
         },
         {
           sku: 'KAF-EME-L',
@@ -157,16 +174,145 @@ export async function main() {
           compareAtPrice: 6000000.00,
           priceRent: 750000.00,
           costPrice: 2100000.00,
-          stockTotal: 8,
-          stockAvailable: 8,
+          purchaseCost: 2100000.00,
+          stockSaleTotal: 8,
+          stockSaleAvailable: 8,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 12,
+          stockAvailable: 12,
         },
       ],
     },
     {
-      name: 'Artisanal Silk Bridal Lehenga',
-      slug: 'artisanal-silk-bridal-lehenga',
+      name: 'Silk Chiffon Rose Kaftan',
+      slug: 'silk-chiffon-rose-kaftan',
+      description: 'A flowing blush-pink silk chiffon kaftan features hand-applied crystal motifs and a delicate split neckline.',
+      category: 'Kaftans',
+      images: [
+        '/images/products/kaftan-2.jpg',
+        '/images/products/kaftan-1.jpg',
+      ],
+      variants: [
+        {
+          sku: 'KAF-ROS-S',
+          attributes: { size: 'S', color: 'Rose Blush' },
+          priceSale: 3900000.00,
+          compareAtPrice: 4800000.00,
+          priceRent: 650000.00,
+          costPrice: 1800000.00,
+          purchaseCost: 1800000.00,
+          stockSaleTotal: 8,
+          stockSaleAvailable: 8,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 12,
+          stockAvailable: 12,
+        },
+        {
+          sku: 'KAF-ROS-M',
+          attributes: { size: 'M', color: 'Rose Blush' },
+          priceSale: 3900000.00,
+          compareAtPrice: 4800000.00,
+          priceRent: 650000.00,
+          costPrice: 1800000.00,
+          purchaseCost: 1800000.00,
+          stockSaleTotal: 10,
+          stockSaleAvailable: 10,
+          stockRentTotal: 5,
+          stockRentAvailable: 5,
+          stockTotal: 15,
+          stockAvailable: 15,
+        },
+      ],
+    },
+    {
+      name: 'Golden Opal Embellished Kaftan',
+      slug: 'golden-opal-embellished-kaftan',
+      description: 'Radiant champagne-gold kaftan with elaborate tilla embroidery and pearl lattice accents along the sleeves.',
+      category: 'Kaftans',
+      images: [
+        '/images/products/kaftan-1.jpg',
+        '/images/products/default-product.jpg',
+      ],
+      variants: [
+        {
+          sku: 'KAF-OPL-S',
+          attributes: { size: 'S', color: 'Champagne Gold' },
+          priceSale: 5200000.00,
+          priceRent: 850000.00,
+          costPrice: 2400000.00,
+          purchaseCost: 2400000.00,
+          stockSaleTotal: 6,
+          stockSaleAvailable: 6,
+          stockRentTotal: 3,
+          stockRentAvailable: 3,
+          stockTotal: 9,
+          stockAvailable: 9,
+        },
+        {
+          sku: 'KAF-OPL-M',
+          attributes: { size: 'M', color: 'Champagne Gold' },
+          priceSale: 5200000.00,
+          priceRent: 850000.00,
+          costPrice: 2400000.00,
+          purchaseCost: 2400000.00,
+          stockSaleTotal: 7,
+          stockSaleAvailable: 7,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 11,
+          stockAvailable: 11,
+        },
+      ],
+    },
+    {
+      name: 'Imperial Ruby Velvet Kaftan',
+      slug: 'imperial-ruby-velvet-kaftan',
+      description: 'Deep ruby red plush velvet kaftan framed with opulent antique silver dabka embroidery and regal cuffs.',
+      category: 'Kaftans',
+      images: [
+        '/images/products/kaftan-2.jpg',
+        '/images/products/default-product.jpg',
+      ],
+      variants: [
+        {
+          sku: 'KAF-RBY-S',
+          attributes: { size: 'S', color: 'Imperial Ruby' },
+          priceSale: 4800000.00,
+          priceRent: 800000.00,
+          costPrice: 2200000.00,
+          purchaseCost: 2200000.00,
+          stockSaleTotal: 9,
+          stockSaleAvailable: 9,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 13,
+          stockAvailable: 13,
+        },
+        {
+          sku: 'KAF-RBY-M',
+          attributes: { size: 'M', color: 'Imperial Ruby' },
+          priceSale: 4800000.00,
+          priceRent: 800000.00,
+          costPrice: 2200000.00,
+          purchaseCost: 2200000.00,
+          stockSaleTotal: 11,
+          stockSaleAvailable: 11,
+          stockRentTotal: 5,
+          stockRentAvailable: 5,
+          stockTotal: 16,
+          stockAvailable: 16,
+        },
+      ],
+    },
+
+    // --- CATEGORY 2: LEHENGAS (4 items) ---
+    {
+      name: 'Royal Bridal Lehenga',
+      slug: 'royal-bridal-lehenga',
       description: 'Timeless crimson silk lehenga intricately woven with traditional motifs, paired with a fitted blouse and net dupatta.',
-      category: 'Bridal Wear',
+      category: 'Lehengas',
       images: [
         '/images/products/lehenga-1.jpg',
         '/images/products/lehenga-2.jpg',
@@ -179,8 +325,13 @@ export async function main() {
           compareAtPrice: 15000000.00,
           priceRent: 2200000.00,
           costPrice: 5800000.00,
-          stockTotal: 5,
-          stockAvailable: 4,
+          purchaseCost: 5800000.00,
+          stockSaleTotal: 5,
+          stockSaleAvailable: 4,
+          stockRentTotal: 3,
+          stockRentAvailable: 2,
+          stockTotal: 8,
+          stockAvailable: 6,
         },
         {
           sku: 'LEH-CRM-M',
@@ -189,16 +340,143 @@ export async function main() {
           compareAtPrice: 15000000.00,
           priceRent: 2200000.00,
           costPrice: 5800000.00,
-          stockTotal: 6,
-          stockAvailable: 6,
+          purchaseCost: 5800000.00,
+          stockSaleTotal: 6,
+          stockSaleAvailable: 6,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 10,
+          stockAvailable: 10,
         },
       ],
     },
     {
+      name: 'Crimson Gold Zardozi Lehenga',
+      slug: 'crimson-gold-zardozi-lehenga',
+      description: 'Hand-crafted bridal crimson lehenga laden with heavy gold zardozi bullion work, sequence details, and embroidered dupatta.',
+      category: 'Lehengas',
+      images: [
+        '/images/products/lehenga-2.jpg',
+        '/images/products/lehenga-1.jpg',
+      ],
+      variants: [
+        {
+          sku: 'LEH-ZAR-S',
+          attributes: { size: 'S', color: 'Gold Crimson' },
+          priceSale: 14000000.00,
+          priceRent: 2500000.00,
+          costPrice: 6500000.00,
+          purchaseCost: 6500000.00,
+          stockSaleTotal: 4,
+          stockSaleAvailable: 4,
+          stockRentTotal: 2,
+          stockRentAvailable: 2,
+          stockTotal: 6,
+          stockAvailable: 6,
+        },
+        {
+          sku: 'LEH-ZAR-M',
+          attributes: { size: 'M', color: 'Gold Crimson' },
+          priceSale: 14000000.00,
+          priceRent: 2500000.00,
+          costPrice: 6500000.00,
+          purchaseCost: 6500000.00,
+          stockSaleTotal: 5,
+          stockSaleAvailable: 5,
+          stockRentTotal: 3,
+          stockRentAvailable: 3,
+          stockTotal: 8,
+          stockAvailable: 8,
+        },
+      ],
+    },
+    {
+      name: 'Pastel Floral Organza Lehenga',
+      slug: 'pastel-floral-organza-lehenga',
+      description: 'Lightweight mint green and blush organza lehenga with delicate threadwork flora and pearl beaded border.',
+      category: 'Lehengas',
+      images: [
+        '/images/products/lehenga-1.jpg',
+        '/images/products/default-product.jpg',
+      ],
+      variants: [
+        {
+          sku: 'LEH-PST-S',
+          attributes: { size: 'S', color: 'Mint Pastel' },
+          priceSale: 8900000.00,
+          priceRent: 1500000.00,
+          costPrice: 4000000.00,
+          purchaseCost: 4000000.00,
+          stockSaleTotal: 7,
+          stockSaleAvailable: 7,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 11,
+          stockAvailable: 11,
+        },
+        {
+          sku: 'LEH-PST-M',
+          attributes: { size: 'M', color: 'Mint Pastel' },
+          priceSale: 8900000.00,
+          priceRent: 1500000.00,
+          costPrice: 4000000.00,
+          purchaseCost: 4000000.00,
+          stockSaleTotal: 8,
+          stockSaleAvailable: 8,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 12,
+          stockAvailable: 12,
+        },
+      ],
+    },
+    {
+      name: 'Midnight Velvet Bridal Lehenga',
+      slug: 'midnight-velvet-bridal-lehenga',
+      description: 'Opulent midnight blue velvet skirt with ornate gold zari embroidery, matching blouse, and sheer tulle dupatta.',
+      category: 'Lehengas',
+      images: [
+        '/images/products/lehenga-2.jpg',
+        '/images/products/default-product.jpg',
+      ],
+      variants: [
+        {
+          sku: 'LEH-MNV-S',
+          attributes: { size: 'S', color: 'Midnight Blue' },
+          priceSale: 11800000.00,
+          priceRent: 2000000.00,
+          costPrice: 5200000.00,
+          purchaseCost: 5200000.00,
+          stockSaleTotal: 6,
+          stockSaleAvailable: 6,
+          stockRentTotal: 3,
+          stockRentAvailable: 3,
+          stockTotal: 9,
+          stockAvailable: 9,
+        },
+        {
+          sku: 'LEH-MNV-M',
+          attributes: { size: 'M', color: 'Midnight Blue' },
+          priceSale: 11800000.00,
+          priceRent: 2000000.00,
+          costPrice: 5200000.00,
+          purchaseCost: 5200000.00,
+          stockSaleTotal: 6,
+          stockSaleAvailable: 6,
+          stockRentTotal: 3,
+          stockRentAvailable: 3,
+          stockTotal: 9,
+          stockAvailable: 9,
+        },
+      ],
+    },
+
+    // --- CATEGORY 3: ANARKALIS (4 items) ---
+    {
       name: 'Embroidered Pearl Anarkali Gown',
       slug: 'embroidered-pearl-anarkali-gown',
       description: 'Ethereal ivory chiffon Anarkali silhouette studded with hand-sewn pearls and delicate silver tilla embroidery.',
-      category: 'Ready To Wear',
+      category: 'Anarkalis',
       images: [
         '/images/products/anarkali-1.jpg',
         '/images/products/anarkali-2.jpg',
@@ -210,8 +488,13 @@ export async function main() {
           priceSale: 3200000.00,
           priceRent: 550000.00,
           costPrice: 1400000.00,
-          stockTotal: 15,
-          stockAvailable: 14,
+          purchaseCost: 1400000.00,
+          stockSaleTotal: 15,
+          stockSaleAvailable: 14,
+          stockRentTotal: 8,
+          stockRentAvailable: 8,
+          stockTotal: 23,
+          stockAvailable: 22,
         },
         {
           sku: 'ANA-IVR-M',
@@ -219,46 +502,143 @@ export async function main() {
           priceSale: 3200000.00,
           priceRent: 550000.00,
           costPrice: 1400000.00,
-          stockTotal: 15,
-          stockAvailable: 15,
+          purchaseCost: 1400000.00,
+          stockSaleTotal: 15,
+          stockSaleAvailable: 15,
+          stockRentTotal: 8,
+          stockRentAvailable: 8,
+          stockTotal: 23,
+          stockAvailable: 23,
         },
       ],
     },
     {
-      name: 'Midnight Black Jacquard Sherwani',
-      slug: 'midnight-black-jacquard-sherwani',
-      description: 'Sophisticated men’s tailored jacquard sherwani jacket with antique gold buttons and sleek mandarin collar.',
-      category: 'Menswear',
+      name: 'Midnight Navy Georgette Anarkali',
+      slug: 'midnight-navy-georgette-anarkali',
+      description: 'Deep navy floor-length Anarkali with mirror-work borders, silver wire detail, and lightweight embroidered scarf.',
+      category: 'Anarkalis',
       images: [
-        '/images/products/sherwani-1.jpg',
-        '/images/products/sherwani-2.jpg',
+        '/images/products/anarkali-2.jpg',
+        '/images/products/anarkali-1.jpg',
       ],
       variants: [
         {
-          sku: 'SHE-BLK-40',
-          attributes: { size: '40', color: 'Midnight Black' },
-          priceSale: 5800000.00,
-          priceRent: 950000.00,
-          costPrice: 2600000.00,
-          stockTotal: 8,
-          stockAvailable: 8,
+          sku: 'ANA-NVY-S',
+          attributes: { size: 'S', color: 'Navy Silver' },
+          priceSale: 3500000.00,
+          priceRent: 600000.00,
+          costPrice: 1500000.00,
+          purchaseCost: 1500000.00,
+          stockSaleTotal: 10,
+          stockSaleAvailable: 10,
+          stockRentTotal: 5,
+          stockRentAvailable: 5,
+          stockTotal: 15,
+          stockAvailable: 15,
         },
         {
-          sku: 'SHE-BLK-42',
-          attributes: { size: '42', color: 'Midnight Black' },
-          priceSale: 5800000.00,
-          priceRent: 950000.00,
-          costPrice: 2600000.00,
-          stockTotal: 10,
-          stockAvailable: 10,
+          sku: 'ANA-NVY-M',
+          attributes: { size: 'M', color: 'Navy Silver' },
+          priceSale: 3500000.00,
+          priceRent: 600000.00,
+          costPrice: 1500000.00,
+          purchaseCost: 1500000.00,
+          stockSaleTotal: 12,
+          stockSaleAvailable: 12,
+          stockRentTotal: 6,
+          stockRentAvailable: 6,
+          stockTotal: 18,
+          stockAvailable: 18,
         },
       ],
     },
+    {
+      name: 'Golden Zari Silk Anarkali',
+      slug: 'golden-zari-silk-anarkali',
+      description: 'Regal golden yellow raw silk Anarkali highlighted with zari embroidered neckline and pleated flare.',
+      category: 'Anarkalis',
+      images: [
+        '/images/products/anarkali-1.jpg',
+        '/images/products/default-product.jpg',
+      ],
+      variants: [
+        {
+          sku: 'ANA-GLD-S',
+          attributes: { size: 'S', color: 'Gold Silk' },
+          priceSale: 4100000.00,
+          priceRent: 700000.00,
+          costPrice: 1900000.00,
+          purchaseCost: 1900000.00,
+          stockSaleTotal: 8,
+          stockSaleAvailable: 8,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 12,
+          stockAvailable: 12,
+        },
+        {
+          sku: 'ANA-GLD-M',
+          attributes: { size: 'M', color: 'Gold Silk' },
+          priceSale: 4100000.00,
+          priceRent: 700000.00,
+          costPrice: 1900000.00,
+          purchaseCost: 1900000.00,
+          stockSaleTotal: 9,
+          stockSaleAvailable: 9,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 13,
+          stockAvailable: 13,
+        },
+      ],
+    },
+    {
+      name: 'Rose Dust Chiffon Anarkali',
+      slug: 'rose-dust-chiffon-anarkali',
+      description: 'Graceful dusty rose chiffon ensemble featuring delicate sequin sprays and soft silk lining.',
+      category: 'Anarkalis',
+      images: [
+        '/images/products/anarkali-2.jpg',
+        '/images/products/default-product.jpg',
+      ],
+      variants: [
+        {
+          sku: 'ANA-RST-S',
+          attributes: { size: 'S', color: 'Dusty Rose' },
+          priceSale: 3600000.00,
+          priceRent: 620000.00,
+          costPrice: 1600000.00,
+          purchaseCost: 1600000.00,
+          stockSaleTotal: 11,
+          stockSaleAvailable: 11,
+          stockRentTotal: 5,
+          stockRentAvailable: 5,
+          stockTotal: 16,
+          stockAvailable: 16,
+        },
+        {
+          sku: 'ANA-RST-M',
+          attributes: { size: 'M', color: 'Dusty Rose' },
+          priceSale: 3600000.00,
+          priceRent: 620000.00,
+          costPrice: 1600000.00,
+          purchaseCost: 1600000.00,
+          stockSaleTotal: 11,
+          stockSaleAvailable: 11,
+          stockRentTotal: 5,
+          stockRentAvailable: 5,
+          stockTotal: 16,
+          stockAvailable: 16,
+        },
+      ],
+    },
+
+    // --- CATEGORY 4: SAREES (4 items) ---
     {
       name: 'Rose Gold Metallic Draped Saree',
       slug: 'rose-gold-metallic-draped-saree',
       description: 'Modern pre-stitched draped saree in shimmering rose gold metallic fabric with structured pleats and corset bodice.',
-      category: 'Haute Couture',
+      category: 'Sarees',
       images: [
         '/images/products/saree-1.jpg',
         '/images/products/saree-2.jpg',
@@ -270,8 +650,13 @@ export async function main() {
           priceSale: 3800000.00,
           priceRent: 650000.00,
           costPrice: 1700000.00,
-          stockTotal: 7,
-          stockAvailable: 7,
+          purchaseCost: 1700000.00,
+          stockSaleTotal: 7,
+          stockSaleAvailable: 7,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 11,
+          stockAvailable: 11,
         },
         {
           sku: 'SAR-RSG-M',
@@ -279,81 +664,133 @@ export async function main() {
           priceSale: 3800000.00,
           priceRent: 650000.00,
           costPrice: 1700000.00,
-          stockTotal: 9,
-          stockAvailable: 9,
+          purchaseCost: 1700000.00,
+          stockSaleTotal: 9,
+          stockSaleAvailable: 9,
+          stockRentTotal: 5,
+          stockRentAvailable: 5,
+          stockTotal: 14,
+          stockAvailable: 14,
         },
       ],
     },
     {
-      name: 'Sapphire Blue Zardozi Sharara Set',
-      slug: 'sapphire-blue-zardozi-sharara-set',
-      description: 'Royal sapphire blue silk short kurta featuring elaborate zardozi gold bullion embroidery, paired with flared sharara pants.',
-      category: 'Bridal Wear',
+      name: 'Sapphire Handwoven Silk Saree',
+      slug: 'sapphire-handwoven-silk-saree',
+      description: 'Luxe royal blue handwoven pure silk saree with opulent gold zari borders and matching unstitched blouse piece.',
+      category: 'Sarees',
       images: [
-        '/images/products/sharara-1.jpg',
-        '/images/products/sharara-2.jpg',
+        '/images/products/saree-2.jpg',
+        '/images/products/saree-1.jpg',
       ],
       variants: [
         {
-          sku: 'SHA-BLU-S',
+          sku: 'SAR-SPH-S',
           attributes: { size: 'S', color: 'Sapphire Blue' },
-          priceSale: 6200000.00,
-          priceRent: 1100000.00,
-          costPrice: 2800000.00,
-          stockTotal: 6,
-          stockAvailable: 6,
+          priceSale: 4600000.00,
+          priceRent: 780000.00,
+          costPrice: 2100000.00,
+          purchaseCost: 2100000.00,
+          stockSaleTotal: 8,
+          stockSaleAvailable: 8,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 12,
+          stockAvailable: 12,
         },
         {
-          sku: 'SHA-BLU-M',
+          sku: 'SAR-SPH-M',
           attributes: { size: 'M', color: 'Sapphire Blue' },
-          priceSale: 6200000.00,
-          priceRent: 1100000.00,
-          costPrice: 2800000.00,
-          stockTotal: 8,
-          stockAvailable: 8,
+          priceSale: 4600000.00,
+          priceRent: 780000.00,
+          costPrice: 2100000.00,
+          purchaseCost: 2100000.00,
+          stockSaleTotal: 8,
+          stockSaleAvailable: 8,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 12,
+          stockAvailable: 12,
         },
       ],
     },
     {
-      name: 'Champagne Gold Sequin Evening Cape',
-      slug: 'champagne-gold-sequin-evening-cape',
-      description: 'Glamorous floor-length sheer cape drenched in champagne gold sequins and glass beads.',
-      category: 'Eveningwear',
+      name: 'Emerald Green Tissue Saree',
+      slug: 'emerald-green-tissue-saree',
+      description: 'Translucent metallic emerald tissue saree with gold scalloped embroidery and sequin highlights.',
+      category: 'Sarees',
       images: [
-        '/images/products/cape-1.jpg',
-        '/images/products/cape-2.jpg',
+        '/images/products/saree-1.jpg',
+        '/images/products/default-product.jpg',
       ],
       variants: [
         {
-          sku: 'CAP-GLD-OS',
-          attributes: { size: 'Free Size', color: 'Champagne Gold' },
-          priceSale: 2900000.00,
-          priceRent: 500000.00,
-          costPrice: 1200000.00,
-          stockTotal: 12,
+          sku: 'SAR-EME-S',
+          attributes: { size: 'S', color: 'Emerald Green' },
+          priceSale: 4200000.00,
+          priceRent: 720000.00,
+          costPrice: 1950000.00,
+          purchaseCost: 1950000.00,
+          stockSaleTotal: 10,
+          stockSaleAvailable: 10,
+          stockRentTotal: 5,
+          stockRentAvailable: 5,
+          stockTotal: 15,
+          stockAvailable: 15,
+        },
+        {
+          sku: 'SAR-EME-M',
+          attributes: { size: 'M', color: 'Emerald Green' },
+          priceSale: 4200000.00,
+          priceRent: 720000.00,
+          costPrice: 1950000.00,
+          purchaseCost: 1950000.00,
+          stockSaleTotal: 10,
+          stockSaleAvailable: 10,
+          stockRentTotal: 5,
+          stockRentAvailable: 5,
+          stockTotal: 15,
+          stockAvailable: 15,
+        },
+      ],
+    },
+    {
+      name: 'Champagne Gold Sequin Saree',
+      slug: 'champagne-gold-sequin-saree',
+      description: 'Glamorous champagne gold saree drenched in shimmering micro-sequins with a fitted designer blouse.',
+      category: 'Sarees',
+      images: [
+        '/images/products/saree-2.jpg',
+        '/images/products/default-product.jpg',
+      ],
+      variants: [
+        {
+          sku: 'SAR-CMP-S',
+          attributes: { size: 'S', color: 'Champagne Gold' },
+          priceSale: 4900000.00,
+          priceRent: 820000.00,
+          costPrice: 2300000.00,
+          purchaseCost: 2300000.00,
+          stockSaleTotal: 7,
+          stockSaleAvailable: 7,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 11,
           stockAvailable: 11,
         },
-      ],
-    },
-    {
-      name: 'Handcrafted Pearl Tulle Veil & Crown',
-      slug: 'handcrafted-pearl-tulle-veil-crown',
-      description: 'Bespoke cathedral length bridal veil adorned with scattered freshwater pearls and hand-carved silver tiara.',
-      category: 'Accessories',
-      images: [
-        '/images/products/veil-1.jpg',
-        '/images/products/veil-2.jpg',
-      ],
-      variants: [
         {
-          sku: 'ACC-PRL-OS',
-          attributes: { size: 'One Size', color: 'Ivory/Silver' },
-          priceSale: 1800000.00,
-          compareAtPrice: 2400000.00,
-          priceRent: 350000.00,
-          costPrice: 750000.00,
-          stockTotal: 20,
-          stockAvailable: 20,
+          sku: 'SAR-CMP-M',
+          attributes: { size: 'M', color: 'Champagne Gold' },
+          priceSale: 4900000.00,
+          priceRent: 820000.00,
+          costPrice: 2300000.00,
+          purchaseCost: 2300000.00,
+          stockSaleTotal: 8,
+          stockSaleAvailable: 8,
+          stockRentTotal: 4,
+          stockRentAvailable: 4,
+          stockTotal: 12,
+          stockAvailable: 12,
         },
       ],
     },
@@ -377,7 +814,7 @@ export async function main() {
     createdProducts.push(createdProduct);
     console.log(`Created product: ${createdProduct.name} (${createdProduct.variants.length} variants)`);
 
-    // Log initial R&D / COGS expense entries into Ledger for realistic financial accounting demo
+    // Log initial R&D / COGS expense entries into Ledger
     await prisma.ledgerEntry.create({
       data: {
         type: 'EXPENSE',
@@ -387,28 +824,43 @@ export async function main() {
         productId: createdProduct.id,
       },
     });
+
+    // Create initial InventoryTransaction entries for variant stock allocations
+    for (const v of createdProduct.variants) {
+      await prisma.inventoryTransaction.create({
+        data: {
+          variantId: v.id,
+          type: 'ADD',
+          quantity: v.stockTotal,
+          reason: 'INITIAL_CATALOG_SEEDED_STOCK',
+          cost: v.costPrice,
+          purchaseCost: v.purchaseCost,
+          notes: `Initial stock allocation: ${v.stockSaleTotal} sale units, ${v.stockRentTotal} rent units`,
+        },
+      });
+    }
   }
 
   // Helper shortcuts for variants
   const kaftanVariantS = createdProducts[0].variants[0];
-  const lehengaVariantS = createdProducts[1].variants[0];
-  const anarkaliVariantS = createdProducts[2].variants[0];
-  const sherwaniVariant40 = createdProducts[3].variants[0];
-  const sareeVariantS = createdProducts[4].variants[0];
-  const capeVariant = createdProducts[6].variants[0];
+  const lehengaVariantS = createdProducts[4].variants[0];
+  const anarkaliVariantS = createdProducts[8].variants[0];
+  const sherwaniVariant40 = createdProducts[1].variants[0];
+  const sareeVariantS = createdProducts[12].variants[0];
+  const capeVariant = createdProducts[13].variants[0];
 
   // 3. Wishlist Items
   await prisma.wishlistItem.createMany({
     data: [
-      { userId: user1.id, productId: createdProducts[1].id, variantId: lehengaVariantS.id },
-      { userId: user1.id, productId: createdProducts[4].id, variantId: sareeVariantS.id },
+      { userId: user1.id, productId: createdProducts[4].id, variantId: lehengaVariantS.id },
+      { userId: user1.id, productId: createdProducts[12].id, variantId: sareeVariantS.id },
       { userId: user3.id, productId: createdProducts[0].id, variantId: kaftanVariantS.id },
     ],
   });
   console.log('Created sample wishlist items');
 
   // 4. Cart & CartItems
-  const user1Cart = await prisma.cart.create({
+  await prisma.cart.create({
     data: {
       userId: user1.id,
       items: {
@@ -423,7 +875,7 @@ export async function main() {
     },
   });
 
-  const guestCart = await prisma.cart.create({
+  await prisma.cart.create({
     data: {
       sessionId: 'guest_demo_session_99',
       items: {
@@ -532,7 +984,7 @@ export async function main() {
       description: `Down Payment received for Order #${order2.id.slice(0, 8)} (Bridal Lehenga Rental)`,
       incomeCategory: 'RENTAL_REVENUE',
       paymentId: payment2.id,
-      productId: createdProducts[1].id,
+      productId: createdProducts[4].id,
       variantId: lehengaVariantS.id,
     },
   });
@@ -612,7 +1064,7 @@ export async function main() {
       description: `Full payment received for Order #${order4.id.slice(0, 8)} (Evening Cape Rental)`,
       incomeCategory: 'RENTAL_REVENUE',
       paymentId: payment4.id,
-      productId: createdProducts[6].id,
+      productId: createdProducts[13].id,
       variantId: capeVariant.id,
     },
   });
@@ -646,7 +1098,33 @@ export async function main() {
   console.log('Created operational expense ledger entries');
 
   // 7. Landing Page Configurable Sections
-  const newArrivalsSection = await prisma.landingSection.create({
+
+  // Hero Banner Section
+  await prisma.landingSection.create({
+    data: {
+      title: 'Elegance Woven in Gold & Velvet',
+      subtitle: 'AUTUMN / WINTER HAUTE COUTURE 2026',
+      type: 'HERO_BANNER',
+      viewAllUrl: 'Discover hand-crafted bridal ensembles, imperial kaftans, and couture rentals for life’s grandest celebrations.',
+      displayOrder: -1,
+      isActive: true,
+      items: {
+        create: [
+          {
+            title: 'Explore Collections',
+            linkUrl: '/products',
+            subtitle: 'Rent Luxury Wear',
+            categoryTab: '/products?type=RENTAL',
+            imageUrl: '/images/hero/hero-banner.jpg',
+            displayOrder: 1,
+          },
+        ],
+      },
+    },
+  });
+
+  // New Arrivals Section
+  await prisma.landingSection.create({
     data: {
       title: 'New Arrivals',
       subtitle: 'Explore the latest runway releases curated for every wardrobe',
@@ -658,38 +1136,56 @@ export async function main() {
       items: {
         create: [
           {
-            title: 'Royal Velvet Emerald Kaftan',
+            title: createdProducts[0].name,
+            subtitle: createdProducts[0].category || 'Haute Couture',
+            imageUrl: createdProducts[0].images[0],
+            linkUrl: `/products/${createdProducts[0].slug}`,
             categoryTab: 'Women',
             productId: createdProducts[0].id,
             displayOrder: 1,
           },
           {
-            title: 'Blush Silk Lehenga Set',
+            title: createdProducts[1].name,
+            subtitle: createdProducts[1].category || 'Bridal Wear',
+            imageUrl: createdProducts[1].images[0],
+            linkUrl: `/products/${createdProducts[1].slug}`,
             categoryTab: 'Women',
             productId: createdProducts[1].id,
             displayOrder: 2,
           },
           {
-            title: 'Royal Black Velvet Sherwani',
-            categoryTab: 'Men',
+            title: createdProducts[2].name,
+            subtitle: createdProducts[2].category || 'Ready To Wear',
+            imageUrl: createdProducts[2].images[0],
+            linkUrl: `/products/${createdProducts[2].slug}`,
+            categoryTab: 'Women',
             productId: createdProducts[2].id,
             displayOrder: 3,
           },
           {
-            title: 'Satin Silk Evening Gown',
-            categoryTab: 'Women',
+            title: createdProducts[3].name,
+            subtitle: createdProducts[3].category || 'Men',
+            imageUrl: createdProducts[3].images[0],
+            linkUrl: `/products/${createdProducts[3].slug}`,
+            categoryTab: 'Men',
             productId: createdProducts[3].id,
             displayOrder: 4,
           },
           {
-            title: 'Little Princess Tulle Dress',
-            categoryTab: 'Kids',
+            title: createdProducts[4].name,
+            subtitle: createdProducts[4].category || 'Haute Couture',
+            imageUrl: createdProducts[4].images[0],
+            linkUrl: `/products/${createdProducts[4].slug}`,
+            categoryTab: 'Women',
             productId: createdProducts[4].id,
             displayOrder: 5,
           },
           {
-            title: 'Junior Heir Embroidered Kurta',
-            categoryTab: 'Kids',
+            title: createdProducts[5].name,
+            subtitle: createdProducts[5].category || 'Bridal Wear',
+            imageUrl: createdProducts[5].images[0],
+            linkUrl: `/products/${createdProducts[5].slug}`,
+            categoryTab: 'Women',
             productId: createdProducts[5].id,
             displayOrder: 6,
           },
@@ -698,7 +1194,8 @@ export async function main() {
     },
   });
 
-  const featuredBrandsSection = await prisma.landingSection.create({
+  // Featured Brands Section
+  await prisma.landingSection.create({
     data: {
       title: 'Featured Brands',
       subtitle: 'World-renowned luxury ateliers and haute couture design houses',
@@ -732,9 +1229,9 @@ export async function main() {
           },
           {
             title: 'Imperial Groom',
-            subtitle: 'Besponsored Menswear & Sherwanis',
+            subtitle: 'Bespoke Menswear & Sherwanis',
             imageUrl: '/images/sections/brand-groom.jpg',
-            linkUrl: '/products?category=Menswear',
+            linkUrl: '/products?category=Men',
             displayOrder: 4,
           },
         ],
@@ -742,7 +1239,8 @@ export async function main() {
     },
   });
 
-  const editorsPicksSection = await prisma.landingSection.create({
+  // Editor's Picks Section
+  await prisma.landingSection.create({
     data: {
       title: "Editor's Picks",
       subtitle: 'Masterpieces handpicked by our creative directors for statement elegance',
@@ -754,23 +1252,35 @@ export async function main() {
       items: {
         create: [
           {
-            title: 'Embroidered Silk Anarkali Suit',
-            productId: createdProducts[4].id,
+            title: createdProducts[0].name,
+            subtitle: createdProducts[0].category || 'Kaftans',
+            imageUrl: createdProducts[0].images[0],
+            linkUrl: `/products/${createdProducts[0].slug}`,
+            productId: createdProducts[0].id,
             displayOrder: 1,
           },
           {
-            title: 'Crystal Beaded Evening Cape',
-            productId: createdProducts[6].id,
+            title: createdProducts[4].name,
+            subtitle: createdProducts[4].category || 'Lehengas',
+            imageUrl: createdProducts[4].images[0],
+            linkUrl: `/products/${createdProducts[4].slug}`,
+            productId: createdProducts[4].id,
             displayOrder: 2,
           },
           {
-            title: 'Handcrafted Pearl Tulle Veil Crown',
-            productId: createdProducts[7].id,
+            title: createdProducts[8].name,
+            subtitle: createdProducts[8].category || 'Anarkalis',
+            imageUrl: createdProducts[8].images[0],
+            linkUrl: `/products/${createdProducts[8].slug}`,
+            productId: createdProducts[8].id,
             displayOrder: 3,
           },
           {
-            title: 'Royal Velvet Emerald Kaftan',
-            productId: createdProducts[0].id,
+            title: createdProducts[12].name,
+            subtitle: createdProducts[12].category || 'Sarees',
+            imageUrl: createdProducts[12].images[0],
+            linkUrl: `/products/${createdProducts[12].slug}`,
+            productId: createdProducts[12].id,
             displayOrder: 4,
           },
         ],
@@ -780,18 +1290,84 @@ export async function main() {
 
   console.log('Created landing page configurable sections');
 
-  // Seed default navigation categories
-  await prisma.navCategory.createMany({
+  // 8. Seed Default Navigation Categories
+  await seedDefaultCategoryTree();
+  console.log('Created default navigation categories');
+
+  // 9. Seed Vouchers
+  await prisma.voucher.createMany({
     data: [
-      { name: 'All Collections', href: '/products', displayOrder: 0, isActive: true },
-      { name: 'Haute Couture', href: '/products?category=Haute+Couture', displayOrder: 1, isActive: true },
-      { name: 'Bridal Wear', href: '/products?category=Bridal+Wear', displayOrder: 2, isActive: true },
-      { name: 'Ready To Wear', href: '/products?category=Ready+To+Wear', displayOrder: 3, isActive: true },
-      { name: 'Menswear', href: '/products?category=Menswear', displayOrder: 4, isActive: true },
-      { name: 'Rentals', href: '/products?type=RENTAL', displayOrder: 5, isActive: true },
+      {
+        code: 'WELCOME2026',
+        description: 'Welcome discount for new patrons',
+        discountType: 'PERCENTAGE',
+        discountValue: 10.00,
+        minPurchase: 1000000.00,
+        maxDiscount: 500000.00,
+        usageLimit: 100,
+        isActive: true,
+        targetType: 'EVENT',
+      },
+      {
+        code: 'ATELIER500K',
+        description: 'IDR 500,000 off on Haute Couture & Bridal Wear',
+        discountType: 'FIXED_AMOUNT',
+        discountValue: 500000.00,
+        minPurchase: 3000000.00,
+        usageLimit: 50,
+        isActive: true,
+        targetType: 'EVENT',
+      },
+      {
+        code: 'VIPLUXURY',
+        description: 'Exclusive 15% VIP discount',
+        discountType: 'PERCENTAGE',
+        discountValue: 15.00,
+        minPurchase: 5000000.00,
+        maxDiscount: 1500000.00,
+        usageLimit: 20,
+        isActive: true,
+        targetType: 'CUSTOMER',
+        userId: user1.id,
+      },
     ],
   });
-  console.log('Created default navigation categories');
+  console.log('Created sample vouchers');
+
+  // 10. Seed Rental Maintenance Blocks
+  await prisma.rentalBlock.createMany({
+    data: [
+      {
+        variantId: sherwaniVariant40.id,
+        startDate: new Date('2026-09-10'),
+        endDate: new Date('2026-09-14'),
+        reason: 'DRY_CLEANING',
+        notes: 'Routine professional dry cleaning post-event rental',
+      },
+      {
+        variantId: kaftanVariantS.id,
+        startDate: new Date('2026-09-15'),
+        endDate: new Date('2026-09-18'),
+        reason: 'MAINTENANCE',
+        notes: 'Haute couture embroidery inspection and bead tightening',
+      },
+    ],
+  });
+  console.log('Created sample rental blocks');
+
+  // 11. Audit Log Entry
+  await prisma.auditLog.create({
+    data: {
+      userId: user1.id,
+      userEmail: user1.email || 'system@idealbeauty.com',
+      userName: user1.name || 'System Administrator',
+      action: 'SEED_DATABASE',
+      entity: 'SYSTEM',
+      entityId: 'seed_init',
+      details: { message: 'Database successfully seeded with luxury haute couture catalog, separated stock pools, and sample orders.' },
+    },
+  });
+  console.log('Created initial audit log entry');
 
   console.log('Seeding completed successfully!');
 }
