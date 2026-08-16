@@ -11,6 +11,7 @@ export interface OrderItemSerialized {
   priceAtTime: number;
   isPreOrder?: boolean;
   preOrderShipDate?: string | null;
+  preOrderNote?: string | null;
   rentStartDate: string | null;
   rentEndDate: string | null;
   rentalStatus: RentalStatus;
@@ -19,6 +20,7 @@ export interface OrderItemSerialized {
     sku: string;
     isPreOrder?: boolean;
     preOrderShipDate?: string | null;
+    preOrderNote?: string | null;
     attributes: Record<string, unknown> | null;
     priceSale: number | null;
     priceRent: number | null;

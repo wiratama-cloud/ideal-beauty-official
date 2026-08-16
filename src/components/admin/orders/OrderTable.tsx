@@ -212,9 +212,9 @@ export default function OrderTable({
                               <Clock className="w-3 h-3 text-purple-700" />
                               <span>PRE-ORDER</span>
                             </span>
-                            {(item.preOrderShipDate || item.variant?.preOrderShipDate) && (
+                            {item.variant?.preOrderNote && (
                               <span className="text-[10px] text-neutral-600 font-mono">
-                                Est. Dispatch: {new Date(item.preOrderShipDate || item.variant!.preOrderShipDate!).toLocaleDateString('id-ID')}
+                                {item.variant.preOrderNote}
                               </span>
                             )}
                           </div>

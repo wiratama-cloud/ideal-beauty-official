@@ -339,9 +339,9 @@ export default function OrderDetailDrawer({
                                 <Clock className="w-3 h-3 text-purple-700" />
                                 <span>PRE-ORDER ITEM</span>
                               </span>
-                              {(item.preOrderShipDate || item.variant?.preOrderShipDate) && (
+                              {item.variant?.preOrderNote && (
                                 <span className="text-[10px] text-purple-700 font-mono">
-                                  Est. Dispatch: {new Date(item.preOrderShipDate || item.variant!.preOrderShipDate!).toLocaleDateString('id-ID')}
+                                  {item.variant.preOrderNote}
                                 </span>
                               )}
                             </div>

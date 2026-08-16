@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { X, Trash2, ShoppingBag, Calendar, Clock } from 'lucide-react';
 import { useCart } from './CartContext';
+import { getPreOrderDays, formatEstimatedArrival } from '@/lib/utils/preorder';
 
 export default function CartDrawer() {
   const { cart, subtotal, isCartOpen, closeCartDrawer, updateQuantity, removeItem } = useCart();
@@ -104,15 +105,13 @@ export default function CartDrawer() {
                       )}
 
                       {(item.isPreOrder || item.variant?.isPreOrder) && (
-                        <div className="text-[10px] text-purple-800 bg-purple-50 p-1.5 flex items-center space-x-1">
-                          <Clock className="w-3 h-3 text-purple-700" />
-                          <span>
-                            Pre-Order{' '}
-                            {item.preOrderShipDate || item.variant?.preOrderShipDate
-                              ? `(Est. Dispatch: ${new Date(
-                                  item.preOrderShipDate || item.variant?.preOrderShipDate
-                                ).toLocaleDateString('id-ID')})`
-                              : ''}
+                        <div className="text-[10px] text-purple-900 bg-purple-50 p-1.5 flex flex-col space-y-0.5 rounded-xs border border-purple-100">
+                          <div className="flex items-center space-x-1 font-semibold text-purple-800">
+                            <Clock className="w-3 h-3 text-purple-700" />
+                            <span>Pre-Order ({getPreOrderDays(item.variant)} Days Lead Time)</span>
+                          </div>
+                          <span className="text-[10px] text-purple-950 font-medium">
+                            Arrives approx: {formatEstimatedArrival(getPreOrderDays(item.variant))}
                           </span>
                         </div>
                       )}

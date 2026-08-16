@@ -184,6 +184,7 @@ model ProductVariant {
   skuRent            String?
   isPreOrder         Boolean         @default(false)
   preOrderShipDate   DateTime?
+  preOrderDays       Int?
   preOrderNote       String?
   attributes         Json
   priceSale          Decimal?        @db.Decimal(10, 2)

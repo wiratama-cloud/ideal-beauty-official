@@ -7,6 +7,7 @@ export interface ProductVariantSerialized {
   skuRent?: string | null;
   isPreOrder?: boolean;
   preOrderShipDate?: string | Date | null;
+  preOrderDays?: number | null;
   preOrderNote?: string | null;
   attributes: Record<string, Prisma.InputJsonValue> | null;
   priceSale: number | null;

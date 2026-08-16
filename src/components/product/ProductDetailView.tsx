@@ -7,6 +7,7 @@ import { useCart } from '../cart/CartContext';
 import { toggleWishlistAction } from '@/app/actions/wishlist';
 import RentalAvailabilityCalendar from './RentalAvailabilityCalendar';
 import SizeChartModal from './SizeChartModal';
+import { getPreOrderDays, formatEstimatedArrival } from '@/lib/utils/preorder';
 
 interface ProductDetailViewProps {
   product: {
@@ -23,6 +24,7 @@ interface ProductDetailViewProps {
       skuRent?: string | null;
       isPreOrder?: boolean;
       preOrderShipDate?: Date | string | null;
+      preOrderDays?: number | null;
       preOrderNote?: string | null;
       attributes: any;
       priceSale: any;
@@ -221,23 +223,21 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
 
             {/* Pre-Order Banner when Pre-Order active */}
             {optionType === 'SALE' && isSalePreOrder && (
-              <div className="bg-purple-50 border border-purple-200 p-3 rounded-xs text-xs text-purple-900 space-y-1">
-                <div className="flex items-center space-x-1.5 font-semibold text-purple-800 uppercase tracking-wider text-[11px]">
-                  <Clock className="w-4 h-4 text-purple-700" />
-                  <span>Pre-Order Item</span>
+              <div className="bg-purple-50 border border-purple-200 p-3 rounded-xs text-xs text-purple-900 space-y-1.5">
+                <div className="flex items-center justify-between font-semibold text-purple-800 uppercase tracking-wider text-[11px]">
+                  <div className="flex items-center space-x-1.5">
+                    <Clock className="w-4 h-4 text-purple-700" />
+                    <span>Pre-Order Item</span>
+                  </div>
+                  <span className="bg-purple-200/70 text-purple-900 px-2 py-0.5 rounded font-mono text-[10px]">
+                    {getPreOrderDays(selectedVariant)} Days Lead Time
+                  </span>
                 </div>
-                {selectedVariant.preOrderShipDate && (
-                  <p className="text-[11px] text-purple-700 font-mono">
-                    Estimated Dispatch Date:{' '}
-                    {new Date(selectedVariant.preOrderShipDate).toLocaleDateString('en-US', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </p>
-                )}
+                <p className="text-xs text-purple-950 font-medium">
+                  Expected Arrival: <span className="font-semibold text-purple-900">{formatEstimatedArrival(getPreOrderDays(selectedVariant))}</span>
+                </p>
                 {selectedVariant.preOrderNote && (
-                  <p className="text-[11px] text-purple-800 italic">{selectedVariant.preOrderNote}</p>
+                  <p className="text-[11px] text-purple-700 italic">{selectedVariant.preOrderNote}</p>
                 )}
               </div>
             )}

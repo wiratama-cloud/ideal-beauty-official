@@ -13,6 +13,10 @@ import {
   FileText,
   AlertCircle,
   GripVertical,
+  ShoppingBag,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { Prisma } from '@prisma/client';
 import { ProductSerialized } from './types';
@@ -61,6 +65,26 @@ export default function ProductDrawerEditor({
   const [isUploading, setIsUploading] = useState(false);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [isDragOverDropzone, setIsDragOverDropzone] = useState(false);
+  const [collapsedIndexes, setCollapsedIndexes] = useState<Record<number, boolean>>({});
+
+  const toggleCollapseVariant = (index: number) => {
+    setCollapsedIndexes((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  const handleExpandAllVariants = () => {
+    setCollapsedIndexes({});
+  };
+
+  const handleCollapseAllVariants = () => {
+    const allCollapsed: Record<number, boolean> = {};
+    formVariants.forEach((_, i) => {
+      allCollapsed[i] = true;
+    });
+    setCollapsedIndexes(allCollapsed);
+  };
 
   const [prevProductKey, setPrevProductKey] = useState<string | null>(null);
   const currentKey = product ? product.id : 'new-product';
@@ -86,6 +110,7 @@ export default function ProductDrawerEditor({
               preOrderShipDate: v.preOrderShipDate
                 ? new Date(v.preOrderShipDate).toISOString().split('T')[0]
                 : '',
+              preOrderDays: v.preOrderDays ?? (v.isPreOrder ? 15 : null),
               preOrderNote: v.preOrderNote || '',
               attributes: (v.attributes as Record<string, Prisma.InputJsonValue>) || { size: 'Free Size' },
               priceSale: v.priceSale,
@@ -106,6 +131,7 @@ export default function ProductDrawerEditor({
                 skuRent: 'SKU-001-RENT',
                 isPreOrder: false,
                 preOrderShipDate: '',
+                preOrderDays: null,
                 preOrderNote: '',
                 attributes: { size: 'Free Size' },
                 priceSale: 250000,
@@ -135,6 +161,7 @@ export default function ProductDrawerEditor({
           skuRent: 'SKU-001-RENT',
           isPreOrder: false,
           preOrderShipDate: '',
+          preOrderDays: null,
           preOrderNote: '',
           attributes: { size: 'Free Size' },
           priceSale: 250000,
@@ -273,6 +300,30 @@ export default function ProductDrawerEditor({
       updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
+  };
+
+  const handleSelectPreOrderDuration = (index: number, days: number | null) => {
+    setFormVariants((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        preOrderDays: days,
+        preOrderNote: days !== null ? `Ships in ${days} Days` : updated[index].preOrderNote || '',
+      };
+      return updated;
+    });
+  };
+
+  const getActivePreOrderPreset = (daysVal?: number | null, noteVal?: string | null): '15' | '30' | '45' | 'custom' => {
+    if (daysVal === 15) return '15';
+    if (daysVal === 30) return '30';
+    if (daysVal === 45) return '45';
+    const note = (noteVal || '').toLowerCase();
+    if (note.includes('15 days') || note.includes('15 day')) return '15';
+    if (note.includes('30 days') || note.includes('30 day')) return '30';
+    if (note.includes('45 days') || note.includes('45 day')) return '45';
+
+    return 'custom';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -611,72 +662,111 @@ export default function ProductDrawerEditor({
                     Configure pricing, stock, and SKU attributes per variant.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleAddVariant}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded-lg text-xs transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Add Variant
-                </button>
+                <div className="flex items-center gap-2">
+                  {formVariants.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allCollapsed = formVariants.every((_, i) => collapsedIndexes[i]);
+                        if (allCollapsed) handleExpandAllVariants();
+                        else handleCollapseAllVariants();
+                      }}
+                      className="px-2.5 py-1.5 text-neutral-400 hover:text-white text-xs border border-neutral-800 hover:border-neutral-700 rounded-lg transition-colors font-medium"
+                    >
+                      {formVariants.every((_, i) => collapsedIndexes[i]) ? 'Expand All' : 'Collapse All'}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleAddVariant}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded-lg text-xs transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Variant
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-3">
-                {formVariants.map((variant, index) => (
-                  <div
-                    key={index}
-                    className="p-4 bg-neutral-950 border border-neutral-800 rounded-xl space-y-3"
-                  >
-                    <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-                      <span className="text-xs font-bold text-neutral-300">
-                        Variant #{index + 1}
-                      </span>
-                      {formVariants.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveVariant(index)}
-                          className="text-rose-400 hover:text-rose-300 text-xs flex items-center gap-1"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" /> Remove
-                        </button>
-                      )}
-                    </div>
+              <div className="space-y-4">
+                {formVariants.map((variant, index) => {
+                  const isCollapsed = Boolean(collapsedIndexes[index]);
+                  const variantSize = ((variant.attributes as Record<string, string> | null)?.size) || 'Free Size';
 
-                    <div className="grid grid-cols-2 gap-3 text-xs">
+                  return (
+                    <div
+                      key={index}
+                      className="bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden transition-all"
+                    >
+                      {/* Variant Header - Clickable to Expand / Collapse */}
+                      <div className="p-3.5 flex items-center justify-between bg-neutral-900/40 hover:bg-neutral-900/80 transition-colors">
+                        <div
+                          onClick={() => toggleCollapseVariant(index)}
+                          className="flex items-center gap-2.5 cursor-pointer select-none flex-1 min-w-0 pr-3"
+                        >
+                          <span className="p-1 text-neutral-400 hover:text-white rounded hover:bg-neutral-800 transition-colors">
+                            {isCollapsed ? (
+                              <ChevronDown className="w-4 h-4 text-neutral-400" />
+                            ) : (
+                              <ChevronUp className="w-4 h-4 text-neutral-400" />
+                            )}
+                          </span>
+                          <span className="text-xs font-bold text-white bg-neutral-800 px-2.5 py-1 rounded flex-shrink-0">
+                            Variant #{index + 1}
+                          </span>
+                          <span className="text-[11px] text-neutral-300 font-mono flex-shrink-0">
+                            {variant.sku || 'Unassigned SKU'}
+                          </span>
+
+                          {isCollapsed && (
+                            <div className="flex items-center gap-2 text-[11px] text-neutral-400 truncate ml-2">
+                              <span className="bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800 font-medium text-neutral-300">
+                                {variantSize}
+                              </span>
+                              {variant.priceSale && (
+                                <span className="text-emerald-400 font-mono">
+                                  Sale: Rp {Number(variant.priceSale).toLocaleString('id-ID')}
+                                </span>
+                              )}
+                              {variant.priceRent && (
+                                <span className="text-amber-400 font-mono">
+                                  Rent: Rp {Number(variant.priceRent).toLocaleString('id-ID')}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {formVariants.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveVariant(index)}
+                              className="text-rose-400 hover:text-rose-300 text-xs flex items-center gap-1 font-medium px-2 py-1 rounded hover:bg-rose-950/40 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Collapsible Content Body */}
+                      {!isCollapsed && (
+                        <div className="p-4 pt-2 space-y-4 border-t border-neutral-800/60">
+
+                    {/* Shared Variant Identity */}
+                    <div className="grid grid-cols-2 gap-3 text-xs bg-neutral-900/60 p-3 rounded-lg border border-neutral-800/60">
                       <div>
-                        <label className="block text-neutral-400 mb-1">Base SKU *</label>
+                        <label className="block text-neutral-300 font-medium mb-1">Base SKU *</label>
                         <input
                           type="text"
                           required
                           value={variant.sku}
                           onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
-                          className="w-full bg-neutral-900 border border-neutral-700 rounded px-2.5 py-1.5 text-white font-mono"
+                          className="w-full bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-white"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-neutral-400 mb-1">SKU (Buy/Sale)</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. SKU-001-BUY"
-                          value={variant.skuSale || ''}
-                          onChange={(e) => handleVariantChange(index, 'skuSale', e.target.value)}
-                          className="w-full bg-neutral-900 border border-neutral-700 rounded px-2.5 py-1.5 text-white font-mono"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-neutral-400 mb-1">SKU (Rent)</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. SKU-001-RENT"
-                          value={variant.skuRent || ''}
-                          onChange={(e) => handleVariantChange(index, 'skuRent', e.target.value)}
-                          className="w-full bg-neutral-900 border border-neutral-700 rounded px-2.5 py-1.5 text-white font-mono"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-neutral-400 mb-1">Size Attribute</label>
+                        <label className="block text-neutral-300 font-medium mb-1">Size / Option Attribute</label>
                         <input
                           type="text"
                           value={((variant.attributes as Record<string, string> | null)?.size) || 'Free Size'}
@@ -686,123 +776,268 @@ export default function ProductDrawerEditor({
                               size: e.target.value,
                             })
                           }
-                          className="w-full bg-neutral-900 border border-neutral-700 rounded px-2.5 py-1.5 text-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-neutral-400 mb-1">Sale Price (IDR)</label>
-                        <input
-                          type="number"
-                          placeholder="e.g. 250000"
-                          value={variant.priceSale ?? ''}
-                          onChange={(e) =>
-                            handleVariantChange(
-                              index,
-                              'priceSale',
-                              e.target.value ? parseFloat(e.target.value) : null
-                            )
-                          }
-                          className="w-full bg-neutral-900 border border-neutral-700 rounded px-2.5 py-1.5 text-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-neutral-400 mb-1">Rent Price (IDR)</label>
-                        <input
-                          type="number"
-                          placeholder="e.g. 100000"
-                          value={variant.priceRent ?? ''}
-                          onChange={(e) =>
-                            handleVariantChange(
-                              index,
-                              'priceRent',
-                              e.target.value ? parseFloat(e.target.value) : null
-                            )
-                          }
-                          className="w-full bg-neutral-900 border border-neutral-700 rounded px-2.5 py-1.5 text-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-neutral-400 mb-1">Initial Stock Total</label>
-                        <input
-                          type="number"
-                          value={variant.stockSaleTotal ?? variant.stockTotal ?? 0}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value, 10) || 0;
-                            handleVariantChange(index, 'stockSaleTotal', val);
-                            handleVariantChange(index, 'stockTotal', val);
-                          }}
-                          className="w-full bg-neutral-900 border border-neutral-700 rounded px-2.5 py-1.5 text-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-neutral-400 mb-1">Initial Stock Available</label>
-                        <input
-                          type="number"
-                          value={variant.stockSaleAvailable ?? variant.stockAvailable ?? 0}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value, 10) || 0;
-                            handleVariantChange(index, 'stockSaleAvailable', val);
-                            handleVariantChange(index, 'stockAvailable', val);
-                          }}
-                          className="w-full bg-neutral-900 border border-neutral-700 rounded px-2.5 py-1.5 text-white"
+                          className="w-full bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-white"
                         />
                       </div>
                     </div>
 
-                    {/* Pre-Order Controls */}
-                    <div className="p-3 bg-neutral-900 border border-neutral-800 rounded-lg space-y-2.5 text-xs">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="font-semibold text-white block">Pre-Order Option</span>
-                          <span className="text-[11px] text-neutral-400">
-                            Allow customers to buy this variant on pre-order when stock is 0.
-                          </span>
+                    {/* 🛍️ BUY / RETAIL SALE OPTION */}
+                    <div className="pt-3 border-t border-neutral-800 space-y-3">
+                      <div className="flex items-center justify-between pb-1">
+                        <div className="flex items-center gap-2">
+                          <ShoppingBag className="w-4 h-4 text-emerald-400" />
+                          <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Buy / Retail Sale Option</span>
                         </div>
-                        <input
-                          type="checkbox"
-                          checked={Boolean(variant.isPreOrder)}
-                          onChange={(e) => handleVariantChange(index, 'isPreOrder', e.target.checked)}
-                          className="w-4 h-4 rounded border-neutral-700 text-amber-500 focus:ring-0 bg-neutral-800"
-                        />
+                        <span className="text-[10px] text-emerald-400/80 font-medium uppercase tracking-wider">
+                          Purchase Mode
+                        </span>
                       </div>
 
-                      {variant.isPreOrder && (
-                        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-neutral-800">
-                          <div>
-                            <label className="block text-neutral-400 mb-1">Estimated Ship Date</label>
-                            <input
-                              type="date"
-                              value={
-                                variant.preOrderShipDate
-                                  ? typeof variant.preOrderShipDate === 'string'
-                                    ? variant.preOrderShipDate.split('T')[0]
-                                    : new Date(variant.preOrderShipDate).toISOString().split('T')[0]
-                                  : ''
-                              }
-                              onChange={(e) => handleVariantChange(index, 'preOrderShipDate', e.target.value)}
-                              className="w-full bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1.5 text-white"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-neutral-400 mb-1">Pre-Order Note</label>
-                            <input
-                              type="text"
-                              placeholder="e.g. Ships in 2-3 weeks"
-                              value={variant.preOrderNote || ''}
-                              onChange={(e) => handleVariantChange(index, 'preOrderNote', e.target.value)}
-                              className="w-full bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1.5 text-white"
-                            />
-                          </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                        <div>
+                          <label className="block text-neutral-400 mb-1">SKU (Buy/Sale)</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. SKU-001-BUY"
+                            value={variant.skuSale || ''}
+                            onChange={(e) => handleVariantChange(index, 'skuSale', e.target.value)}
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-emerald-500"
+                          />
                         </div>
-                      )}
+
+                        <div>
+                          <label className="block text-neutral-400 mb-1">Sale Price (IDR)</label>
+                          <input
+                            type="number"
+                            placeholder="e.g. 250000"
+                            value={variant.priceSale ?? ''}
+                            onChange={(e) =>
+                              handleVariantChange(
+                                index,
+                                'priceSale',
+                                e.target.value ? parseFloat(e.target.value) : null
+                              )
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-neutral-400 mb-1">Compare-at Price (IDR)</label>
+                          <input
+                            type="number"
+                            placeholder="Original / Strikethrough"
+                            value={variant.compareAtPrice ?? ''}
+                            onChange={(e) =>
+                              handleVariantChange(
+                                index,
+                                'compareAtPrice',
+                                e.target.value ? parseFloat(e.target.value) : null
+                              )
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-neutral-400 mb-1">Sale Stock Total</label>
+                          <input
+                            type="number"
+                            value={variant.stockSaleTotal ?? variant.stockTotal ?? 0}
+                            onChange={(e) => {
+                              const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                              handleVariantChange(index, 'stockSaleTotal', val);
+                              handleVariantChange(index, 'stockTotal', val + (variant.stockRentTotal || 0));
+                            }}
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-neutral-400 mb-1">Sale Stock Available</label>
+                          <input
+                            type="number"
+                            value={variant.stockSaleAvailable ?? variant.stockAvailable ?? 0}
+                            onChange={(e) => {
+                              const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                              handleVariantChange(index, 'stockSaleAvailable', val);
+                              handleVariantChange(index, 'stockAvailable', val + (variant.stockRentAvailable || 0));
+                            }}
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Embedded Pre-Order Controls under Buy Option */}
+                      <div className="p-3 bg-neutral-900/90 border border-neutral-800 rounded-lg space-y-3 text-xs">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-semibold text-white block">Pre-Order Option</span>
+                            <span className="text-[11px] text-neutral-400">
+                              Allow customers to buy this variant on pre-order when sale stock is 0.
+                            </span>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(variant.isPreOrder)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              handleVariantChange(index, 'isPreOrder', checked);
+                              if (checked && !variant.preOrderDays) {
+                                handleVariantChange(index, 'preOrderDays', 15);
+                                if (!variant.preOrderNote) {
+                                  handleVariantChange(index, 'preOrderNote', 'Ships in 15 Days');
+                                }
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-neutral-700 text-amber-500 focus:ring-0 bg-neutral-800 cursor-pointer"
+                          />
+                        </div>
+
+                        {variant.isPreOrder && (
+                          <div className="space-y-3 pt-2.5 border-t border-neutral-800">
+                            <div>
+                              <label className="block text-neutral-300 font-medium mb-1.5">
+                                Pre-Order Lead Time / Wait Duration
+                              </label>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                {[
+                                  { id: '15', label: '15 Days', days: 15 },
+                                  { id: '30', label: '30 Days', days: 30 },
+                                  { id: '45', label: '45 Days', days: 45 },
+                                  { id: 'custom', label: 'Custom', days: null },
+                                ].map((option) => {
+                                  const activePreset = getActivePreOrderPreset(variant.preOrderDays, variant.preOrderNote);
+                                  const isSelected = activePreset === option.id;
+
+                                  return (
+                                    <button
+                                      key={option.id}
+                                      type="button"
+                                      onClick={() => handleSelectPreOrderDuration(index, option.days)}
+                                      className={`py-2 px-3 rounded-lg border text-center transition-all cursor-pointer font-medium text-xs ${
+                                        isSelected
+                                          ? 'bg-amber-500/10 border-amber-500/60 text-amber-400 font-semibold shadow-xs'
+                                          : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-white'
+                                      }`}
+                                    >
+                                      {option.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 pt-1">
+                              <div>
+                                <label className="block text-neutral-400 mb-1">Lead Time Days (Integer) *</label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  placeholder="e.g. 15"
+                                  value={variant.preOrderDays ?? ''}
+                                  onChange={(e) => {
+                                    const daysVal = e.target.value ? parseInt(e.target.value, 10) : null;
+                                    handleVariantChange(index, 'preOrderDays', daysVal);
+                                    if (daysVal) {
+                                      handleVariantChange(index, 'preOrderNote', `Ships in ${daysVal} Days`);
+                                    }
+                                  }}
+                                  className="w-full bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500 font-mono"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-neutral-400 mb-1">Wait Duration Note</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. Ships in 15 Days"
+                                  value={variant.preOrderNote || ''}
+                                  onChange={(e) => handleVariantChange(index, 'preOrderNote', e.target.value)}
+                                  className="w-full bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 🗝️ RENTAL OPTION */}
+                    <div className="pt-3 border-t border-neutral-800 space-y-3">
+                      <div className="flex items-center justify-between pb-1">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-amber-400" />
+                          <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">Rental Option</span>
+                        </div>
+                        <span className="text-[10px] text-amber-400/80 font-medium uppercase tracking-wider">
+                          Rental Mode
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div>
+                          <label className="block text-neutral-400 mb-1">SKU (Rent)</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. SKU-001-RENT"
+                            value={variant.skuRent || ''}
+                            onChange={(e) => handleVariantChange(index, 'skuRent', e.target.value)}
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-neutral-400 mb-1">Rent Price / 3-4 Days (IDR)</label>
+                          <input
+                            type="number"
+                            placeholder="e.g. 100000"
+                            value={variant.priceRent ?? ''}
+                            onChange={(e) =>
+                              handleVariantChange(
+                                index,
+                                'priceRent',
+                                e.target.value ? parseFloat(e.target.value) : null
+                              )
+                            }
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-neutral-400 mb-1">Rental Stock Total</label>
+                          <input
+                            type="number"
+                            value={variant.stockRentTotal ?? 0}
+                            onChange={(e) => {
+                              const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                              handleVariantChange(index, 'stockRentTotal', val);
+                              handleVariantChange(index, 'stockTotal', (variant.stockSaleTotal || 0) + val);
+                            }}
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-neutral-400 mb-1">Rental Stock Available</label>
+                          <input
+                            type="number"
+                            value={variant.stockRentAvailable ?? 0}
+                            onChange={(e) => {
+                              const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                              handleVariantChange(index, 'stockRentAvailable', val);
+                              handleVariantChange(index, 'stockAvailable', (variant.stockSaleAvailable || 0) + val);
+                            }}
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ))}
+                )}
+              </div>
+            );
+          })}
               </div>
             </div>
           )}

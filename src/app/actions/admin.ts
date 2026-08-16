@@ -446,6 +446,7 @@ export interface VariantInput {
   skuRent?: string | null;
   isPreOrder?: boolean;
   preOrderShipDate?: Date | string | null;
+  preOrderDays?: number | null;
   preOrderNote?: string | null;
   attributes: Prisma.InputJsonObject;
   priceSale?: number | null;
@@ -517,6 +518,7 @@ export async function createProductAction(data: CreateProductInput) {
             skuRent: v.skuRent ? v.skuRent.trim() : null,
             isPreOrder: Boolean(v.isPreOrder),
             preOrderShipDate: validShipDate,
+            preOrderDays: v.preOrderDays !== undefined && v.preOrderDays !== null ? Math.max(0, Math.round(Number(v.preOrderDays))) : null,
             preOrderNote: v.preOrderNote ? v.preOrderNote.trim() : null,
             attributes: (v.attributes || { size: 'Free Size' }) as Prisma.InputJsonObject,
             priceSale: v.priceSale !== undefined && v.priceSale !== null ? v.priceSale : null,
@@ -600,6 +602,7 @@ export async function updateProductAction(productId: string, data: CreateProduct
         skuRent: v.skuRent ? v.skuRent.trim() : null,
         isPreOrder: Boolean(v.isPreOrder),
         preOrderShipDate: validShipDate,
+        preOrderDays: v.preOrderDays !== undefined && v.preOrderDays !== null ? Math.max(0, Math.round(Number(v.preOrderDays))) : null,
         preOrderNote: v.preOrderNote ? v.preOrderNote.trim() : null,
         attributes: (v.attributes || { size: 'Free Size' }) as Prisma.InputJsonObject,
         priceSale: v.priceSale !== undefined && v.priceSale !== null ? v.priceSale : null,
