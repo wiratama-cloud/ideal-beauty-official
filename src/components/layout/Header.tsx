@@ -216,7 +216,7 @@ export default function Header({ initialNavCategories = [] }: HeaderProps) {
                 IDEAL BEAUTY
               </span>
               <span className="block text-[8px] sm:text-[9px] tracking-[0.25em] sm:tracking-[0.3em] uppercase text-neutral-400 font-sans mt-0.5">
-                OFFICIAL LUXURY
+                OFFICIAL
               </span>
             </Link>
           </div>

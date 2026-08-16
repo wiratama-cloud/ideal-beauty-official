@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-import AnnouncementBar from '@/components/layout/AnnouncementBar';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import CartDrawer from '@/components/cart/CartDrawer';
@@ -11,7 +10,6 @@ export default async function StorefrontLayout({ children }: { children: React.R
   
   return (
     <>
-      <AnnouncementBar />
       <Suspense fallback={<div className="h-20 border-b border-neutral-100 bg-white" />}>
         <Header initialNavCategories={navCategories} />
       </Suspense>
