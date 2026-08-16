@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Heart, ShoppingBag, Calendar, Check, ShieldCheck, Truck } from 'lucide-react';
+import { Heart, ShoppingBag, Calendar, Check, ShieldCheck, Truck, Clock } from 'lucide-react';
 import { useCart } from '../cart/CartContext';
 import { toggleWishlistAction } from '@/app/actions/wishlist';
 import RentalAvailabilityCalendar from './RentalAvailabilityCalendar';
@@ -18,11 +18,18 @@ interface ProductDetailViewProps {
     variants: Array<{
       id: string;
       sku: string;
+      skuSale?: string | null;
+      skuRent?: string | null;
+      isPreOrder?: boolean;
+      preOrderShipDate?: Date | string | null;
+      preOrderNote?: string | null;
       attributes: any;
       priceSale: any;
       priceRent: any;
       compareAtPrice?: any;
       stockAvailable: number;
+      stockSaleAvailable?: number;
+      stockRentAvailable?: number;
     }>;
   };
   isWishlistedInitial?: boolean;
@@ -52,6 +59,11 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
   const [addedSuccess, setAddedSuccess] = useState(false);
 
   const selectedVariant = product.variants.find((v) => v.id === selectedVariantId) || product.variants[0];
+
+  const saleStock = selectedVariant?.stockSaleAvailable ?? selectedVariant?.stockAvailable ?? 0;
+  const rentStock = selectedVariant?.stockRentAvailable ?? selectedVariant?.stockAvailable ?? 0;
+  const isPreOrderActive = Boolean(selectedVariant?.isPreOrder);
+  const isSalePreOrder = saleStock <= 0 && isPreOrderActive;
 
   // Auto adjust optionType if selected variant does not support current optionType
   React.useEffect(() => {
@@ -183,7 +195,9 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
                       : 'border-neutral-200 text-neutral-700 hover:border-black'
                   }`}
                 >
-                  <span>Purchase &bull; {formatIDR(selectedVariant.priceSale)}</span>
+                  <span>
+                    {isSalePreOrder ? 'Pre-Order' : 'Purchase'} &bull; {formatIDR(selectedVariant.priceSale)}
+                  </span>
                 </button>
               )}
 
@@ -204,11 +218,36 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
               )}
             </div>
 
+            {/* Pre-Order Banner when Pre-Order active */}
+            {optionType === 'SALE' && isSalePreOrder && (
+              <div className="bg-purple-50 border border-purple-200 p-3 rounded-xs text-xs text-purple-900 space-y-1">
+                <div className="flex items-center space-x-1.5 font-semibold text-purple-800 uppercase tracking-wider text-[11px]">
+                  <Clock className="w-4 h-4 text-purple-700" />
+                  <span>Pre-Order Item</span>
+                </div>
+                {selectedVariant.preOrderShipDate && (
+                  <p className="text-[11px] text-purple-700 font-mono">
+                    Estimated Dispatch Date:{' '}
+                    {new Date(selectedVariant.preOrderShipDate).toLocaleDateString('en-US', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </p>
+                )}
+                {selectedVariant.preOrderNote && (
+                  <p className="text-[11px] text-purple-800 italic">{selectedVariant.preOrderNote}</p>
+                )}
+              </div>
+            )}
+
             {/* Price Display */}
             <div className="pt-2 font-mono text-lg sm:text-xl text-neutral-900 font-light flex items-center flex-wrap gap-2">
               {optionType === 'SALE' ? (
                 <div className="flex items-center space-x-2 flex-wrap">
-                  <span className="text-xs sm:text-sm uppercase tracking-widest font-sans text-neutral-400">Sale Price:</span>
+                  <span className="text-xs sm:text-sm uppercase tracking-widest font-sans text-neutral-400">
+                    {isSalePreOrder ? 'Pre-Order Price:' : 'Sale Price:'}
+                  </span>
                   <span className="font-semibold">{formatIDR(selectedVariant?.priceSale)}</span>
                   {selectedVariant?.compareAtPrice && Number(selectedVariant.compareAtPrice) > Number(selectedVariant.priceSale) && (
                     <>
@@ -240,6 +279,22 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
                 const attrs = variant.attributes as any;
                 const attrLabel = attrs ? `${attrs.size || ''} ${attrs.color ? `(${attrs.color})` : ''}` : variant.sku;
                 const isSelected = variant.id === selectedVariantId;
+                const vSaleStock = variant.stockSaleAvailable ?? variant.stockAvailable ?? 0;
+                const vRentStock = variant.stockRentAvailable ?? variant.stockAvailable ?? 0;
+                const vIsPreOrder = Boolean(variant.isPreOrder);
+
+                let stockText = '';
+                if (optionType === 'RENTAL') {
+                  stockText = vRentStock > 0 ? `${vRentStock} for rent` : 'Unavailable';
+                } else {
+                  if (vSaleStock > 0) {
+                    stockText = `${vSaleStock} in stock`;
+                  } else if (vIsPreOrder) {
+                    stockText = 'Pre-Order';
+                  } else {
+                    stockText = 'Sold out';
+                  }
+                }
 
                 return (
                   <button
@@ -252,9 +307,7 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
                     }`}
                   >
                     <div>{attrLabel}</div>
-                    <div className="text-[10px] opacity-70 mt-1 font-mono">
-                      {variant.stockAvailable > 0 ? `${variant.stockAvailable} in stock` : 'Sold out'}
-                    </div>
+                    <div className="text-[10px] opacity-70 mt-1 font-mono">{stockText}</div>
                   </button>
                 );
               })}
@@ -321,15 +374,15 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
               disabled={
                 isAddingToCart ||
                 !selectedVariant ||
-                selectedVariant.stockAvailable <= 0 ||
-                (optionType === 'RENTAL' && (!isRentalDatesValid || !rentStartDate || !rentEndDate))
+                (optionType === 'SALE' && saleStock <= 0 && !isSalePreOrder) ||
+                (optionType === 'RENTAL' && (rentStock <= 0 || !isRentalDatesValid || !rentStartDate || !rentEndDate))
               }
               className={`flex-1 py-4 text-xs uppercase tracking-[0.2em] font-light transition-all flex items-center justify-center space-x-2 ${
                 addedSuccess
                   ? 'bg-emerald-700 text-white'
                   : selectedVariant &&
-                    selectedVariant.stockAvailable > 0 &&
-                    (optionType !== 'RENTAL' || (isRentalDatesValid && rentStartDate && rentEndDate))
+                    ((optionType === 'SALE' && (saleStock > 0 || isSalePreOrder)) ||
+                      (optionType === 'RENTAL' && rentStock > 0 && isRentalDatesValid && rentStartDate && rentEndDate))
                   ? 'bg-black text-white hover:bg-neutral-800'
                   : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
               }`}
@@ -345,8 +398,14 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
                 <>
                   <ShoppingBag className="w-4 h-4" />
                   <span>
-                    {selectedVariant && selectedVariant.stockAvailable > 0
-                      ? `Add To Cart (${optionType})`
+                    {optionType === 'SALE'
+                      ? saleStock > 0
+                        ? 'Add To Cart (Purchase)'
+                        : isSalePreOrder
+                        ? 'Pre-Order Now'
+                        : 'Out of Stock'
+                      : rentStock > 0
+                      ? 'Add To Cart (Rental)'
                       : 'Out of Stock'}
                   </span>
                 </>

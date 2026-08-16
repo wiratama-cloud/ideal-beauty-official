@@ -147,6 +147,10 @@ runConfig:
 env:
   - variable: DATABASE_URL
     secret: DATABASE_URL
+  - variable: FIRST_ADMIN_EMAIL
+    secret: FIRST_ADMIN_EMAIL
+  - variable: ADMIN_EMAIL
+    secret: ADMIN_EMAIL
   - variable: FIREBASE_SERVICE_ACCOUNT_KEY
     secret: FIREBASE_SERVICE_ACCOUNT_KEY
   - variable: MIDTRANS_SERVER_KEY

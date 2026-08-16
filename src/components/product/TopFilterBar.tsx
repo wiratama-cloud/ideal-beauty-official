@@ -110,18 +110,34 @@ export default function TopFilterBar({ totalResults }: TopFilterBarProps) {
           <form onSubmit={handleSearchSubmit} className="relative flex items-center">
             <input
               type="text"
-              placeholder="Search pieces, fabrics..."
+              placeholder="Search pieces, fabrics, styles..."
               value={queryInput}
               onChange={(e) => setQueryInput(e.target.value)}
-              className="w-full bg-neutral-50 border border-neutral-200 rounded-md py-1.5 pl-3 pr-8 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-800 transition-colors"
+              className="w-full bg-neutral-50 border border-neutral-200 rounded-lg py-1.5 pl-3 pr-14 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 focus:bg-white transition-all shadow-2xs"
             />
-            <button
-              type="submit"
-              className="absolute right-2 text-neutral-400 hover:text-neutral-900"
-              aria-label="Submit search"
-            >
-              <Search className="w-3.5 h-3.5" />
-            </button>
+            <div className="absolute right-2 flex items-center space-x-1 text-neutral-400">
+              {queryInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQueryInput('');
+                    updateSearchParam('query', null);
+                  }}
+                  className="p-1 hover:text-black transition-colors cursor-pointer"
+                  title="Clear search query"
+                  aria-label="Clear search query"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="p-1 hover:text-neutral-900 transition-colors cursor-pointer"
+                aria-label="Submit search"
+              >
+                <Search className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </form>
         </div>
 

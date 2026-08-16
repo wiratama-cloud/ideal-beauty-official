@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, Heart, ShoppingBag, User, Menu, X, ChevronDown } from 'lucide-react';
+import { Search, Heart, ShoppingBag, User, Menu, X, ChevronDown, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { useCart } from '../cart/CartContext';
+import { quickSearchProductsAction, QuickSearchItem } from '@/app/actions/product';
 
 export interface HeaderNavCategoryItem {
   id?: string;
@@ -27,6 +28,67 @@ export default function Header({ initialNavCategories = [] }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileCategories, setExpandedMobileCategories] = useState<Record<string, boolean>>({});
+
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [quickResults, setQuickResults] = useState<QuickSearchItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const POPULAR_SEARCH_TAGS = ['Bridal Lehengas', 'Silk Kaftans', 'Anarkalis', 'Ready To Wear', 'Sarees', 'Dupattas'];
+
+  // Sync state with URL query
+  useEffect(() => {
+    setSearchQuery(searchParams.get('query') || '');
+  }, [searchParams]);
+
+  // Debounce quick search query
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed || trimmed.length < 2) {
+      setQuickResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const results = await quickSearchProductsAction(trimmed);
+        setQuickResults(results);
+      } catch (err) {
+        console.error('Search error:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Click outside to close quick search popover
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Hotkey listener for `/` or `Cmd+K`
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) && document.activeElement !== searchInputRef.current) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        setIsSearchFocused(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -177,52 +239,175 @@ export default function Header({ initialNavCategories = [] }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-neutral-100 backdrop-blur-md bg-white/95" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
-          {/* Mobile menu button */}
-          <div className="flex-1 flex items-center justify-start lg:w-1/4 lg:hidden">
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-neutral-800 hover:text-black focus:outline-none cursor-pointer rounded-lg hover:bg-neutral-100 transition-colors"
-              aria-label="Toggle menu"
-              aria-expanded={isMobileMenuOpen}
-              suppressHydrationWarning
-            >
-              {isMobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
-            </button>
-          </div>
-
-          {/* Desktop Search Bar (Left) */}
-          <div className="hidden lg:flex items-center lg:w-1/4">
-            <form onSubmit={handleSearchSubmit} className="flex items-center w-full border-b border-neutral-300 pb-1 mr-4" suppressHydrationWarning>
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent border-none text-xs focus:outline-none text-neutral-900 placeholder-neutral-500 font-light"
+        <div className="grid grid-cols-12 items-center h-16 sm:h-20">
+          {/* Mobile menu button & Desktop Search Bar (Left) */}
+          <div className="col-span-3 flex items-center justify-start">
+            <div className="lg:hidden">
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-neutral-800 hover:text-black focus:outline-none cursor-pointer rounded-lg hover:bg-neutral-100 transition-colors"
+                aria-label="Toggle menu"
+                aria-expanded={isMobileMenuOpen}
                 suppressHydrationWarning
-              />
-              <button type="submit" className="text-neutral-500 hover:text-black transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Search" suppressHydrationWarning>
-                <Search className="w-4 h-4" />
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
               </button>
-            </form>
+            </div>
+
+            <div className="hidden lg:flex items-center w-full relative" ref={searchContainerRef}>
+              <form onSubmit={handleSearchSubmit} className="flex items-center w-full border-b border-neutral-300 focus-within:border-black transition-colors pb-1 mr-4" suppressHydrationWarning>
+                <Search className="w-3.5 h-3.5 text-neutral-400 mr-2 shrink-0" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-transparent border-none text-xs focus:outline-none text-neutral-900 placeholder-neutral-400 font-light"
+                  suppressHydrationWarning
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setQuickResults([]);
+                    }}
+                    className="p-1 text-neutral-400 hover:text-black transition-colors cursor-pointer"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <button type="submit" className="text-neutral-400 hover:text-black transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center cursor-pointer" aria-label="Search" suppressHydrationWarning>
+                    <Search className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </form>
+
+              {/* Quick Live Search Dropdown Popover (Desktop) */}
+              {isSearchFocused && (
+                <div className="absolute left-0 top-full mt-2 w-[340px] xl:w-[380px] bg-white border border-neutral-200/90 shadow-2xl rounded-xl z-50 overflow-hidden text-left p-4 space-y-3 animate-in fade-in-50 slide-in-from-top-1 duration-150">
+                  {/* Case 1: Searching state */}
+                  {isSearching ? (
+                    <div className="py-6 flex flex-col items-center justify-center text-neutral-400 space-y-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span className="text-[11px] font-mono tracking-wider uppercase">Searching Masterpieces...</span>
+                    </div>
+                  ) : searchQuery.trim().length >= 2 ? (
+                    /* Case 2: Query entered */
+                    <div>
+                      <div className="flex items-center justify-between pb-2 border-b border-neutral-100 mb-2">
+                        <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-400">
+                          Search Preview ({quickResults.length})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleSearchSubmit}
+                          className="text-[10px] uppercase font-semibold text-neutral-900 hover:text-amber-700 transition-colors flex items-center space-x-1"
+                        >
+                          <span>View All</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+
+                      {quickResults.length > 0 ? (
+                        <div className="space-y-1.5 max-h-[320px] overflow-y-auto pr-1">
+                          {quickResults.map((item) => (
+                            <Link
+                              key={item.id}
+                              href={`/products/${item.slug}`}
+                              onClick={() => setIsSearchFocused(false)}
+                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-neutral-50 transition-colors group"
+                            >
+                              <div className="w-12 h-14 bg-neutral-100 rounded overflow-hidden shrink-0 border border-neutral-200/60">
+                                {item.image ? (
+                                  /* eslint-disable-next-line @next/next/no-img-element */
+                                  <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-[9px] text-neutral-400">No Img</div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                {item.category && (
+                                  <span className="text-[9px] font-mono uppercase text-amber-700 tracking-wider block">
+                                    {item.category}
+                                  </span>
+                                )}
+                                <h4 className="text-xs font-medium text-neutral-900 truncate group-hover:text-amber-700 transition-colors">
+                                  {item.name}
+                                </h4>
+                                <div className="text-[11px] text-neutral-600 font-light mt-0.5">
+                                  {item.priceSale ? (
+                                    <span>${item.priceSale.toLocaleString()}</span>
+                                  ) : item.priceRent ? (
+                                    <span>Rent: ${item.priceRent.toLocaleString()}</span>
+                                  ) : (
+                                    <span className="text-neutral-400 italic">Bespoke</span>
+                                  )}
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="py-6 text-center space-y-1">
+                          <p className="text-xs text-neutral-600 font-medium">No pieces found</p>
+                          <p className="text-[11px] text-neutral-400 font-light">
+                            Try searching for &quot;Lehenga&quot;, &quot;Kaftan&quot;, or &quot;Silk&quot;
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Case 3: Empty query & focused -> Popular Searches */
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-1.5 text-neutral-400">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                        <span className="text-[10px] uppercase font-mono tracking-widest">
+                          Popular Collections
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {POPULAR_SEARCH_TAGS.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              setSearchQuery(tag);
+                              setIsSearchFocused(true);
+                              router.push(`/products?query=${encodeURIComponent(tag)}`);
+                              setIsSearchFocused(false);
+                            }}
+                            className="text-xs bg-neutral-100 hover:bg-neutral-900 hover:text-white px-2.5 py-1 rounded-full text-neutral-700 transition-colors font-light"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Logo Center */}
-          <div className="flex-1 text-center lg:w-2/4 px-1">
-            <Link href="/" className="inline-block">
-              <span className="font-sans text-lg sm:text-2xl md:text-3xl tracking-[0.15em] sm:tracking-[0.2em] uppercase font-light text-neutral-900">
+          <div className="col-span-6 flex flex-col items-center justify-center text-center px-1">
+            <Link href="/" className="inline-flex flex-col items-center justify-center text-center group">
+              <span className="font-sans text-lg sm:text-2xl md:text-3xl tracking-[0.15em] sm:tracking-[0.2em] uppercase font-light text-neutral-900 block leading-tight pr-[0.15em] sm:pr-[0.2em]">
                 IDEAL BEAUTY
               </span>
-              <span className="block text-[8px] sm:text-[9px] tracking-[0.25em] sm:tracking-[0.3em] uppercase text-neutral-400 font-sans mt-0.5">
+              <span className="block text-[8px] sm:text-[9px] tracking-[0.25em] sm:tracking-[0.3em] uppercase text-neutral-400 font-sans mt-0.5 leading-tight pr-[0.25em] sm:pr-[0.3em]">
                 OFFICIAL
               </span>
             </Link>
           </div>
 
           {/* Action Icons Right */}
-          <div className="flex-1 flex items-center justify-end space-x-0.5 sm:space-x-3 lg:w-1/4">
+          <div className="col-span-3 flex items-center justify-end space-x-0.5 sm:space-x-3">
             <Link
               href="/account/wishlist"
               className="text-neutral-700 hover:text-black transition-colors relative p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"

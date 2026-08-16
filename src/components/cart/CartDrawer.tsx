@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { X, Trash2, ShoppingBag, Calendar } from 'lucide-react';
+import { X, Trash2, ShoppingBag, Calendar, Clock } from 'lucide-react';
 import { useCart } from './CartContext';
 
 export default function CartDrawer() {
@@ -99,6 +99,20 @@ export default function CartDrawer() {
                           <span>
                             {new Date(item.rentStartDate).toLocaleDateString('id-ID')} &ndash;{' '}
                             {new Date(item.rentEndDate).toLocaleDateString('id-ID')}
+                          </span>
+                        </div>
+                      )}
+
+                      {(item.isPreOrder || item.variant?.isPreOrder) && (
+                        <div className="text-[10px] text-purple-800 bg-purple-50 p-1.5 flex items-center space-x-1">
+                          <Clock className="w-3 h-3 text-purple-700" />
+                          <span>
+                            Pre-Order{' '}
+                            {item.preOrderShipDate || item.variant?.preOrderShipDate
+                              ? `(Est. Dispatch: ${new Date(
+                                  item.preOrderShipDate || item.variant?.preOrderShipDate
+                                ).toLocaleDateString('id-ID')})`
+                              : ''}
                           </span>
                         </div>
                       )}

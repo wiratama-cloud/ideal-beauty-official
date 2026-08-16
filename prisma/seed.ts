@@ -4,30 +4,29 @@ import { seedDefaultCategoryTree } from '../src/lib/services/nav-category';
 export async function main() {
   console.log('Seeding Ideal Beauty Official database with dummy data...');
 
-  // Clean existing data in proper foreign-key order
-  await prisma.auditLog.deleteMany();
-  await prisma.voucherUsage.deleteMany();
-  await prisma.voucher.deleteMany();
-  await prisma.inventoryTransaction.deleteMany();
-  await prisma.rentalBlock.deleteMany();
-  await prisma.navCategory.deleteMany();
-  await prisma.landingSectionItem.deleteMany();
-  await prisma.landingSection.deleteMany();
-  await prisma.ledgerEntry.deleteMany();
-  await prisma.payment.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.cartItem.deleteMany();
-  await prisma.cart.deleteMany();
-  await prisma.wishlistItem.deleteMany();
-  await prisma.productVariant.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.address.deleteMany();
-  await prisma.user.deleteMany();
+  // 1. Primary Admin Account & Access Control Seeding
+  const primaryAdminEmail = process.env.FIRST_ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'admin@idealbeautyofficial.com';
+  if (primaryAdminEmail) {
+    await prisma.adminAccess.upsert({
+      where: { email: primaryAdminEmail },
+      update: { role: 'ADMIN' },
+      create: {
+        email: primaryAdminEmail,
+        role: 'ADMIN',
+        addedBy: 'SYSTEM_SEED',
+      },
+    });
+    console.log(`Seeded primary admin access for: ${primaryAdminEmail}`);
+  }
 
-  // 1. Create Sample Users & Addresses
-  const user1 = await prisma.user.create({
-    data: {
+  // 2. Create Sample Users & Addresses
+  const user1 = await prisma.user.upsert({
+    where: { email: 'ayu.lestari@example.com' },
+    update: {
+      name: 'Ayu Lestari',
+      phone: '+6281234567890',
+    },
+    create: {
       email: 'ayu.lestari@example.com',
       name: 'Ayu Lestari',
       phone: '+6281234567890',
@@ -59,8 +58,13 @@ export async function main() {
     include: { addresses: true },
   });
 
-  const user2 = await prisma.user.create({
-    data: {
+  const user2 = await prisma.user.upsert({
+    where: { email: 'budi.santoso@example.com' },
+    update: {
+      name: 'Budi Santoso',
+      phone: '+6281987654321',
+    },
+    create: {
       email: 'budi.santoso@example.com',
       name: 'Budi Santoso',
       phone: '+6281987654321',
@@ -80,8 +84,13 @@ export async function main() {
     include: { addresses: true },
   });
 
-  const user3 = await prisma.user.create({
-    data: {
+  const user3 = await prisma.user.upsert({
+    where: { email: 'citra.dewi@example.com' },
+    update: {
+      name: 'Citra Dewi',
+      phone: '+6281355558888',
+    },
+    create: {
       email: 'citra.dewi@example.com',
       name: 'Citra Dewi',
       phone: '+6281355558888',
@@ -101,8 +110,13 @@ export async function main() {
     include: { addresses: true },
   });
 
-  const user4 = await prisma.user.create({
-    data: {
+  const user4 = await prisma.user.upsert({
+    where: { email: 'dian.sastro@example.com' },
+    update: {
+      name: 'Dian Sastrowardoyo',
+      phone: '+6281122334455',
+    },
+    create: {
       email: 'dian.sastro@example.com',
       name: 'Dian Sastrowardoyo',
       phone: '+6281122334455',
@@ -794,50 +808,151 @@ export async function main() {
         },
       ],
     },
+    {
+      name: 'Haute Couture Celestial Pre-Order Gown',
+      slug: 'haute-couture-celestial-gown',
+      description: 'An exclusive runway piece crafted with silver metallic thread and hand-beaded Swarovski crystals. Available strictly on Pre-Order.',
+      category: 'Haute Couture',
+      images: [
+        '/images/products/lehenga-1.jpg',
+        '/images/products/default-product.jpg',
+      ],
+      variants: [
+        {
+          sku: 'HC-CEL-S',
+          skuSale: 'HC-CEL-S-BUY',
+          skuRent: 'HC-CEL-S-RENT',
+          isPreOrder: true,
+          preOrderShipDate: new Date('2026-10-15'),
+          preOrderNote: 'Hand-crafted in Jakarta atelier. Ships within 6 weeks of order.',
+          attributes: { size: 'S', color: 'Celestial Silver' },
+          priceSale: 12500000.00,
+          priceRent: 2100000.00,
+          costPrice: 5000000.00,
+          purchaseCost: 5000000.00,
+          stockSaleTotal: 0,
+          stockSaleAvailable: 0,
+          stockRentTotal: 2,
+          stockRentAvailable: 2,
+          stockTotal: 2,
+          stockAvailable: 2,
+        },
+      ],
+    },
   ];
 
   const createdProducts = [];
   for (const productInfo of productsData) {
     const { variants, ...prod } = productInfo;
-    const createdProduct = await prisma.product.create({
-      data: {
-        ...prod,
-        variants: {
-          create: variants,
-        },
+    const createdProduct = await prisma.product.upsert({
+      where: { slug: prod.slug },
+      update: {
+        name: prod.name,
+        description: prod.description,
+        category: prod.category,
+        images: prod.images,
       },
+      create: {
+        name: prod.name,
+        slug: prod.slug,
+        description: prod.description,
+        category: prod.category,
+        images: prod.images,
+      },
+    });
+
+    for (const variantData of variants) {
+      const vData = variantData as any;
+      const skuSale = vData.skuSale || vData.sku;
+      const skuRent = vData.skuRent || `${vData.sku}-RENT`;
+      const isPreOrder = vData.isPreOrder ?? false;
+      const preOrderShipDate = vData.preOrderShipDate ?? null;
+      const preOrderNote = vData.preOrderNote ?? null;
+      const compareAtPrice = vData.compareAtPrice ?? null;
+
+      await prisma.productVariant.upsert({
+        where: { sku: vData.sku },
+        update: {
+          attributes: vData.attributes,
+          priceSale: vData.priceSale,
+          compareAtPrice,
+          priceRent: vData.priceRent,
+          costPrice: vData.costPrice,
+          purchaseCost: vData.purchaseCost,
+          stockSaleTotal: vData.stockSaleTotal,
+          stockSaleAvailable: vData.stockSaleAvailable,
+          stockRentTotal: vData.stockRentTotal,
+          stockRentAvailable: vData.stockRentAvailable,
+          stockTotal: vData.stockTotal,
+          stockAvailable: vData.stockAvailable,
+          skuSale,
+          skuRent,
+          isPreOrder,
+          preOrderShipDate,
+          preOrderNote,
+        },
+        create: {
+          ...vData,
+          productId: createdProduct.id,
+          skuSale,
+          skuRent,
+          isPreOrder,
+          preOrderShipDate,
+          preOrderNote,
+        },
+      });
+    }
+
+    const fullProduct = await prisma.product.findUniqueOrThrow({
+      where: { id: createdProduct.id },
       include: {
         variants: true,
       },
     });
 
-    createdProducts.push(createdProduct);
-    console.log(`Created product: ${createdProduct.name} (${createdProduct.variants.length} variants)`);
+    createdProducts.push(fullProduct);
+    console.log(`Upserted product: ${fullProduct.name} (${fullProduct.variants.length} variants)`);
 
-    // Log initial R&D / COGS expense entries into Ledger
-    await prisma.ledgerEntry.create({
-      data: {
-        type: 'EXPENSE',
-        amount: 5000000.00,
-        description: `R&D and Haute Couture Design for ${createdProduct.name}`,
-        expenseCategory: 'DESIGN_RND',
-        productId: createdProduct.id,
+    // Log initial R&D / COGS expense entries into Ledger if not present
+    const existingLedger = await prisma.ledgerEntry.findFirst({
+      where: {
+        description: `R&D and Haute Couture Design for ${fullProduct.name}`,
+        productId: fullProduct.id,
       },
     });
-
-    // Create initial InventoryTransaction entries for variant stock allocations
-    for (const v of createdProduct.variants) {
-      await prisma.inventoryTransaction.create({
+    if (!existingLedger) {
+      await prisma.ledgerEntry.create({
         data: {
-          variantId: v.id,
-          type: 'ADD',
-          quantity: v.stockTotal,
-          reason: 'INITIAL_CATALOG_SEEDED_STOCK',
-          cost: v.costPrice,
-          purchaseCost: v.purchaseCost,
-          notes: `Initial stock allocation: ${v.stockSaleTotal} sale units, ${v.stockRentTotal} rent units`,
+          type: 'EXPENSE',
+          amount: 5000000.00,
+          description: `R&D and Haute Couture Design for ${fullProduct.name}`,
+          expenseCategory: 'DESIGN_RND',
+          productId: fullProduct.id,
         },
       });
+    }
+
+    // Create initial InventoryTransaction entries for variant stock allocations if not present
+    for (const v of fullProduct.variants) {
+      const existingTx = await prisma.inventoryTransaction.findFirst({
+        where: {
+          variantId: v.id,
+          reason: 'INITIAL_CATALOG_SEEDED_STOCK',
+        },
+      });
+      if (!existingTx) {
+        await prisma.inventoryTransaction.create({
+          data: {
+            variantId: v.id,
+            type: 'ADD',
+            quantity: v.stockTotal,
+            reason: 'INITIAL_CATALOG_SEEDED_STOCK',
+            cost: v.costPrice,
+            purchaseCost: v.purchaseCost,
+            notes: `Initial stock allocation: ${v.stockSaleTotal} sale units, ${v.stockRentTotal} rent units`,
+          },
+        });
+      }
     }
   }
 
@@ -856,10 +971,20 @@ export async function main() {
       { userId: user1.id, productId: createdProducts[12].id, variantId: sareeVariantS.id },
       { userId: user3.id, productId: createdProducts[0].id, variantId: kaftanVariantS.id },
     ],
+    skipDuplicates: true,
   });
   console.log('Created sample wishlist items');
 
   // 4. Cart & CartItems
+  await prisma.cart.deleteMany({
+    where: {
+      OR: [
+        { userId: { in: [user1.id, user2.id, user3.id, user4.id].filter(Boolean) } },
+        { sessionId: 'guest_demo_session_99' },
+      ],
+    },
+  });
+
   await prisma.cart.create({
     data: {
       userId: user1.id,
@@ -894,6 +1019,13 @@ export async function main() {
   console.log('Created user and guest carts');
 
   // 5. Orders, Payments, & Income Ledger Entries
+  const existingOrdersCount = await prisma.order.count({
+    where: {
+      userId: { in: [user1.id, user2.id, user3.id, user4.id].filter(Boolean) },
+    },
+  });
+
+  if (existingOrdersCount === 0) {
 
   // Order 1: Completed Full Payment Sale Order (Ayu Lestari)
   const order1 = await prisma.order.create({
@@ -1070,34 +1202,46 @@ export async function main() {
   });
 
   console.log('Created sample orders, payments, and revenue ledger entries');
+  } else {
+    console.log('Sample orders already present, skipping sample order creation');
+  }
 
   // 6. General Operational & Marketing Expense Ledger Entries
-  await prisma.ledgerEntry.createMany({
-    data: [
-      {
-        type: 'EXPENSE',
-        amount: 8500000.00,
-        description: 'Sourcing Pure Italian Silk & French Lace Fabrics for Bridal Collection',
-        expenseCategory: 'MANUFACTURING_COGS',
-      },
-      {
-        type: 'EXPENSE',
-        amount: 12000000.00,
-        description: 'Jakarta Fashion Week Runway Showcase & Editorial Photography',
-        expenseCategory: 'MARKETING',
-      },
-      {
-        type: 'EXPENSE',
-        amount: 4500000.00,
-        description: 'Senopati Flagship Boutique Studio Maintenance & Dry Cleaning Services',
-        expenseCategory: 'OPERATIONAL',
-      },
-    ],
+  const existingOpExpense = await prisma.ledgerEntry.findFirst({
+    where: {
+      description: 'Sourcing Pure Italian Silk & French Lace Fabrics for Bridal Collection',
+    },
   });
-
-  console.log('Created operational expense ledger entries');
+  if (!existingOpExpense) {
+    await prisma.ledgerEntry.createMany({
+      data: [
+        {
+          type: 'EXPENSE',
+          amount: 8500000.00,
+          description: 'Sourcing Pure Italian Silk & French Lace Fabrics for Bridal Collection',
+          expenseCategory: 'MANUFACTURING_COGS',
+        },
+        {
+          type: 'EXPENSE',
+          amount: 12000000.00,
+          description: 'Jakarta Fashion Week Runway Showcase & Editorial Photography',
+          expenseCategory: 'MARKETING',
+        },
+        {
+          type: 'EXPENSE',
+          amount: 4500000.00,
+          description: 'Senopati Flagship Boutique Studio Maintenance & Dry Cleaning Services',
+          expenseCategory: 'OPERATIONAL',
+        },
+      ],
+    });
+    console.log('Created operational expense ledger entries');
+  }
 
   // 7. Landing Page Configurable Sections
+  // Clean up existing landing sections to ensure idempotent section seeding
+  await prisma.landingSectionItem.deleteMany({});
+  await prisma.landingSection.deleteMany({});
 
   // Hero Banner Section
   await prisma.landingSection.create({
@@ -1295,79 +1439,108 @@ export async function main() {
   console.log('Created default navigation categories');
 
   // 9. Seed Vouchers
-  await prisma.voucher.createMany({
-    data: [
-      {
-        code: 'WELCOME2026',
-        description: 'Welcome discount for new patrons',
-        discountType: 'PERCENTAGE',
-        discountValue: 10.00,
-        minPurchase: 1000000.00,
-        maxDiscount: 500000.00,
-        usageLimit: 100,
-        isActive: true,
-        targetType: 'EVENT',
+  const vouchersData = [
+    {
+      code: 'WELCOME2026',
+      description: 'Welcome discount for new patrons',
+      discountType: 'PERCENTAGE' as const,
+      discountValue: 10.00,
+      minPurchase: 1000000.00,
+      maxDiscount: 500000.00,
+      usageLimit: 100,
+      isActive: true,
+      targetType: 'EVENT' as const,
+    },
+    {
+      code: 'ATELIER500K',
+      description: 'IDR 500,000 off on Haute Couture & Bridal Wear',
+      discountType: 'FIXED_AMOUNT' as const,
+      discountValue: 500000.00,
+      minPurchase: 3000000.00,
+      usageLimit: 50,
+      isActive: true,
+      targetType: 'EVENT' as const,
+    },
+    {
+      code: 'VIPLUXURY',
+      description: 'Exclusive 15% VIP discount',
+      discountType: 'PERCENTAGE' as const,
+      discountValue: 15.00,
+      minPurchase: 5000000.00,
+      maxDiscount: 1500000.00,
+      usageLimit: 20,
+      isActive: true,
+      targetType: 'CUSTOMER' as const,
+      userId: user1.id,
+    },
+  ];
+
+  for (const v of vouchersData) {
+    await prisma.voucher.upsert({
+      where: { code: v.code },
+      update: {
+        description: v.description,
+        discountType: v.discountType,
+        discountValue: v.discountValue,
+        minPurchase: v.minPurchase,
+        maxDiscount: v.maxDiscount,
+        usageLimit: v.usageLimit,
+        isActive: v.isActive,
+        targetType: v.targetType,
+        userId: v.userId,
       },
-      {
-        code: 'ATELIER500K',
-        description: 'IDR 500,000 off on Haute Couture & Bridal Wear',
-        discountType: 'FIXED_AMOUNT',
-        discountValue: 500000.00,
-        minPurchase: 3000000.00,
-        usageLimit: 50,
-        isActive: true,
-        targetType: 'EVENT',
-      },
-      {
-        code: 'VIPLUXURY',
-        description: 'Exclusive 15% VIP discount',
-        discountType: 'PERCENTAGE',
-        discountValue: 15.00,
-        minPurchase: 5000000.00,
-        maxDiscount: 1500000.00,
-        usageLimit: 20,
-        isActive: true,
-        targetType: 'CUSTOMER',
-        userId: user1.id,
-      },
-    ],
-  });
+      create: v,
+    });
+  }
   console.log('Created sample vouchers');
 
   // 10. Seed Rental Maintenance Blocks
-  await prisma.rentalBlock.createMany({
-    data: [
-      {
-        variantId: sherwaniVariant40.id,
-        startDate: new Date('2026-09-10'),
-        endDate: new Date('2026-09-14'),
-        reason: 'DRY_CLEANING',
-        notes: 'Routine professional dry cleaning post-event rental',
-      },
-      {
-        variantId: kaftanVariantS.id,
-        startDate: new Date('2026-09-15'),
-        endDate: new Date('2026-09-18'),
-        reason: 'MAINTENANCE',
-        notes: 'Haute couture embroidery inspection and bead tightening',
-      },
-    ],
-  });
-  console.log('Created sample rental blocks');
-
-  // 11. Audit Log Entry
-  await prisma.auditLog.create({
-    data: {
-      userId: user1.id,
-      userEmail: user1.email || 'system@idealbeauty.com',
-      userName: user1.name || 'System Administrator',
-      action: 'SEED_DATABASE',
-      entity: 'SYSTEM',
-      entityId: 'seed_init',
-      details: { message: 'Database successfully seeded with luxury haute couture catalog, separated stock pools, and sample orders.' },
+  const existingRentalBlock = await prisma.rentalBlock.findFirst({
+    where: {
+      variantId: sherwaniVariant40.id,
+      reason: 'DRY_CLEANING',
     },
   });
-  console.log('Created initial audit log entry');
+  if (!existingRentalBlock) {
+    await prisma.rentalBlock.createMany({
+      data: [
+        {
+          variantId: sherwaniVariant40.id,
+          startDate: new Date('2026-09-10'),
+          endDate: new Date('2026-09-14'),
+          reason: 'DRY_CLEANING',
+          notes: 'Routine professional dry cleaning post-event rental',
+        },
+        {
+          variantId: kaftanVariantS.id,
+          startDate: new Date('2026-09-15'),
+          endDate: new Date('2026-09-18'),
+          reason: 'MAINTENANCE',
+          notes: 'Haute couture embroidery inspection and bead tightening',
+        },
+      ],
+    });
+    console.log('Created sample rental blocks');
+  }
+
+  // 11. Audit Log Entry
+  const existingAuditLog = await prisma.auditLog.findFirst({
+    where: { action: 'SEED_DATABASE', entityId: 'seed_init' },
+  });
+  if (!existingAuditLog) {
+    await prisma.auditLog.create({
+      data: {
+        userId: user1.id,
+        userEmail: user1.email || 'system@idealbeauty.com',
+        userName: user1.name || 'System Administrator',
+        action: 'SEED_DATABASE',
+        entity: 'SYSTEM',
+        entityId: 'seed_init',
+        details: { message: 'Database successfully seeded with luxury haute couture catalog, separated stock pools, and sample orders.' },
+      },
+    });
+    console.log('Created initial audit log entry');
+  }
 
   console.log('Seeding completed successfully!');
 }

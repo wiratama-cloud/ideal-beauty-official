@@ -739,6 +739,193 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
     expect(lastCallArg.notification.body).toContain('PROCESSING');
   });
 
+  test('18. Pre-Order Purchasing, Inventory Log, and Stale Cart Validation', async () => {
+    // 1. Create a Pre-Order zero-stock variant
+    const preOrderProd = await prisma.product.create({
+      data: {
+        name: 'Pre-Order Couture Silk Dress',
+        slug: 'pre-order-couture-dress-test',
+        description: 'Test pre-order item',
+        category: 'Haute Couture',
+        images: ['https://example.com/preorder.jpg'],
+        variants: {
+          create: [
+            {
+              sku: 'PREORDER-COUTURE-01',
+              attributes: { size: 'M' },
+              priceSale: 8000000.0,
+              stockSaleTotal: 0,
+              stockSaleAvailable: 0,
+              stockAvailable: 0,
+              isPreOrder: true,
+              preOrderShipDate: new Date('2026-11-01'),
+              preOrderNote: 'Ships in November 2026',
+            },
+          ],
+        },
+      },
+      include: { variants: true },
+    });
+
+    const preOrderVariant = preOrderProd.variants[0];
+
+    // Add zero-stock pre-order item to cart
+    const cartRes1 = await addItemToCart(sampleUser.id, {
+      variantId: preOrderVariant.id,
+      type: 'SALE',
+      quantity: 1,
+    });
+
+    const addedCartItem = cartRes1.items.find((i: any) => i.variantId === preOrderVariant.id);
+    expect(addedCartItem).toBeDefined();
+    expect(addedCartItem?.isPreOrder).toBe(true);
+    expect(addedCartItem?.preOrderShipDate).not.toBeNull();
+
+    // Create order for pre-order item
+    const orderRes1 = await createOrder({
+      userId: sampleUser.id,
+      shippingAddress: {
+        recipientName: 'PreOrder Patron',
+        phone: '+628111111111',
+        addressLine1: 'Jl. Senopati 45',
+        city: 'Jakarta',
+        province: 'DKI Jakarta',
+        postalCode: '12190',
+      },
+      paymentType: 'FULL_PAYMENT',
+      paymentMethod: 'QRIS',
+    });
+
+    expect(orderRes1.order.items[0].isPreOrder).toBe(true);
+
+    // Verify InventoryTransaction created with 'Pre-order checkout'
+    const invTx = await prisma.inventoryTransaction.findFirst({
+      where: {
+        variantId: preOrderVariant.id,
+        reason: 'CUSTOMER_PURCHASE',
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    expect(invTx).not.toBeNull();
+    expect(invTx?.notes).toBe('Pre-order checkout');
+
+    // 2. In-stock item with isPreOrder=true should NOT flag cart/order as pre-order
+    const inStockProd = await prisma.product.create({
+      data: {
+        name: 'In-Stock Couture Gown Test',
+        slug: 'instock-couture-gown-test',
+        description: 'Test in-stock item',
+        category: 'Haute Couture',
+        images: ['https://example.com/instock.jpg'],
+        variants: {
+          create: [
+            {
+              sku: 'INSTOCK-COUTURE-01',
+              attributes: { size: 'S' },
+              priceSale: 6000000.0,
+              stockSaleTotal: 5,
+              stockSaleAvailable: 5,
+              stockAvailable: 5,
+              isPreOrder: true,
+              preOrderShipDate: new Date('2026-12-01'),
+            },
+          ],
+        },
+      },
+      include: { variants: true },
+    });
+
+    const inStockVariant = inStockProd.variants[0];
+
+    const cartRes2 = await addItemToCart(sampleUser.id, {
+      variantId: inStockVariant.id,
+      type: 'SALE',
+      quantity: 1,
+    });
+
+    const inStockCartItem = cartRes2.items.find((i: any) => i.variantId === inStockVariant.id);
+    expect(inStockCartItem?.isPreOrder).toBe(false);
+
+    const orderRes2 = await createOrder({
+      userId: sampleUser.id,
+      shippingAddress: {
+        recipientName: 'PreOrder Patron',
+        phone: '+628111111111',
+        addressLine1: 'Jl. Senopati 45',
+        city: 'Jakarta',
+        province: 'DKI Jakarta',
+        postalCode: '12190',
+      },
+      paymentType: 'FULL_PAYMENT',
+      paymentMethod: 'QRIS',
+    });
+
+    expect(orderRes2.order.items[0].isPreOrder).toBe(false);
+
+    // Verify stock decremented to 4
+    const updatedInStockVar = await prisma.productVariant.findUnique({ where: { id: inStockVariant.id } });
+    expect(updatedInStockVar?.stockSaleAvailable).toBe(4);
+
+    // 3. Stale Cart Bypass Protection
+    // Create zero stock pre-order item, add to cart, then admin disables pre-order on variant
+    const toggleProd = await prisma.product.create({
+      data: {
+        name: 'Toggle Pre-Order Dress',
+        slug: 'toggle-preorder-dress-test',
+        description: 'Test toggling pre-order',
+        category: 'Haute Couture',
+        images: ['https://example.com/toggle.jpg'],
+        variants: {
+          create: [
+            {
+              sku: 'TOGGLE-PREORDER-01',
+              attributes: { size: 'L' },
+              priceSale: 4000000.0,
+              stockSaleTotal: 0,
+              stockSaleAvailable: 0,
+              stockAvailable: 0,
+              isPreOrder: true,
+            },
+          ],
+        },
+      },
+      include: { variants: true },
+    });
+
+    const toggleVariant = toggleProd.variants[0];
+
+    // User adds item to cart when pre-order is active
+    await addItemToCart(sampleUser.id, {
+      variantId: toggleVariant.id,
+      type: 'SALE',
+      quantity: 1,
+    });
+
+    // Admin disables pre-order on variant in database
+    await prisma.productVariant.update({
+      where: { id: toggleVariant.id },
+      data: { isPreOrder: false },
+    });
+
+    // User attempts checkout; must be rejected because pre-order is disabled and stock is 0
+    await expect(
+      createOrder({
+        userId: sampleUser.id,
+        shippingAddress: {
+          recipientName: 'PreOrder Patron',
+          phone: '+628111111111',
+          addressLine1: 'Jl. Senopati 45',
+          city: 'Jakarta',
+          province: 'DKI Jakarta',
+          postalCode: '12190',
+        },
+        paymentType: 'FULL_PAYMENT',
+        paymentMethod: 'QRIS',
+      })
+    ).rejects.toThrow(/Insufficient.*stock available/);
+  });
+
   afterAll(async () => {
     const { main: seedDatabase } = await import('../prisma/seed');
     await seedDatabase();

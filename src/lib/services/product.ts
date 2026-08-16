@@ -1,5 +1,6 @@
 import { prisma } from '../prisma';
 import { getCategoryAndDescendantNames } from './nav-category';
+import { serializeProduct } from '../utils/serialization';
 
 export interface GetProductsParams {
   category?: string;
@@ -71,17 +72,7 @@ export async function getProducts(params: GetProductsParams = {}) {
     },
   });
 
-  return products.map(product => ({
-    ...product,
-    variants: product.variants.map(variant => ({
-      ...variant,
-      priceSale: variant.priceSale ? Number(variant.priceSale) : null,
-      priceRent: variant.priceRent ? Number(variant.priceRent) : null,
-      compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
-      costPrice: variant.costPrice ? Number(variant.costPrice) : null,
-      purchaseCost: variant.purchaseCost ? Number(variant.purchaseCost) : null,
-    })),
-  }));
+  return products.map((product) => serializeProduct(product));
 }
 
 export async function getProductBySlug(slug: string) {
@@ -98,17 +89,7 @@ export async function getProductBySlug(slug: string) {
 
   if (!product) return null;
 
-  return {
-    ...product,
-    variants: product.variants.map(variant => ({
-      ...variant,
-      priceSale: variant.priceSale ? Number(variant.priceSale) : null,
-      priceRent: variant.priceRent ? Number(variant.priceRent) : null,
-      compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
-      costPrice: variant.costPrice ? Number(variant.costPrice) : null,
-      purchaseCost: variant.purchaseCost ? Number(variant.purchaseCost) : null,
-    })),
-  };
+  return serializeProduct(product);
 }
 
 export async function getCategories() {

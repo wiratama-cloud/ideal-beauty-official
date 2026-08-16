@@ -79,6 +79,8 @@ export async function createOrder(input: CreateOrderInput) {
 
   // Execute atomic Prisma transaction for stock deduction and order placement
   return prisma.$transaction(async (tx) => {
+    const itemPreOrderMap = new Map<string, { isPreOrder: boolean; shipDate: Date | null }>();
+
     // 1. Atomic Stock Deduction Check
     for (const item of cart.items) {
       const isRental = item.type === 'RENTAL';
@@ -157,39 +159,97 @@ export async function createOrder(input: CreateOrderInput) {
             notes: `Deducted for order checkout`,
           },
         });
+
+        itemPreOrderMap.set(item.id, { isPreOrder: false, shipDate: null });
       } else {
-        const updatedVariant = await tx.productVariant.updateMany({
-          where: {
-            id: item.variantId,
-            stockSaleAvailable: {
-              gte: item.quantity,
-            },
-          },
-          data: {
-            stockSaleAvailable: {
-              decrement: item.quantity,
-            },
-            stockAvailable: {
-              decrement: item.quantity,
-            },
-          },
+        const currentVariant = await tx.productVariant.findUnique({
+          where: { id: item.variantId },
+          include: { product: true },
         });
 
-        if (updatedVariant.count === 0) {
+        if (!currentVariant) {
+          throw new Error('Product variant not found.');
+        }
+
+        const effectiveSaleAvailable =
+          currentVariant.stockRentAvailable === 0 &&
+          currentVariant.stockSaleAvailable === 0 &&
+          currentVariant.stockAvailable > 0
+            ? currentVariant.stockAvailable
+            : currentVariant.stockSaleAvailable;
+
+        const isPreOrderEligible = Boolean(currentVariant.isPreOrder);
+        const isPreOrderNeeded = effectiveSaleAvailable < item.quantity;
+        const isPreOrder = isPreOrderEligible && isPreOrderNeeded;
+
+        if (!isPreOrderEligible && effectiveSaleAvailable < item.quantity) {
           throw new Error(
-            `Insufficient sale stock available for ${item.variant.product.name} (${item.variant.sku}).`
+            `Insufficient sale stock available for ${currentVariant.product.name} (${currentVariant.sku}).`
           );
         }
 
-        await tx.inventoryTransaction.create({
-          data: {
-            variantId: item.variantId,
-            type: InventoryTransactionType.SALE,
-            quantity: item.quantity,
-            reason: 'CUSTOMER_PURCHASE',
-            notes: `Deducted for order checkout`,
-          },
-        });
+        if (isPreOrder) {
+          if (effectiveSaleAvailable > 0) {
+            const dec = Math.min(effectiveSaleAvailable, item.quantity);
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: {
+                stockSaleAvailable: { decrement: dec },
+                stockAvailable: { decrement: dec },
+              },
+            });
+          }
+
+          await tx.inventoryTransaction.create({
+            data: {
+              variantId: item.variantId,
+              type: InventoryTransactionType.SALE,
+              quantity: item.quantity,
+              reason: 'CUSTOMER_PURCHASE',
+              notes: `Pre-order checkout`,
+            },
+          });
+
+          itemPreOrderMap.set(item.id, {
+            isPreOrder: true,
+            shipDate: currentVariant.preOrderShipDate || null,
+          });
+        } else {
+          const updatedVariant = await tx.productVariant.updateMany({
+            where: {
+              id: item.variantId,
+              stockSaleAvailable: {
+                gte: item.quantity,
+              },
+            },
+            data: {
+              stockSaleAvailable: {
+                decrement: item.quantity,
+              },
+              stockAvailable: {
+                decrement: item.quantity,
+              },
+            },
+          });
+
+          if (updatedVariant.count === 0) {
+            throw new Error(
+              `Insufficient sale stock available for ${currentVariant.product.name} (${currentVariant.sku}).`
+            );
+          }
+
+          await tx.inventoryTransaction.create({
+            data: {
+              variantId: item.variantId,
+              type: InventoryTransactionType.SALE,
+              quantity: item.quantity,
+              reason: 'CUSTOMER_PURCHASE',
+              notes: `Deducted for order checkout`,
+            },
+          });
+
+          itemPreOrderMap.set(item.id, { isPreOrder: false, shipDate: null });
+        }
       }
     }
 
@@ -221,12 +281,15 @@ export async function createOrder(input: CreateOrderInput) {
           create: cart.items.map((item) => {
             const price =
               item.type === 'RENTAL' ? Number(item.variant.priceRent || 0) : Number(item.variant.priceSale || 0);
+            const preOrderInfo = itemPreOrderMap.get(item.id) || { isPreOrder: false, shipDate: null };
 
             return {
               variantId: item.variantId,
               type: item.type,
               quantity: item.quantity,
               priceAtTime: price,
+              isPreOrder: preOrderInfo.isPreOrder,
+              preOrderShipDate: preOrderInfo.shipDate,
               rentStartDate: item.rentStartDate,
               rentEndDate: item.rentEndDate,
               rentalStatus: item.type === 'RENTAL' ? RentalStatus.OUT_WITH_CUSTOMER : RentalStatus.NOT_APPLICABLE,

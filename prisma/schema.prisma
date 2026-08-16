@@ -87,6 +87,17 @@ enum SectionType {
   PROMO_BANNER
 }
 
+model AdminAccess {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      String   @default("ADMIN")
+  addedBy   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
 model User {
   id              String         @id @default(uuid())
   firebaseUid     String?        @unique
@@ -149,6 +160,11 @@ model ProductVariant {
   productId          String
   product            Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   sku                String          @unique
+  skuSale            String?
+  skuRent            String?
+  isPreOrder         Boolean         @default(false)
+  preOrderShipDate   DateTime?
+  preOrderNote       String?
   attributes         Json
   priceSale          Decimal?        @db.Decimal(10, 2)
   priceRent          Decimal?        @db.Decimal(10, 2)
@@ -177,6 +193,9 @@ model ProductVariant {
   @@index([productId, stockAvailable])
   @@index([productId, stockSaleAvailable])
   @@index([productId, stockRentAvailable])
+  @@index([isPreOrder])
+  @@index([skuSale])
+  @@index([skuRent])
 }
 
 model Cart {
@@ -193,17 +212,19 @@ model Cart {
 }
 
 model CartItem {
-  id            String         @id @default(uuid())
-  cartId        String
-  cart          Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  variantId     String
-  variant       ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  type          ItemType
-  quantity      Int            @default(1)
-  rentStartDate DateTime?
-  rentEndDate   DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id               String         @id @default(uuid())
+  cartId           String
+  cart             Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId        String
+  variant          ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  type             ItemType
+  quantity         Int            @default(1)
+  isPreOrder       Boolean        @default(false)
+  preOrderShipDate DateTime?
+  rentStartDate    DateTime?
+  rentEndDate      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@unique([cartId, variantId, type])
   @@index([cartId, variantId])
@@ -244,20 +265,27 @@ model Order {
 
   @@index([userId, status])
   @@index([voucherId])
+  @@index([status, createdAt])
 }
 
 model OrderItem {
-  id            String         @id @default(uuid())
-  orderId       String
-  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  variantId     String
-  variant       ProductVariant @relation(fields: [variantId], references: [id])
-  type          ItemType
-  quantity      Int            @default(1)
-  priceAtTime   Decimal        @db.Decimal(10, 2)
-  rentStartDate DateTime?
-  rentEndDate   DateTime?
-  rentalStatus  RentalStatus   @default(NOT_APPLICABLE)
+  id               String         @id @default(uuid())
+  orderId          String
+  order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId        String
+  variant          ProductVariant @relation(fields: [variantId], references: [id])
+  type             ItemType
+  quantity         Int            @default(1)
+  priceAtTime      Decimal        @db.Decimal(10, 2)
+  isPreOrder       Boolean        @default(false)
+  preOrderShipDate DateTime?
+  rentStartDate    DateTime?
+  rentEndDate      DateTime?
+  rentalStatus     RentalStatus   @default(NOT_APPLICABLE)
+
+  @@index([orderId])
+  @@index([variantId])
+  @@index([orderId, isPreOrder])
 }
 
 model Payment {
@@ -374,6 +402,7 @@ model InventoryTransaction {
   updatedAt    DateTime                 @updatedAt
 
   @@index([variantId, createdAt])
+  @@index([variantId, type])
 }
 
 model Voucher {

@@ -141,21 +141,30 @@ export async function addItemToCart(userIdOrSessionId: string, input: AddToCartI
       ? variant.stockAvailable
       : variant.stockSaleAvailable;
 
+  const isPreOrderItem =
+    itemType === ItemType.SALE &&
+    Boolean(variant.isPreOrder) &&
+    effectiveSaleAvailable < requestedQuantity;
+
   if (itemType === ItemType.RENTAL) {
     if (effectiveRentAvailable < requestedQuantity) {
       throw new Error(`Only ${effectiveRentAvailable} rental units available for ${variant.product.name}.`);
     }
   } else {
-    if (effectiveSaleAvailable < requestedQuantity) {
+    if (!isPreOrderItem && effectiveSaleAvailable < requestedQuantity) {
       throw new Error(`Only ${effectiveSaleAvailable} items available for sale for ${variant.product.name}.`);
     }
   }
+
+  const shipDate = isPreOrderItem ? variant.preOrderShipDate : null;
 
   if (existingItem) {
     await prisma.cartItem.update({
       where: { id: existingItem.id },
       data: {
         quantity: requestedQuantity,
+        isPreOrder: isPreOrderItem,
+        preOrderShipDate: shipDate,
         rentStartDate: rentStart || existingItem.rentStartDate,
         rentEndDate: rentEnd || existingItem.rentEndDate,
       },
@@ -167,6 +176,8 @@ export async function addItemToCart(userIdOrSessionId: string, input: AddToCartI
         variantId: input.variantId,
         type: itemType,
         quantity: input.quantity,
+        isPreOrder: isPreOrderItem,
+        preOrderShipDate: shipDate,
         rentStartDate: rentStart,
         rentEndDate: rentEnd,
       },
@@ -183,9 +194,40 @@ export async function updateCartItemQuantity(cartItemId: string, quantity: numbe
     });
   }
 
+  const existingItem = await prisma.cartItem.findUnique({
+    where: { id: cartItemId },
+    include: { variant: true },
+  });
+
+  if (!existingItem) {
+    throw new Error('Cart item not found.');
+  }
+
+  let isPreOrder = existingItem.isPreOrder;
+  let preOrderShipDate = existingItem.preOrderShipDate;
+
+  if (existingItem.type === ItemType.SALE && existingItem.variant) {
+    const effectiveSaleAvailable =
+      existingItem.variant.stockRentAvailable === 0 &&
+      existingItem.variant.stockSaleAvailable === 0 &&
+      existingItem.variant.stockAvailable > 0
+        ? existingItem.variant.stockAvailable
+        : existingItem.variant.stockSaleAvailable;
+
+    const isPreOrderItem =
+      Boolean(existingItem.variant.isPreOrder) && effectiveSaleAvailable < quantity;
+
+    isPreOrder = isPreOrderItem;
+    preOrderShipDate = isPreOrderItem ? existingItem.variant.preOrderShipDate : null;
+  }
+
   return prisma.cartItem.update({
     where: { id: cartItemId },
-    data: { quantity },
+    data: {
+      quantity,
+      isPreOrder,
+      preOrderShipDate,
+    },
   });
 }
 
@@ -223,6 +265,8 @@ export async function mergeGuestCartToUser(guestSessionId: string, loggedInUserI
         where: { id: existing.id },
         data: {
           quantity: existing.quantity + item.quantity,
+          isPreOrder: item.isPreOrder,
+          preOrderShipDate: item.preOrderShipDate,
         },
       });
     } else {
@@ -232,6 +276,8 @@ export async function mergeGuestCartToUser(guestSessionId: string, loggedInUserI
           variantId: item.variantId,
           type: item.type,
           quantity: item.quantity,
+          isPreOrder: item.isPreOrder,
+          preOrderShipDate: item.preOrderShipDate,
           rentStartDate: item.rentStartDate,
           rentEndDate: item.rentEndDate,
         },

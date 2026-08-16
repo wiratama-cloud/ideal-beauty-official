@@ -28,10 +28,18 @@ import {
   reorderNavCategories,
   resetDefaultNavCategories,
 } from '@/lib/services/nav-category';
-import { RentalStatus } from '@prisma/client';
+import { RentalStatus, OrderStatus, Prisma } from '@prisma/client';
 import { recordAuditLog, getAuditLogs } from '@/lib/services/audit';
+import { serializeProduct, serializeProductVariant } from '@/lib/utils/serialization';
+import {
+  getAdminAccessList,
+  addAdminAccess,
+  removeAdminAccess,
+  requireAdminAccess,
+} from '@/lib/services/access';
 
 export async function logExpenseAction(data: CreateExpenseInput) {
+  await requireAdminAccess();
   const result = await createExpenseEntry(data);
   await recordAuditLog({
     action: 'LOG_EXPENSE',
@@ -48,14 +56,44 @@ export async function logExpenseAction(data: CreateExpenseInput) {
 }
 
 export async function exportLedgerCSVAction() {
+  await requireAdminAccess();
   return generateLedgerCSV();
 }
 
 export async function updateRentalStatusAction(orderItemId: string, rentalStatus: 'OUT_WITH_CUSTOMER' | 'RETURNED' | 'LATE' | 'DAMAGED') {
+  await requireAdminAccess();
   const updated = await prisma.orderItem.update({
     where: { id: orderItemId },
     data: {
       rentalStatus: RentalStatus[rentalStatus],
+    },
+    include: {
+      variant: {
+        include: {
+          product: true,
+        },
+      },
+      order: {
+        include: {
+          items: {
+            include: {
+              variant: {
+                include: {
+                  product: true,
+                },
+              },
+            },
+          },
+          payments: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+          shippingAddress: true,
+          user: true,
+          voucher: true,
+        },
+      },
     },
   });
 
@@ -66,14 +104,41 @@ export async function updateRentalStatusAction(orderItemId: string, rentalStatus
     details: { rentalStatus },
   });
 
-  revalidatePath('/admin/orders');
+  safeRevalidatePath('/admin/orders');
   return {
     ...updated,
-    priceAtTime: updated.priceAtTime ? Number(updated.priceAtTime) : null,
+    priceAtTime: updated.priceAtTime !== undefined && updated.priceAtTime !== null ? Number(updated.priceAtTime) : null,
+    variant: updated.variant
+      ? {
+          ...updated.variant,
+          priceSale:
+            updated.variant.priceSale !== undefined && updated.variant.priceSale !== null
+              ? Number(updated.variant.priceSale)
+              : null,
+          priceRent:
+            updated.variant.priceRent !== undefined && updated.variant.priceRent !== null
+              ? Number(updated.variant.priceRent)
+              : null,
+          compareAtPrice:
+            updated.variant.compareAtPrice !== undefined && updated.variant.compareAtPrice !== null
+              ? Number(updated.variant.compareAtPrice)
+              : null,
+          costPrice:
+            updated.variant.costPrice !== undefined && updated.variant.costPrice !== null
+              ? Number(updated.variant.costPrice)
+              : null,
+          purchaseCost:
+            updated.variant.purchaseCost !== undefined && updated.variant.purchaseCost !== null
+              ? Number(updated.variant.purchaseCost)
+              : null,
+        }
+      : null,
+    order: updated.order ? serializeOrder(updated.order) : null,
   };
 }
 
 export async function getAllOrdersAdminAction() {
+  await requireAdminAccess();
   const orders = await prisma.order.findMany({
     include: {
       items: {
@@ -102,7 +167,8 @@ export async function getAllOrdersAdminAction() {
   return orders.map((order) => serializeOrder(order));
 }
 
-export async function updateOrderStatusAction(orderId: string, status: any) {
+export async function updateOrderStatusAction(orderId: string, status: OrderStatus) {
+  await requireAdminAccess();
   const order = await updateOrderStatus(orderId, status);
   await recordAuditLog({
     action: 'UPDATE_ORDER_STATUS',
@@ -110,11 +176,12 @@ export async function updateOrderStatusAction(orderId: string, status: any) {
     entityId: orderId,
     details: { status },
   });
-  revalidatePath('/admin/orders');
+  safeRevalidatePath('/admin/orders');
   return order;
 }
 
 export async function updateOrderShippingInfoAction(orderId: string, courierName?: string, trackingNumber?: string) {
+  await requireAdminAccess();
   const order = await updateOrderShippingInfo(orderId, courierName, trackingNumber);
   await recordAuditLog({
     action: 'UPDATE_ORDER_SHIPPING_INFO',
@@ -122,16 +189,18 @@ export async function updateOrderShippingInfoAction(orderId: string, courierName
     entityId: orderId,
     details: { courierName, trackingNumber },
   });
-  revalidatePath('/admin/orders');
+  safeRevalidatePath('/admin/orders');
   return order;
 }
 
 // Landing Section Actions
 export async function getHeroBannerAction() {
+  await requireAdminAccess();
   return getHeroBannerData();
 }
 
 export async function updateHeroBannerAction(data: HeroBannerData) {
+  await requireAdminAccess();
   const res = await updateHeroBannerData(data);
   await recordAuditLog({
     action: 'UPDATE_HERO_BANNER',
@@ -145,10 +214,12 @@ export async function updateHeroBannerAction(data: HeroBannerData) {
 }
 
 export async function getAdminLandingSectionsAction() {
+  await requireAdminAccess();
   return getLandingSections(false);
 }
 
 export async function getAdminProductsAction() {
+  await requireAdminAccess();
   return prisma.product.findMany({
     where: { isActive: true },
     select: {
@@ -163,6 +234,7 @@ export async function getAdminProductsAction() {
 }
 
 export async function createLandingSectionAction(data: CreateSectionInput) {
+  await requireAdminAccess();
   const res = await createLandingSection(data);
   if (res) {
     await recordAuditLog({
@@ -178,6 +250,7 @@ export async function createLandingSectionAction(data: CreateSectionInput) {
 }
 
 export async function updateLandingSectionAction(id: string, data: Partial<CreateSectionInput>) {
+  await requireAdminAccess();
   const res = await updateLandingSection(id, data);
   if (res) {
     await recordAuditLog({
@@ -193,6 +266,7 @@ export async function updateLandingSectionAction(id: string, data: Partial<Creat
 }
 
 export async function deleteLandingSectionAction(id: string) {
+  await requireAdminAccess();
   const res = await deleteLandingSection(id);
   if (res) {
     await recordAuditLog({
@@ -207,6 +281,7 @@ export async function deleteLandingSectionAction(id: string) {
 }
 
 export async function createLandingSectionItemAction(data: CreateSectionItemInput) {
+  await requireAdminAccess();
   const res = await createLandingSectionItem(data);
   if (res) {
     await recordAuditLog({
@@ -222,6 +297,7 @@ export async function createLandingSectionItemAction(data: CreateSectionItemInpu
 }
 
 export async function updateLandingSectionItemAction(id: string, data: Partial<CreateSectionItemInput>) {
+  await requireAdminAccess();
   const res = await updateLandingSectionItem(id, data);
   if (res) {
     await recordAuditLog({
@@ -237,6 +313,7 @@ export async function updateLandingSectionItemAction(id: string, data: Partial<C
 }
 
 export async function deleteLandingSectionItemAction(id: string) {
+  await requireAdminAccess();
   const res = await deleteLandingSectionItem(id);
   if (res) {
     await recordAuditLog({
@@ -252,6 +329,7 @@ export async function deleteLandingSectionItemAction(id: string) {
 
 // Inventory Management Actions
 export async function getAdminInventoryAction() {
+  await requireAdminAccess();
   const products = await prisma.product.findMany({
     include: {
       variants: {
@@ -261,20 +339,11 @@ export async function getAdminInventoryAction() {
     orderBy: { name: 'asc' },
   });
 
-  return products.map((product) => ({
-    ...product,
-    variants: product.variants.map((variant) => ({
-      ...variant,
-      priceSale: variant.priceSale ? Number(variant.priceSale) : null,
-      priceRent: variant.priceRent ? Number(variant.priceRent) : null,
-      compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
-      costPrice: variant.costPrice ? Number(variant.costPrice) : null,
-      purchaseCost: variant.purchaseCost ? Number(variant.purchaseCost) : null,
-    })),
-  }));
+  return products.map((product) => serializeProduct(product));
 }
 
 export async function adjustInventoryStockAction(data: RecordStockAdjustmentInput) {
+  await requireAdminAccess();
   const result = await recordStockAdjustment(data);
   await recordAuditLog({
     action: 'ADJUST_INVENTORY_STOCK',
@@ -291,6 +360,7 @@ export async function adjustInventoryStockAction(data: RecordStockAdjustmentInpu
 }
 
 export async function getInventoryTransactionsAction(variantId?: string) {
+  await requireAdminAccess();
   return getInventoryTransactions(variantId);
 }
 
@@ -303,6 +373,7 @@ export async function updateVariantStockAction(
   reason?: string,
   cost?: number | null
 ) {
+  await requireAdminAccess();
   const saleTotal = Math.max(0, Number(stockSaleTotal) || 0);
   const saleAvailable = Math.max(0, Number(stockSaleAvailable) || 0);
   const rentTotal = Math.max(0, Number(stockRentTotal) || 0);
@@ -354,21 +425,19 @@ export async function updateVariantStockAction(
   revalidatePath('/products');
   revalidatePath('/');
 
-  return {
-    ...updated,
-    priceSale: updated.priceSale ? Number(updated.priceSale) : null,
-    priceRent: updated.priceRent ? Number(updated.priceRent) : null,
-    compareAtPrice: updated.compareAtPrice ? Number(updated.compareAtPrice) : null,
-    costPrice: updated.costPrice ? Number(updated.costPrice) : null,
-    purchaseCost: updated.purchaseCost ? Number(updated.purchaseCost) : null,
-  };
+  return serializeProductVariant(updated);
 }
 
 // Full Product & Variant Management Actions
 export interface VariantInput {
   id?: string;
   sku: string;
-  attributes: Record<string, any>;
+  skuSale?: string | null;
+  skuRent?: string | null;
+  isPreOrder?: boolean;
+  preOrderShipDate?: Date | string | null;
+  preOrderNote?: string | null;
+  attributes: Prisma.InputJsonObject;
   priceSale?: number | null;
   priceRent?: number | null;
   compareAtPrice?: number | null;
@@ -393,6 +462,7 @@ export interface CreateProductInput {
 }
 
 export async function getFullAdminProductsAction() {
+  await requireAdminAccess();
   const products = await prisma.product.findMany({
     include: {
       variants: {
@@ -402,20 +472,11 @@ export async function getFullAdminProductsAction() {
     orderBy: { createdAt: 'desc' },
   });
 
-  return products.map((product) => ({
-    ...product,
-    variants: product.variants.map((variant) => ({
-      ...variant,
-      priceSale: variant.priceSale ? Number(variant.priceSale) : null,
-      priceRent: variant.priceRent ? Number(variant.priceRent) : null,
-      compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
-      costPrice: variant.costPrice ? Number(variant.costPrice) : null,
-      purchaseCost: variant.purchaseCost ? Number(variant.purchaseCost) : null,
-    })),
-  }));
+  return products.map((product) => serializeProduct(product));
 }
 
 export async function createProductAction(data: CreateProductInput) {
+  await requireAdminAccess();
   const cleanSlug = data.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
   const existingSlug = await prisma.product.findUnique({ where: { slug: cleanSlug } });
@@ -435,9 +496,16 @@ export async function createProductAction(data: CreateProductInput) {
           const saleAvailable = Math.max(0, Number(v.stockSaleAvailable ?? v.stockAvailable) || 0);
           const rentTotal = Math.max(0, Number(v.stockRentTotal) || 0);
           const rentAvailable = Math.max(0, Number(v.stockRentAvailable) || 0);
+          const shipDate = v.preOrderShipDate ? new Date(v.preOrderShipDate) : null;
+          const validShipDate = shipDate && !isNaN(shipDate.getTime()) ? shipDate : null;
           return {
             sku: v.sku.trim(),
-            attributes: v.attributes || { size: 'Free Size' },
+            skuSale: v.skuSale ? v.skuSale.trim() : null,
+            skuRent: v.skuRent ? v.skuRent.trim() : null,
+            isPreOrder: Boolean(v.isPreOrder),
+            preOrderShipDate: validShipDate,
+            preOrderNote: v.preOrderNote ? v.preOrderNote.trim() : null,
+            attributes: (v.attributes || { size: 'Free Size' }) as Prisma.InputJsonObject,
             priceSale: v.priceSale !== undefined && v.priceSale !== null ? v.priceSale : null,
             priceRent: v.priceRent !== undefined && v.priceRent !== null ? v.priceRent : null,
             compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : null,
@@ -456,10 +524,10 @@ export async function createProductAction(data: CreateProductInput) {
     include: { variants: true },
   });
 
-  revalidatePath('/admin/products');
-  revalidatePath('/admin/inventory');
-  revalidatePath('/products');
-  revalidatePath('/');
+  safeRevalidatePath('/admin/products');
+  safeRevalidatePath('/admin/inventory');
+  safeRevalidatePath('/products');
+  safeRevalidatePath('/');
 
   await recordAuditLog({
     action: 'CREATE_PRODUCT',
@@ -468,20 +536,11 @@ export async function createProductAction(data: CreateProductInput) {
     details: { name: data.name, slug: data.slug, category: data.category },
   });
 
-  return {
-    ...product,
-    variants: product.variants.map((v) => ({
-      ...v,
-      priceSale: v.priceSale ? Number(v.priceSale) : null,
-      priceRent: v.priceRent ? Number(v.priceRent) : null,
-      compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : null,
-      costPrice: v.costPrice ? Number(v.costPrice) : null,
-      purchaseCost: v.purchaseCost ? Number(v.purchaseCost) : null,
-    })),
-  };
+  return serializeProduct(product);
 }
 
 export async function updateProductAction(productId: string, data: CreateProductInput) {
+  await requireAdminAccess();
   const cleanSlug = data.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
   const existingWithSlug = await prisma.product.findUnique({ where: { slug: cleanSlug } });
@@ -518,10 +577,17 @@ export async function updateProductAction(productId: string, data: CreateProduct
       const saleAvailable = Math.max(0, Number(v.stockSaleAvailable ?? v.stockAvailable) || 0);
       const rentTotal = Math.max(0, Number(v.stockRentTotal) || 0);
       const rentAvailable = Math.max(0, Number(v.stockRentAvailable) || 0);
+      const shipDate = v.preOrderShipDate ? new Date(v.preOrderShipDate) : null;
+      const validShipDate = shipDate && !isNaN(shipDate.getTime()) ? shipDate : null;
 
       const variantPayload = {
         sku: v.sku.trim(),
-        attributes: v.attributes || { size: 'Free Size' },
+        skuSale: v.skuSale ? v.skuSale.trim() : null,
+        skuRent: v.skuRent ? v.skuRent.trim() : null,
+        isPreOrder: Boolean(v.isPreOrder),
+        preOrderShipDate: validShipDate,
+        preOrderNote: v.preOrderNote ? v.preOrderNote.trim() : null,
+        attributes: (v.attributes || { size: 'Free Size' }) as Prisma.InputJsonObject,
         priceSale: v.priceSale !== undefined && v.priceSale !== null ? v.priceSale : null,
         priceRent: v.priceRent !== undefined && v.priceRent !== null ? v.priceRent : null,
         compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : null,
@@ -555,7 +621,7 @@ export async function updateProductAction(productId: string, data: CreateProduct
       if (!incomingIds.has(existingId)) {
         try {
           await tx.productVariant.delete({ where: { id: existingId } });
-        } catch (e) {
+        } catch {
           // If referenced by order or cart, mark stock as 0
           await tx.productVariant.update({
             where: { id: existingId },
@@ -575,10 +641,10 @@ export async function updateProductAction(productId: string, data: CreateProduct
     return updatedProduct;
   });
 
-  revalidatePath('/admin/products');
-  revalidatePath('/admin/inventory');
-  revalidatePath('/products');
-  revalidatePath('/');
+  safeRevalidatePath('/admin/products');
+  safeRevalidatePath('/admin/inventory');
+  safeRevalidatePath('/products');
+  safeRevalidatePath('/');
 
   await recordAuditLog({
     action: 'UPDATE_PRODUCT',
@@ -587,18 +653,24 @@ export async function updateProductAction(productId: string, data: CreateProduct
     details: { name: data.name, slug: data.slug, category: data.category },
   });
 
-  return result;
+  const fullProduct = await prisma.product.findUnique({
+    where: { id: productId },
+    include: { variants: { orderBy: { sku: 'asc' } } },
+  });
+
+  return fullProduct ? serializeProduct(fullProduct) : result;
 }
 
 function safeRevalidatePath(path: string) {
   try {
     revalidatePath(path);
-  } catch (err) {
+  } catch {
     // revalidatePath is ignored outside Next.js request context (e.g. in unit tests)
   }
 }
 
 export async function deleteProductAction(productId: string) {
+  await requireAdminAccess();
   if (!productId) {
     return { success: false, error: 'Product ID is required' };
   }
@@ -623,7 +695,7 @@ export async function deleteProductAction(productId: string) {
       where: { id: productId },
     });
     deleted = true;
-  } catch (err) {
+  } catch {
     // If delete fails due to relations (e.g. past orders), deactivate
     try {
       await prisma.product.update({
@@ -657,6 +729,7 @@ export async function deleteProductAction(productId: string) {
 }
 
 export async function toggleProductActiveAction(productId: string, isActive: boolean) {
+  await requireAdminAccess();
   const updated = await prisma.product.update({
     where: { id: productId },
     data: { isActive },
@@ -669,16 +742,88 @@ export async function toggleProductActiveAction(productId: string, isActive: boo
     details: { isActive },
   });
 
-  revalidatePath('/admin/products');
-  revalidatePath('/admin/inventory');
-  revalidatePath('/products');
-  revalidatePath('/');
+  safeRevalidatePath('/admin/products');
+  safeRevalidatePath('/admin/inventory');
+  safeRevalidatePath('/products');
+  safeRevalidatePath('/');
 
   return updated;
 }
 
+export async function bulkToggleProductActiveAction(productIds: string[], isActive: boolean) {
+  await requireAdminAccess();
+  if (!productIds || productIds.length === 0) {
+    return { success: true, count: 0 };
+  }
+
+  const result = await prisma.product.updateMany({
+    where: { id: { in: productIds } },
+    data: { isActive },
+  });
+
+  await recordAuditLog({
+    action: 'BULK_TOGGLE_PRODUCT_ACTIVE',
+    entity: 'PRODUCT',
+    entityId: productIds.join(','),
+    details: { productIds, isActive, count: result.count },
+  });
+
+  safeRevalidatePath('/admin/products');
+  safeRevalidatePath('/admin/inventory');
+  safeRevalidatePath('/products');
+  safeRevalidatePath('/');
+
+  return { success: true, count: result.count };
+}
+
+export async function bulkDeleteProductsAction(productIds: string[]) {
+  await requireAdminAccess();
+  if (!productIds || productIds.length === 0) {
+    return { success: true, deletedCount: 0, deactivatedCount: 0 };
+  }
+
+  let deletedCount = 0;
+  let deactivatedCount = 0;
+
+  for (const id of productIds) {
+    if (!id) continue;
+    const existing = await prisma.product.findUnique({ where: { id } });
+    if (!existing) continue;
+
+    try {
+      await prisma.product.delete({ where: { id } });
+      deletedCount++;
+    } catch {
+      try {
+        await prisma.product.update({
+          where: { id },
+          data: { isActive: false },
+        });
+        deactivatedCount++;
+      } catch (updateErr) {
+        console.error(`Failed to deactivate product ${id} after delete failed:`, updateErr);
+      }
+    }
+  }
+
+  await recordAuditLog({
+    action: 'BULK_DELETE_PRODUCTS',
+    entity: 'PRODUCT',
+    entityId: productIds.join(','),
+    details: { productIds, deletedCount, deactivatedCount },
+  });
+
+  safeRevalidatePath('/admin/products');
+  safeRevalidatePath('/admin/inventory');
+  safeRevalidatePath('/products');
+  safeRevalidatePath('/');
+
+  return { success: true, deletedCount, deactivatedCount };
+}
+
 // Voucher Actions
 export async function createVoucherAction(data: CreateVoucherInput) {
+  await requireAdminAccess();
   const result = await createVoucher(data);
   await recordAuditLog({
     action: 'CREATE_VOUCHER',
@@ -691,10 +836,12 @@ export async function createVoucherAction(data: CreateVoucherInput) {
 }
 
 export async function getVouchersAction() {
+  await requireAdminAccess();
   return getVouchers();
 }
 
 export async function toggleVoucherStatusAction(id: string) {
+  await requireAdminAccess();
   const result = await toggleVoucherStatus(id);
   await recordAuditLog({
     action: 'TOGGLE_VOUCHER_STATUS',
@@ -706,6 +853,7 @@ export async function toggleVoucherStatusAction(id: string) {
 }
 
 export async function deleteVoucherAction(id: string) {
+  await requireAdminAccess();
   const result = await deleteVoucher(id);
   await recordAuditLog({
     action: 'DELETE_VOUCHER',
@@ -717,6 +865,7 @@ export async function deleteVoucherAction(id: string) {
 }
 
 export async function getCustomersAction() {
+  await requireAdminAccess();
   return prisma.user.findMany({
     select: {
       id: true,
@@ -732,6 +881,7 @@ export async function getCustomersAction() {
 
 // Navigation Category Actions
 export async function getAdminNavCategoriesAction(activeOnly = false) {
+  await requireAdminAccess();
   return getNavCategories(activeOnly);
 }
 
@@ -743,6 +893,7 @@ export async function createNavCategoryAction(data: {
   parentId?: string | null;
   imageUrl?: string | null;
 }) {
+  await requireAdminAccess();
   const result = await createNavCategory(data);
   await recordAuditLog({
     action: 'CREATE_NAV_CATEGORY',
@@ -768,6 +919,7 @@ export async function updateNavCategoryAction(
     imageUrl: string | null;
   }>
 ) {
+  await requireAdminAccess();
   const result = await updateNavCategory(id, data);
   await recordAuditLog({
     action: 'UPDATE_NAV_CATEGORY',
@@ -783,6 +935,7 @@ export async function updateNavCategoryAction(
 }
 
 export async function deleteNavCategoryAction(id: string) {
+  await requireAdminAccess();
   const result = await deleteNavCategory(id);
   await recordAuditLog({
     action: 'DELETE_NAV_CATEGORY',
@@ -797,6 +950,7 @@ export async function deleteNavCategoryAction(id: string) {
 }
 
 export async function reorderNavCategoriesAction(orderedIds: string[]) {
+  await requireAdminAccess();
   await reorderNavCategories(orderedIds);
   await recordAuditLog({
     action: 'REORDER_NAV_CATEGORIES',
@@ -812,6 +966,7 @@ export async function reorderNavCategoriesAction(orderedIds: string[]) {
 }
 
 export async function resetDefaultNavCategoriesAction() {
+  await requireAdminAccess();
   const result = await resetDefaultNavCategories();
   await recordAuditLog({
     action: 'RESET_NAV_CATEGORIES',
@@ -831,5 +986,38 @@ export async function getAuditLogsAction(params?: {
   limit?: number;
   offset?: number;
 }) {
+  await requireAdminAccess();
   return getAuditLogs(params);
+}
+
+// Admin Access Control Actions
+export async function getAdminAccessListAction() {
+  await requireAdminAccess();
+  return getAdminAccessList();
+}
+
+export async function addAdminAccessAction(email: string) {
+  const adminUser = await requireAdminAccess();
+  const result = await addAdminAccess(email, adminUser.email || 'ADMIN');
+  await recordAuditLog({
+    action: 'ADD_ADMIN_ACCESS',
+    entity: 'ADMIN_ACCESS',
+    entityId: result.id,
+    details: { email, addedBy: adminUser.email },
+  });
+  safeRevalidatePath('/admin/access');
+  return result;
+}
+
+export async function removeAdminAccessAction(idOrEmail: string) {
+  const adminUser = await requireAdminAccess();
+  const result = await removeAdminAccess(idOrEmail, adminUser.email || undefined);
+  await recordAuditLog({
+    action: 'REMOVE_ADMIN_ACCESS',
+    entity: 'ADMIN_ACCESS',
+    entityId: idOrEmail,
+    details: { removedEmail: result.email, removedBy: adminUser.email },
+  });
+  safeRevalidatePath('/admin/access');
+  return result;
 }

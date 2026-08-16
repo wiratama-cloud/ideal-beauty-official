@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   Store,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface AdminHeaderProps {
@@ -34,7 +35,8 @@ interface AdminHeaderProps {
     | 'calendar'
     | 'vouchers'
     | 'ledger'
-    | 'audit-logs';
+    | 'audit-logs'
+    | 'access';
   action?: React.ReactNode;
   children?: React.ReactNode;
 }
@@ -134,6 +136,12 @@ const NAV_GROUPS: NavGroup[] = [
         label: 'Audit Logs',
         href: '/admin/audit-logs',
         icon: ClipboardList,
+      },
+      {
+        id: 'access',
+        label: 'Access Control',
+        href: '/admin/access',
+        icon: ShieldCheck,
       },
     ],
   },

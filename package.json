@@ -12,6 +12,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "npx tsx prisma/seed.ts",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
     "test": "USE_IN_MEMORY_DB=true vitest run"
   },
   "prisma": {
