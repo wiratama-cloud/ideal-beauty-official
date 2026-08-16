@@ -202,44 +202,53 @@ export default function TopFilterBar({ totalResults }: TopFilterBarProps) {
 
       {/* Active Filter Badges */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-neutral-100 text-xs">
-          <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-400">
+        <div className="flex flex-wrap items-center gap-2 pt-2.5 border-t border-neutral-100 text-xs">
+          <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-500 font-medium">
             Active Filters:
           </span>
 
           {currentCategory && (
-            <span className="inline-flex items-center bg-neutral-100 text-neutral-800 px-2.5 py-1 rounded-full text-xs font-medium border border-neutral-200">
-              Category: <strong className="ml-1 font-semibold">{currentCategory}</strong>
+            <span className="inline-flex items-center bg-neutral-900 text-white pl-3 pr-1.5 py-1.5 rounded-full text-xs font-medium shadow-xs border border-neutral-800 transition-all">
+              <span className="text-neutral-400 text-[10px] uppercase tracking-wider font-mono mr-1">Category:</span>
+              <strong className="font-semibold text-white tracking-wide">{currentCategory}</strong>
               <button
+                type="button"
                 onClick={() => updateSearchParam('category', null)}
-                className="ml-1.5 text-neutral-400 hover:text-black"
+                className="ml-2 p-1 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-full cursor-pointer transition-colors focus:outline-none flex items-center justify-center min-w-[28px] min-h-[28px]"
                 aria-label="Remove category filter"
+                title="Remove category filter"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </span>
           )}
 
           {currentType && (
-            <span className="inline-flex items-center bg-neutral-100 text-neutral-800 px-2.5 py-1 rounded-full text-xs font-medium border border-neutral-200">
-              Mode: <strong className="ml-1 font-semibold">{currentType === 'SALE' ? 'Purchase Only' : 'Bespoke Rental'}</strong>
+            <span className="inline-flex items-center bg-neutral-100 text-neutral-800 pl-3 pr-1.5 py-1.5 rounded-full text-xs font-medium border border-neutral-200 transition-all">
+              <span className="text-neutral-500 text-[10px] uppercase tracking-wider font-mono mr-1">Mode:</span>
+              <strong className="font-semibold text-neutral-900">
+                {currentType === 'SALE' ? 'Purchase Only' : 'Bespoke Rental'}
+              </strong>
               <button
+                type="button"
                 onClick={() => updateSearchParam('type', null)}
-                className="ml-1.5 text-neutral-400 hover:text-black"
+                className="ml-2 p-1 text-neutral-400 hover:text-black hover:bg-neutral-200 rounded-full cursor-pointer transition-colors focus:outline-none flex items-center justify-center min-w-[28px] min-h-[28px]"
                 aria-label="Remove acquisition mode filter"
+                title="Remove acquisition mode filter"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </span>
           )}
 
           {(currentMinPrice || currentMaxPrice) && (
-            <span className="inline-flex items-center bg-neutral-100 text-neutral-800 px-2.5 py-1 rounded-full text-xs font-medium border border-neutral-200">
-              Price:{' '}
-              <strong className="ml-1 font-semibold">
+            <span className="inline-flex items-center bg-neutral-100 text-neutral-800 pl-3 pr-1.5 py-1.5 rounded-full text-xs font-medium border border-neutral-200 transition-all">
+              <span className="text-neutral-500 text-[10px] uppercase tracking-wider font-mono mr-1">Price:</span>
+              <strong className="font-semibold text-neutral-900">
                 {currentMinPrice ? `$${currentMinPrice}` : '$0'} - {currentMaxPrice ? `$${currentMaxPrice}` : 'Any'}
               </strong>
               <button
+                type="button"
                 onClick={() => {
                   setMinPriceInput('');
                   setMaxPriceInput('');
@@ -248,26 +257,30 @@ export default function TopFilterBar({ totalResults }: TopFilterBarProps) {
                   params.delete('maxPrice');
                   router.push(`/products?${params.toString()}`);
                 }}
-                className="ml-1.5 text-neutral-400 hover:text-black"
+                className="ml-2 p-1 text-neutral-400 hover:text-black hover:bg-neutral-200 rounded-full cursor-pointer transition-colors focus:outline-none flex items-center justify-center min-w-[28px] min-h-[28px]"
                 aria-label="Remove price range filter"
+                title="Remove price range filter"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </span>
           )}
 
           {currentQuery && (
-            <span className="inline-flex items-center bg-neutral-100 text-neutral-800 px-2.5 py-1 rounded-full text-xs font-medium border border-neutral-200">
-              Query: <strong className="ml-1 font-semibold">&quot;{currentQuery}&quot;</strong>
+            <span className="inline-flex items-center bg-neutral-100 text-neutral-800 pl-3 pr-1.5 py-1.5 rounded-full text-xs font-medium border border-neutral-200 transition-all">
+              <span className="text-neutral-500 text-[10px] uppercase tracking-wider font-mono mr-1">Query:</span>
+              <strong className="font-semibold text-neutral-900">&quot;{currentQuery}&quot;</strong>
               <button
+                type="button"
                 onClick={() => {
                   setQueryInput('');
                   updateSearchParam('query', null);
                 }}
-                className="ml-1.5 text-neutral-400 hover:text-black"
+                className="ml-2 p-1 text-neutral-400 hover:text-black hover:bg-neutral-200 rounded-full cursor-pointer transition-colors focus:outline-none flex items-center justify-center min-w-[28px] min-h-[28px]"
                 aria-label="Remove search query filter"
+                title="Remove search query filter"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </span>
           )}

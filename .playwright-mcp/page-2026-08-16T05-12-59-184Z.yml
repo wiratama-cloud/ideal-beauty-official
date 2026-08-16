@@ -1,0 +1,120 @@
+- generic [ref=f15e1]:
+  - generic [ref=f15e2]: COMPLIMENTARY EXPRESS SHIPPING ACROSS INDONESIA • RENTAL & BESPOKE TAILORING AVAILABLE
+  - banner [ref=f15e5]:
+    - generic [ref=f15e7]:
+      - button "Toggle menu" [active] [ref=f15e9] [cursor=pointer]
+      - link "IDEAL BEAUTY OFFICIAL LUXURY" [ref=f15e12] [cursor=pointer]:
+        - /url: /
+        - text: IDEAL BEAUTY
+        - generic [ref=f15e13]: OFFICIAL LUXURY
+      - generic [ref=f15e14]:
+        - link "Wishlist" [ref=f15e15] [cursor=pointer]:
+          - /url: /account/wishlist
+        - link "Account Portal" [ref=f15e18] [cursor=pointer]:
+          - /url: /account
+        - button "Shopping Cart" [ref=f15e22] [cursor=pointer]
+    - generic [ref=f15e143]:
+      - generic [ref=f15e144]:
+        - textbox "Search products..." [ref=f15e148]
+        - button "Go" [ref=f15e149]
+      - navigation [ref=f15e150]:
+        - generic [ref=f15e152]:
+          - link "Parent Cat" [ref=f15e153] [cursor=pointer]:
+            - /url: /parent
+          - button "Toggle category" [ref=f15e154] [cursor=pointer]
+        - link "Admin Portal" [ref=f15e157] [cursor=pointer]:
+          - /url: /admin/dashboard
+  - main [ref=f15e26]:
+    - generic [ref=f15e27]:
+      - generic [ref=f15e28]:
+        - generic [ref=f15e29]: THE IDEAL BEAUTY CATALOGUE
+        - heading "All Luxury Collections" [level=1] [ref=f15e30]
+        - paragraph [ref=f15e31]: 0 Masterpieces Available
+      - generic [ref=f15e33]:
+        - generic [ref=f15e97]:
+          - button "Open all categories drawer" [ref=f15e98] [cursor=pointer]:
+            - generic [ref=f15e103]: All Categories
+          - button "All Collections" [ref=f15e105] [cursor=pointer]
+          - button "Parent Cat" [ref=f15e108] [cursor=pointer]
+          - button "Item Cat" [ref=f15e110] [cursor=pointer]
+        - main [ref=f15e36]:
+          - generic [ref=f15e112]:
+            - generic [ref=f15e113]: 0 Pieces Found
+            - generic [ref=f15e117]:
+              - generic [ref=f15e118]:
+                - generic [ref=f15e119]: Search Catalogue
+                - generic [ref=f15e120]:
+                  - textbox "Search pieces, fabrics..." [ref=f15e121]
+                  - button "Submit search" [ref=f15e122]
+              - generic [ref=f15e126]:
+                - generic [ref=f15e127]: Acquisition Mode
+                - generic [ref=f15e128]:
+                  - button "All" [ref=f15e129]
+                  - button "Purchase Only" [ref=f15e130]
+                  - button "Bespoke Rental" [ref=f15e131]
+              - generic [ref=f15e132]:
+                - generic [ref=f15e133]: Price Range ($)
+                - generic [ref=f15e134]:
+                  - spinbutton "Min" [ref=f15e135]
+                  - generic [ref=f15e136]: "-"
+                  - spinbutton "Max" [ref=f15e137]
+                  - button "Apply" [ref=f15e138]
+          - generic [ref=f15e38]:
+            - heading "No Masterpieces Found" [level=3] [ref=f15e39]
+            - paragraph [ref=f15e40]: We couldn't find any luxury pieces matching your exact criteria. Try adjusting your filters or search terms.
+  - contentinfo [ref=f15e41]:
+    - generic [ref=f15e42]:
+      - generic [ref=f15e43]:
+        - generic [ref=f15e44]:
+          - heading "IDEAL BEAUTY" [level=3] [ref=f15e45]
+          - paragraph [ref=f15e46]: Crafting bespoke luxury fashion, bridal lehengas, haute couture kaftans, and evening gowns inspired by South Asian craftsmanship and modern elegance.
+          - paragraph [ref=f15e47]: Jakarta • Bali • Worldwide Delivery
+        - generic [ref=f15e48]:
+          - heading "Collections" [level=4] [ref=f15e49]
+          - list [ref=f15e50]:
+            - listitem [ref=f15e51]:
+              - link "Haute Couture" [ref=f15e52] [cursor=pointer]:
+                - /url: /products?category=Haute+Couture
+            - listitem [ref=f15e53]:
+              - link "Bridal Collection" [ref=f15e54] [cursor=pointer]:
+                - /url: /products?category=Bridal+Wear
+            - listitem [ref=f15e55]:
+              - link "Ready To Wear" [ref=f15e56] [cursor=pointer]:
+                - /url: /products?category=Ready+To+Wear
+            - listitem [ref=f15e57]:
+              - link "Men's Collection" [ref=f15e58] [cursor=pointer]:
+                - /url: /products?category=Men
+            - listitem [ref=f15e59]:
+              - link "Luxury Rental Boutique" [ref=f15e60] [cursor=pointer]:
+                - /url: /products?type=RENTAL
+        - generic [ref=f15e61]:
+          - heading "Customer Care" [level=4] [ref=f15e62]
+          - list [ref=f15e63]:
+            - listitem [ref=f15e64]:
+              - link "Order Tracking" [ref=f15e65] [cursor=pointer]:
+                - /url: /account/orders
+            - listitem [ref=f15e66]:
+              - link "Saved Wishlist" [ref=f15e67] [cursor=pointer]:
+                - /url: /account/wishlist
+            - listitem [ref=f15e68]: QRIS & Virtual Account Payment
+            - listitem [ref=f15e69]: Bespoke Fitting Appointment
+            - listitem [ref=f15e70]:
+              - link "Admin Portal" [ref=f15e71] [cursor=pointer]:
+                - /url: /admin/dashboard
+        - generic [ref=f15e72]:
+          - heading "Privé Club" [level=4] [ref=f15e73]
+          - paragraph [ref=f15e74]: Subscribe to receive private invitations to runway releases and bespoke trunk shows.
+          - generic [ref=f15e75]:
+            - textbox "Enter email address" [ref=f15e76]
+            - button "Join" [ref=f15e77]
+      - generic [ref=f15e78]:
+        - paragraph [ref=f15e79]: © 2026 Ideal Beauty Official. All Rights Reserved.
+        - generic [ref=f15e80]:
+          - generic [ref=f15e81]: QRIS Integrated
+          - generic [ref=f15e82]: Bank Virtual Account
+          - generic [ref=f15e83]: Midtrans Secured
+  - generic [ref=f15e84]:
+    - paragraph [ref=f15e85]: Enable notifications to stay updated on your order status.
+    - button "Enable Notifications" [ref=f15e86]
+  - button "Open Next.js Dev Tools" [ref=f15e92] [cursor=pointer]
+  - alert [ref=f15e139]

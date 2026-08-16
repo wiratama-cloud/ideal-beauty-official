@@ -1,0 +1,118 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]: COMPLIMENTARY EXPRESS SHIPPING ACROSS INDONESIA • RENTAL & BESPOKE TAILORING AVAILABLE
+  - banner [ref=f5e5]:
+    - generic [ref=f5e7]:
+      - button "Toggle menu" [ref=f5e9] [cursor=pointer]
+      - link "IDEAL BEAUTY OFFICIAL LUXURY" [ref=f5e12] [cursor=pointer]:
+        - /url: /
+        - text: IDEAL BEAUTY
+        - generic [ref=f5e13]: OFFICIAL LUXURY
+      - generic [ref=f5e14]:
+        - link "Wishlist" [ref=f5e15] [cursor=pointer]:
+          - /url: /account/wishlist
+        - link "Account Portal" [ref=f5e18] [cursor=pointer]:
+          - /url: /account
+        - button "Shopping Cart" [ref=f5e22] [cursor=pointer]
+  - main [ref=f5e26]:
+    - generic [ref=f5e27]:
+      - generic [ref=f5e28]:
+        - generic [ref=f5e29]: THE IDEAL BEAUTY CATALOGUE
+        - heading "All Luxury Collections" [level=1] [ref=f5e30]
+        - paragraph [ref=f5e31]: 0 Masterpieces Available
+      - generic [ref=f5e33]:
+        - generic [ref=f5e36]:
+          - button "Open all categories drawer" [ref=f5e37] [cursor=pointer]:
+            - generic [ref=f5e42]: All Categories
+          - button "All Collections" [ref=f5e44] [cursor=pointer]
+          - button "Women" [ref=f5e47] [cursor=pointer]
+          - button "Bridal Wear" [ref=f5e49] [cursor=pointer]
+          - button "Haute Couture" [ref=f5e51] [cursor=pointer]
+          - button "Ready To Wear" [ref=f5e53] [cursor=pointer]
+          - button "Unstitched & Lawn" [ref=f5e55] [cursor=pointer]
+          - button "Accessories" [ref=f5e57] [cursor=pointer]
+          - button "Footwear" [ref=f5e59] [cursor=pointer]
+          - button "Men" [ref=f5e61] [cursor=pointer]
+          - button "Formals & Wedding" [ref=f5e63] [cursor=pointer]
+          - button "Men Kurta Sets" [ref=f5e65] [cursor=pointer]
+          - button "Jewelry & Accessories" [ref=f5e67] [cursor=pointer]
+          - button "Rentals" [ref=f5e69] [cursor=pointer]
+        - main [ref=f5e71]:
+          - generic [ref=f5e72]:
+            - generic [ref=f5e73]: 0 Pieces Found
+            - generic [ref=f5e77]:
+              - generic [ref=f5e78]:
+                - generic [ref=f5e79]: Search Catalogue
+                - generic [ref=f5e80]:
+                  - textbox "Search pieces, fabrics..." [ref=f5e81]
+                  - button "Submit search" [ref=f5e82]
+              - generic [ref=f5e86]:
+                - generic [ref=f5e87]: Acquisition Mode
+                - generic [ref=f5e88]:
+                  - button "All" [ref=f5e89]
+                  - button "Purchase Only" [ref=f5e90]
+                  - button "Bespoke Rental" [ref=f5e91]
+              - generic [ref=f5e92]:
+                - generic [ref=f5e93]: Price Range ($)
+                - generic [ref=f5e94]:
+                  - spinbutton "Min" [ref=f5e95]
+                  - generic [ref=f5e96]: "-"
+                  - spinbutton "Max" [ref=f5e97]
+                  - button "Apply" [ref=f5e98]
+          - generic [ref=f5e99]:
+            - heading "No Masterpieces Found" [level=3] [ref=f5e100]
+            - paragraph [ref=f5e101]: We couldn't find any luxury pieces matching your exact criteria. Try adjusting your filters or search terms.
+  - contentinfo [ref=f5e102]:
+    - generic [ref=f5e103]:
+      - generic [ref=f5e104]:
+        - generic [ref=f5e105]:
+          - heading "IDEAL BEAUTY" [level=3] [ref=f5e106]
+          - paragraph [ref=f5e107]: Crafting bespoke luxury fashion, bridal lehengas, haute couture kaftans, and evening gowns inspired by South Asian craftsmanship and modern elegance.
+          - paragraph [ref=f5e108]: Jakarta • Bali • Worldwide Delivery
+        - generic [ref=f5e109]:
+          - heading "Collections" [level=4] [ref=f5e110]
+          - list [ref=f5e111]:
+            - listitem [ref=f5e112]:
+              - link "Haute Couture" [ref=f5e113] [cursor=pointer]:
+                - /url: /products?category=Haute+Couture
+            - listitem [ref=f5e114]:
+              - link "Bridal Collection" [ref=f5e115] [cursor=pointer]:
+                - /url: /products?category=Bridal+Wear
+            - listitem [ref=f5e116]:
+              - link "Ready To Wear" [ref=f5e117] [cursor=pointer]:
+                - /url: /products?category=Ready+To+Wear
+            - listitem [ref=f5e118]:
+              - link "Men's Collection" [ref=f5e119] [cursor=pointer]:
+                - /url: /products?category=Men
+            - listitem [ref=f5e120]:
+              - link "Luxury Rental Boutique" [ref=f5e121] [cursor=pointer]:
+                - /url: /products?type=RENTAL
+        - generic [ref=f5e122]:
+          - heading "Customer Care" [level=4] [ref=f5e123]
+          - list [ref=f5e124]:
+            - listitem [ref=f5e125]:
+              - link "Order Tracking" [ref=f5e126] [cursor=pointer]:
+                - /url: /account/orders
+            - listitem [ref=f5e127]:
+              - link "Saved Wishlist" [ref=f5e128] [cursor=pointer]:
+                - /url: /account/wishlist
+            - listitem [ref=f5e129]: QRIS & Virtual Account Payment
+            - listitem [ref=f5e130]: Bespoke Fitting Appointment
+            - listitem [ref=f5e131]:
+              - link "Admin Portal" [ref=f5e132] [cursor=pointer]:
+                - /url: /admin/dashboard
+        - generic [ref=f5e133]:
+          - heading "Privé Club" [level=4] [ref=f5e134]
+          - paragraph [ref=f5e135]: Subscribe to receive private invitations to runway releases and bespoke trunk shows.
+          - generic [ref=f5e136]:
+            - textbox "Enter email address" [ref=f5e137]
+            - button "Join" [ref=f5e138]
+      - generic [ref=f5e139]:
+        - paragraph [ref=f5e140]: © 2026 Ideal Beauty Official. All Rights Reserved.
+        - generic [ref=f5e141]:
+          - generic [ref=f5e142]: QRIS Integrated
+          - generic [ref=f5e143]: Bank Virtual Account
+          - generic [ref=f5e144]: Midtrans Secured
+  - generic [ref=f5e145]:
+    - paragraph [ref=f5e146]: Enable notifications to stay updated on your order status.
+    - button "Enable Notifications" [ref=f5e147]
+  - button "Open Next.js Dev Tools" [ref=f5e153] [cursor=pointer]

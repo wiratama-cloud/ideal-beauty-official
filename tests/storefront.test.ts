@@ -629,6 +629,7 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
   });
 
   test('16. Customizable Header & Search Sidebar Navigation Collections', async () => {
+    await resetDefaultNavCategories();
     // 1. Fetch navigation categories (should auto-seed default category tree if empty)
     const initialNavs = await getNavCategories(false);
     expect(initialNavs.length).toBe(39);

@@ -52,11 +52,11 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pt-10 pb-12">
-        <div className="flex flex-col lg:flex-row gap-8 items-stretch min-h-[calc(100vh-16rem)]">
-          {/* Sidebar on left side of page */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pt-6 sm:pt-10 pb-12">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-stretch min-h-[calc(100vh-16rem)]">
+          {/* Category Navigation: Mobile Pills Bar & Desktop Sticky Sidebar */}
           <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 lg:sticky lg:top-24 z-30 h-auto lg:h-self-stretch">
-            <Suspense fallback={<div className="w-full bg-white p-6 h-full min-h-[400px] animate-pulse rounded-lg border border-neutral-200" />}>
+            <Suspense fallback={<div className="w-full bg-white p-3 lg:p-6 h-12 lg:h-full lg:min-h-[400px] animate-pulse rounded-xl border border-neutral-200" />}>
               <CategoryTreeSidebar categoriesTree={categoriesTree} />
             </Suspense>
           </div>

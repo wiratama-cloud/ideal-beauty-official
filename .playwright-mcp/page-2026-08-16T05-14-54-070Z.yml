@@ -1,0 +1,153 @@
+- generic [ref=f16e1]:
+  - generic [ref=f16e2]: COMPLIMENTARY EXPRESS SHIPPING ACROSS INDONESIA • RENTAL & BESPOKE TAILORING AVAILABLE
+  - banner [ref=f16e5]:
+    - generic [ref=f16e7]:
+      - button "Toggle menu" [active] [ref=f16e9] [cursor=pointer]
+      - link "IDEAL BEAUTY OFFICIAL LUXURY" [ref=f16e12] [cursor=pointer]:
+        - /url: /
+        - text: IDEAL BEAUTY
+        - generic [ref=f16e13]: OFFICIAL LUXURY
+      - generic [ref=f16e14]:
+        - link "Wishlist" [ref=f16e15] [cursor=pointer]:
+          - /url: /account/wishlist
+        - link "Account Portal" [ref=f16e18] [cursor=pointer]:
+          - /url: /account
+        - button "Shopping Cart" [ref=f16e22] [cursor=pointer]
+    - dialog "Mobile Navigation Menu" [ref=f16e173]:
+      - generic [ref=f16e174]:
+        - generic [ref=f16e175]: Menu
+        - button "Close menu" [ref=f16e176] [cursor=pointer]
+      - generic [ref=f16e181]:
+        - textbox "Search products..." [ref=f16e185]
+        - button "Go" [ref=f16e186] [cursor=pointer]
+      - navigation [ref=f16e188]:
+        - generic [ref=f16e190] [cursor=pointer]:
+          - generic [ref=f16e191]: Parent Cat
+          - button "Toggle Parent Cat" [ref=f16e192]
+        - link "Admin Portal" [ref=f16e195] [cursor=pointer]:
+          - /url: /admin/dashboard
+  - main [ref=f16e26]:
+    - generic [ref=f16e27]:
+      - generic [ref=f16e31]:
+        - generic [ref=f16e32]: SUMMER BRIDAL COLLECTION 2027
+        - heading "Royal Velvet & Silk Masterpieces" [level=1] [ref=f16e33]
+        - paragraph [ref=f16e34]: Hand-crafted royal couture ensembles available for purchase and bespoke rentals.
+        - generic [ref=f16e35]:
+          - link "Explore Bridal" [ref=f16e36] [cursor=pointer]:
+            - /url: /products?category=Bridal
+          - link "Reserve Outfit" [ref=f16e37] [cursor=pointer]:
+            - /url: /products?type=RENTAL
+      - generic [ref=f16e38]:
+        - generic [ref=f16e39]:
+          - generic [ref=f16e40]:
+            - generic [ref=f16e41]: CURATED COLLECTION
+            - heading "New Arrivals" [level=2] [ref=f16e42]
+            - paragraph [ref=f16e43]: Explore the latest runway releases curated for every wardrobe
+          - generic [ref=f16e45]:
+            - button "All" [ref=f16e46]
+            - button "Women" [ref=f16e48]
+            - button "Men" [ref=f16e49]
+            - button "Kids" [ref=f16e50]
+          - generic [ref=f16e51]: No items currently featured under All.
+          - link "View All New Arrivals" [ref=f16e53] [cursor=pointer]:
+            - /url: /products
+        - generic [ref=f16e58]:
+          - generic [ref=f16e59]:
+            - generic [ref=f16e60]: LUXURY HOUSES
+            - heading "Featured Brands" [level=2] [ref=f16e61]
+            - paragraph [ref=f16e62]: World-renowned luxury ateliers and haute couture design houses
+          - generic [ref=f16e64]:
+            - link "Atelier Ideal ATELIER BRAND Atelier Ideal Parisian High Fashion Explore House" [ref=f16e65] [cursor=pointer]:
+              - /url: /products?search=Atelier
+              - img "Atelier Ideal" [ref=f16e66]
+              - generic [ref=f16e67]:
+                - generic [ref=f16e68]: ATELIER BRAND
+                - heading "Atelier Ideal" [level=3] [ref=f16e69]
+                - paragraph [ref=f16e70]: Parisian High Fashion
+                - generic [ref=f16e71]: Explore House
+            - link "Royal Velvet ATELIER BRAND Royal Velvet Heritage Kaftans & Robes Explore House" [ref=f16e75] [cursor=pointer]:
+              - /url: /products?category=Haute%20Couture
+              - img "Royal Velvet" [ref=f16e76]
+              - generic [ref=f16e77]:
+                - generic [ref=f16e78]: ATELIER BRAND
+                - heading "Royal Velvet" [level=3] [ref=f16e79]
+                - paragraph [ref=f16e80]: Heritage Kaftans & Robes
+                - generic [ref=f16e81]: Explore House
+            - link "Maison Silk ATELIER BRAND Maison Silk Handwoven Bridal Lehengas Explore House" [ref=f16e85] [cursor=pointer]:
+              - /url: /products?category=Bridal%20Wear
+              - img "Maison Silk" [ref=f16e86]
+              - generic [ref=f16e87]:
+                - generic [ref=f16e88]: ATELIER BRAND
+                - heading "Maison Silk" [level=3] [ref=f16e89]
+                - paragraph [ref=f16e90]: Handwoven Bridal Lehengas
+                - generic [ref=f16e91]: Explore House
+            - link "Imperial Groom ATELIER BRAND Imperial Groom Bespoke Menswear & Sherwanis Explore House" [ref=f16e95] [cursor=pointer]:
+              - /url: /products?category=Men
+              - img "Imperial Groom" [ref=f16e96]
+              - generic [ref=f16e97]:
+                - generic [ref=f16e98]: ATELIER BRAND
+                - heading "Imperial Groom" [level=3] [ref=f16e99]
+                - paragraph [ref=f16e100]: Bespoke Menswear & Sherwanis
+                - generic [ref=f16e101]: Explore House
+      - generic [ref=f16e106]:
+        - generic [ref=f16e107]: BESPOKE RENTAL SERVICE
+        - heading "Wear Haute Couture for Your Special Occasions" [level=2] [ref=f16e108]
+        - paragraph [ref=f16e109]: Experience imperial velvet kaftans, silk lehengas, and tailored sherwanis without long-term commitment. Flexible 3-day to 7-day rentals across Indonesia.
+        - link "Browse Rental Boutique" [ref=f16e111] [cursor=pointer]:
+          - /url: /products?type=RENTAL
+  - contentinfo [ref=f16e112]:
+    - generic [ref=f16e113]:
+      - generic [ref=f16e114]:
+        - generic [ref=f16e115]:
+          - heading "IDEAL BEAUTY" [level=3] [ref=f16e116]
+          - paragraph [ref=f16e117]: Crafting bespoke luxury fashion, bridal lehengas, haute couture kaftans, and evening gowns inspired by South Asian craftsmanship and modern elegance.
+          - paragraph [ref=f16e118]: Jakarta • Bali • Worldwide Delivery
+        - generic [ref=f16e119]:
+          - heading "Collections" [level=4] [ref=f16e120]
+          - list [ref=f16e121]:
+            - listitem [ref=f16e122]:
+              - link "Haute Couture" [ref=f16e123] [cursor=pointer]:
+                - /url: /products?category=Haute+Couture
+            - listitem [ref=f16e124]:
+              - link "Bridal Collection" [ref=f16e125] [cursor=pointer]:
+                - /url: /products?category=Bridal+Wear
+            - listitem [ref=f16e126]:
+              - link "Ready To Wear" [ref=f16e127] [cursor=pointer]:
+                - /url: /products?category=Ready+To+Wear
+            - listitem [ref=f16e128]:
+              - link "Men's Collection" [ref=f16e129] [cursor=pointer]:
+                - /url: /products?category=Men
+            - listitem [ref=f16e130]:
+              - link "Luxury Rental Boutique" [ref=f16e131] [cursor=pointer]:
+                - /url: /products?type=RENTAL
+        - generic [ref=f16e132]:
+          - heading "Customer Care" [level=4] [ref=f16e133]
+          - list [ref=f16e134]:
+            - listitem [ref=f16e135]:
+              - link "Order Tracking" [ref=f16e136] [cursor=pointer]:
+                - /url: /account/orders
+            - listitem [ref=f16e137]:
+              - link "Saved Wishlist" [ref=f16e138] [cursor=pointer]:
+                - /url: /account/wishlist
+            - listitem [ref=f16e139]: QRIS & Virtual Account Payment
+            - listitem [ref=f16e140]: Bespoke Fitting Appointment
+            - listitem [ref=f16e141]:
+              - link "Admin Portal" [ref=f16e142] [cursor=pointer]:
+                - /url: /admin/dashboard
+        - generic [ref=f16e143]:
+          - heading "Privé Club" [level=4] [ref=f16e144]
+          - paragraph [ref=f16e145]: Subscribe to receive private invitations to runway releases and bespoke trunk shows.
+          - generic [ref=f16e146]:
+            - textbox "Enter email address" [ref=f16e147]
+            - button "Join" [ref=f16e148]
+      - generic [ref=f16e149]:
+        - paragraph [ref=f16e150]: © 2026 Ideal Beauty Official. All Rights Reserved.
+        - generic [ref=f16e151]:
+          - generic [ref=f16e152]: QRIS Integrated
+          - generic [ref=f16e153]: Bank Virtual Account
+          - generic [ref=f16e154]: Midtrans Secured
+  - generic [ref=f16e155]:
+    - paragraph [ref=f16e156]: Enable notifications to stay updated on your order status.
+    - button "Enable Notifications" [ref=f16e157]
+  - button "Open Next.js Dev Tools" [ref=f16e163] [cursor=pointer]
+  - alert [ref=f16e167]

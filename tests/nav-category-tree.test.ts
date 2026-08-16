@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { prisma } from '../src/lib/prisma';
 import {
   createNavCategory,
   updateNavCategory,
   getNavCategoryTree,
   getCategoryAndDescendantNames,
+  resetDefaultNavCategories,
 } from '../src/lib/services/nav-category';
 import { getProducts } from '../src/lib/services/product';
 
@@ -20,6 +21,10 @@ describe('NavCategory Tree & Hierarchy Services', () => {
     await prisma.wishlistItem.deleteMany();
     await prisma.productVariant.deleteMany();
     await prisma.product.deleteMany();
+  });
+
+  afterAll(async () => {
+    await resetDefaultNavCategories();
   });
 
   it('should create and build a nested category tree', async () => {
