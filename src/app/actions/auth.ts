@@ -6,6 +6,7 @@ import { getSessionId, setLoggedInUserId, clearLoggedInUserId, getLoggedInUserId
 import { mergeGuestCartToUser } from '@/lib/services/cart';
 import { verifyPassword, hashPassword } from '@/lib/services/user';
 import { verifyIdToken } from '@/lib/firebase/admin';
+import { isEmailAdmin } from '@/lib/services/access';
 
 export async function verifyFirebaseTokenAction(token: string) {
   const decodedToken = await verifyIdToken(token);
@@ -235,4 +236,22 @@ export async function getCurrentUserAction() {
       addresses: true,
     },
   });
+}
+
+export async function checkIsAdminAction(): Promise<boolean> {
+  try {
+    const userId = await getLoggedInUserId();
+    if (!userId) return false;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user || !user.email) return false;
+
+    return await isEmailAdmin(user.email);
+  } catch {
+    return false;
+  }
 }

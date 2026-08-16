@@ -145,6 +145,8 @@ model Product {
   category      String?              @default("Ready To Wear")
   images        String[]             @default([])
   isActive      Boolean              @default(true)
+  sizeChartId   String?
+  sizeChart     SizeChart?           @relation(fields: [sizeChartId], references: [id], onDelete: SetNull)
   variants      ProductVariant[]
   ledgerEntries LedgerEntry[]
   wishlistedBy  WishlistItem[]
@@ -153,6 +155,24 @@ model Product {
   updatedAt     DateTime             @updatedAt
 
   @@index([isActive, slug])
+  @@index([sizeChartId])
+}
+
+model SizeChart {
+  id           String    @id @default(uuid())
+  name         String
+  type         String    @default("BODY_MEASUREMENT")
+  category     String?
+  description  String?
+  measurements Json
+  guideText    String?
+  isDefault    Boolean   @default(false)
+  products     Product[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([isDefault])
+  @@index([type])
 }
 
 model ProductVariant {

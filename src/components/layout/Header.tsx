@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, Heart, ShoppingBag, User, Menu, X, ChevronDown, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { Search, Heart, ShoppingBag, User, Menu, X, ChevronDown, Loader2, Sparkles, ArrowRight, Shield, Package } from 'lucide-react';
 import { useCart } from '../cart/CartContext';
 import { quickSearchProductsAction, QuickSearchItem } from '@/app/actions/product';
+import { checkIsAdminAction, getCurrentUserAction } from '@/app/actions/auth';
 
 export interface HeaderNavCategoryItem {
   id?: string;
@@ -16,16 +17,26 @@ export interface HeaderNavCategoryItem {
   children?: HeaderNavCategoryItem[];
 }
 
-interface HeaderProps {
-  initialNavCategories?: HeaderNavCategoryItem[];
+export interface HeaderUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
 }
 
-export default function Header({ initialNavCategories = [] }: HeaderProps) {
+interface HeaderProps {
+  initialNavCategories?: HeaderNavCategoryItem[];
+  initialIsAdmin?: boolean;
+  initialUser?: HeaderUser | null;
+}
+
+export default function Header({ initialNavCategories = [], initialIsAdmin = false, initialUser = null }: HeaderProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { totalItems, toggleCartDrawer } = useCart();
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || '');
+  const [isAdmin, setIsAdmin] = useState<boolean>(initialIsAdmin);
+  const [currentUser, setCurrentUser] = useState<HeaderUser | null>(initialUser);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileCategories, setExpandedMobileCategories] = useState<Record<string, boolean>>({});
 
@@ -41,6 +52,32 @@ export default function Header({ initialNavCategories = [] }: HeaderProps) {
   useEffect(() => {
     setSearchQuery(searchParams.get('query') || '');
   }, [searchParams]);
+
+  // Verify admin status and current user on client mount
+  useEffect(() => {
+    let isMounted = true;
+    Promise.all([checkIsAdminAction(), getCurrentUserAction()])
+      .then(([adminRes, userRes]) => {
+        if (isMounted) {
+          setIsAdmin(adminRes);
+          if (userRes) {
+            setCurrentUser({
+              id: userRes.id,
+              name: userRes.name,
+              email: userRes.email,
+            });
+          } else {
+            setCurrentUser(null);
+          }
+        }
+      })
+      .catch(() => {
+        // preserve initial states on error
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Debounce quick search query
   useEffect(() => {
@@ -237,7 +274,30 @@ export default function Header({ initialNavCategories = [] }: HeaderProps) {
   }, [initialNavCategories]);
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-neutral-100 backdrop-blur-md bg-white/95" suppressHydrationWarning>
+    <>
+      {isAdmin && (
+        <div className="bg-neutral-900 text-white text-xs px-4 py-2 border-b border-neutral-800 flex items-center justify-between z-50 relative">
+          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold tracking-wider">
+                <Shield className="w-3 h-3 mr-1 text-amber-400" />
+                Admin Mode
+              </span>
+              <span className="hidden sm:inline font-light text-neutral-300">
+                You are logged in with Administrator permissions.
+              </span>
+            </div>
+            <Link
+              href="/admin/dashboard"
+              className="inline-flex items-center space-x-1.5 bg-amber-600 hover:bg-amber-500 text-white px-3 py-1 rounded-md text-xs font-medium transition-colors shadow-xs"
+            >
+              <span>Go to Admin Portal</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      )}
+      <header className="sticky top-0 z-40 bg-white border-b border-neutral-100 backdrop-blur-md bg-white/95" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="grid grid-cols-12 items-center h-16 sm:h-20">
           {/* Mobile menu button & Desktop Search Bar (Left) */}
@@ -407,37 +467,81 @@ export default function Header({ initialNavCategories = [] }: HeaderProps) {
           </div>
 
           {/* Action Icons Right */}
-          <div className="col-span-3 flex items-center justify-end space-x-0.5 sm:space-x-3">
+          <div className="col-span-3 flex items-center justify-end space-x-1 sm:space-x-2.5">
+            {/* 1. ADMIN */}
+            {isAdmin && (
+              <Link
+                href="/admin/dashboard"
+                className="text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300/80 rounded-full px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-semibold tracking-wider uppercase flex items-center space-x-1 transition-colors shrink-0 shadow-xs"
+                title="Go to Admin Portal"
+                aria-label="Admin Portal"
+              >
+                <Shield className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                <span className="hidden sm:inline">Admin</span>
+              </Link>
+            )}
+
+            {/* 2. Liked */}
             <Link
               href="/account/wishlist"
-              className="text-neutral-700 hover:text-black transition-colors relative p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
-              title="Wishlist"
+              className="text-neutral-700 hover:text-black transition-colors relative p-1 sm:p-1.5 min-h-[44px] min-w-[36px] sm:min-w-[44px] flex items-center justify-center"
+              title="Liked"
+              aria-label="Liked"
             >
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5]" />
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5] shrink-0" />
             </Link>
 
-            <Link
-              href="/account"
-              className="text-neutral-700 hover:text-black transition-colors p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
-              title="Account Portal"
-            >
-              <User className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5]" />
-            </Link>
-
+            {/* 3. Bags / Cart */}
             <button
               type="button"
               onClick={toggleCartDrawer}
-              className="text-neutral-700 hover:text-black transition-colors relative p-1 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+              className="text-neutral-700 hover:text-black transition-colors relative p-1 sm:p-1.5 min-h-[44px] min-w-[36px] sm:min-w-[44px] flex items-center justify-center cursor-pointer"
               aria-label="Shopping Cart"
+              title="Shopping Cart"
               suppressHydrationWarning
             >
-              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5]" />
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5] shrink-0" />
               {totalItems > 0 && (
-                <span className="absolute top-1 right-1 bg-black text-white text-[9px] sm:text-[10px] w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center font-mono">
+                <span className="absolute top-1 right-0 sm:right-0.5 bg-black text-white text-[9px] sm:text-[10px] w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center font-mono">
                   {totalItems}
                 </span>
               )}
             </button>
+
+            {/* 4. Orders */}
+            <Link
+              href="/account/orders"
+              className="text-neutral-700 hover:text-black transition-colors relative p-1 sm:p-1.5 min-h-[44px] min-w-[36px] sm:min-w-[44px] flex items-center justify-center"
+              title="Orders"
+              aria-label="Orders"
+            >
+              <Package className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5] shrink-0" />
+            </Link>
+
+            {/* 5. Profile / User Name or Login */}
+            {currentUser ? (
+              <Link
+                href="/account"
+                className="text-neutral-700 hover:text-black transition-colors p-1 sm:p-1.5 min-h-[44px] flex items-center justify-center space-x-1.5 text-xs font-medium"
+                title={currentUser.name || currentUser.email || 'Profile'}
+                aria-label="Profile"
+              >
+                <User className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5] text-neutral-800 shrink-0" />
+                <span className="hidden sm:inline max-w-[80px] md:max-w-[120px] truncate text-neutral-900 font-medium">
+                  {currentUser.name || currentUser.email?.split('@')[0] || 'Profile'}
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center space-x-1 sm:space-x-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-wider bg-black hover:bg-neutral-800 text-white px-2.5 sm:px-3 py-1.5 rounded-full transition-colors shrink-0 shadow-2xs"
+                title="Login"
+                aria-label="Login"
+              >
+                <User className="w-3.5 h-3.5 shrink-0" />
+                <span>Login</span>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -739,16 +843,35 @@ export default function Header({ initialNavCategories = [] }: HeaderProps) {
                   className="flex items-center space-x-2 p-2 rounded-lg hover:bg-neutral-200/60 min-h-[44px] transition-colors"
                 >
                   <Heart className="w-4 h-4 text-neutral-600 shrink-0" />
-                  <span>Wishlist</span>
+                  <span>Liked</span>
                 </Link>
                 <Link
-                  href="/account"
+                  href="/account/orders"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center space-x-2 p-2 rounded-lg hover:bg-neutral-200/60 min-h-[44px] transition-colors"
                 >
-                  <User className="w-4 h-4 text-neutral-600 shrink-0" />
-                  <span>Account</span>
+                  <Package className="w-4 h-4 text-neutral-600 shrink-0" />
+                  <span>Orders</span>
                 </Link>
+                {currentUser ? (
+                  <Link
+                    href="/account"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-neutral-200/60 min-h-[44px] transition-colors"
+                  >
+                    <User className="w-4 h-4 text-neutral-600 shrink-0" />
+                    <span className="truncate">{currentUser.name || 'Profile'}</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center space-x-2 p-2 rounded-lg bg-black text-white font-semibold min-h-[44px] transition-colors"
+                  >
+                    <User className="w-4 h-4 shrink-0" />
+                    <span>Login</span>
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={() => {
@@ -776,19 +899,31 @@ export default function Header({ initialNavCategories = [] }: HeaderProps) {
                   <span className="w-4 text-center font-bold text-neutral-400">•</span>
                   <span>Rentals</span>
                 </Link>
-                <Link
-                  href="/admin/dashboard"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-neutral-200/60 min-h-[44px] transition-colors"
-                >
-                  <span className="w-4 text-center font-bold text-neutral-400">•</span>
-                  <span>Admin</span>
-                </Link>
+                {isAdmin ? (
+                  <Link
+                    href="/admin/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center space-x-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-900 font-medium min-h-[44px] transition-colors col-span-2 shadow-xs"
+                  >
+                    <Shield className="w-4 h-4 text-amber-700 shrink-0" />
+                    <span className="font-semibold">Go to Admin Portal</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/admin/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-neutral-200/60 min-h-[44px] transition-colors"
+                  >
+                    <span className="w-4 text-center font-bold text-neutral-400">•</span>
+                    <span>Admin</span>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
-    </header>
+      </header>
+    </>
   );
 }

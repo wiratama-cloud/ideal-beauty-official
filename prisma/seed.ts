@@ -1,5 +1,6 @@
 import { prisma } from '../src/lib/prisma';
 import { seedDefaultCategoryTree } from '../src/lib/services/nav-category';
+import { seedDefaultSizeCharts } from '../src/lib/services/size-chart';
 
 export async function main() {
   console.log('Seeding Ideal Beauty Official database with dummy data...');
@@ -1540,6 +1541,17 @@ export async function main() {
       },
     });
     console.log('Created initial audit log entry');
+  }
+
+  // 12. Seed Default Size Charts
+  const defaultSizeChart = await seedDefaultSizeCharts();
+  if (defaultSizeChart) {
+    // Link all existing products without size chart to default chart
+    await prisma.product.updateMany({
+      where: { sizeChartId: null },
+      data: { sizeChartId: defaultSizeChart.id },
+    });
+    console.log('Seeded default size charts and linked existing products');
   }
 
   console.log('Seeding completed successfully!');

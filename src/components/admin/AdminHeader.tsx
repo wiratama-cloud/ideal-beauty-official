@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   LayoutDashboard,
   Package,
+  Ruler,
   Layers,
   ShoppingBag,
   FileText,
@@ -28,6 +29,7 @@ interface AdminHeaderProps {
   activeTab:
     | 'dashboard'
     | 'products'
+    | 'size-charts'
     | 'sections'
     | 'navigation'
     | 'collection'
@@ -76,6 +78,12 @@ const NAV_GROUPS: NavGroup[] = [
         label: 'Products & Inventory',
         href: '/admin/products',
         icon: Package,
+      },
+      {
+        id: 'size-charts',
+        label: 'Size Charts',
+        href: '/admin/size-charts',
+        icon: Ruler,
       },
     ],
   },

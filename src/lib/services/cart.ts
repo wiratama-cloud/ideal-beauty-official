@@ -1,13 +1,8 @@
 import { prisma } from '../prisma';
 import { ItemType } from '@prisma/client';
+import { AddToCartInput } from '../types/cart';
 
-export interface AddToCartInput {
-  variantId: string;
-  type: 'SALE' | 'RENTAL';
-  quantity: number;
-  rentStartDate?: string;
-  rentEndDate?: string;
-}
+export type { AddToCartInput };
 
 export async function getOrCreateCart(userIdOrSessionId: string) {
   let cart = await prisma.cart.findFirst({

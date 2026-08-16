@@ -7,7 +7,7 @@ import {
   updateCartQuantityAction,
   removeFromCartAction,
 } from '@/app/actions/cart';
-import { AddToCartInput } from '@/lib/services/cart';
+import type { AddToCartInput } from '@/lib/types/cart';
 
 interface CartContextType {
   cart: any;

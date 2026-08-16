@@ -6,6 +6,7 @@ import { Heart, ShoppingBag, Calendar, Check, ShieldCheck, Truck, Clock } from '
 import { useCart } from '../cart/CartContext';
 import { toggleWishlistAction } from '@/app/actions/wishlist';
 import RentalAvailabilityCalendar from './RentalAvailabilityCalendar';
+import SizeChartModal from './SizeChartModal';
 
 interface ProductDetailViewProps {
   product: {
@@ -271,9 +272,12 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
 
           {/* Variant Selection (Size/Color) */}
           <div className="space-y-3">
-            <label className="block text-xs uppercase tracking-widest text-neutral-700 font-medium">
-              Select Variant / Size
-            </label>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="block text-xs uppercase tracking-widest text-neutral-700 font-medium">
+                Select Variant / Size
+              </label>
+              <SizeChartModal category={product.category} productName={product.name} sizeChart={(product as any).sizeChart} />
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {product.variants.map((variant) => {
                 const attrs = variant.attributes as any;

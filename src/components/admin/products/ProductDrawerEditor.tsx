@@ -18,11 +18,20 @@ import { Prisma } from '@prisma/client';
 import { ProductSerialized } from './types';
 import { CreateProductInput, VariantInput } from '@/app/actions/admin';
 
+interface SizeChartOption {
+  id: string;
+  name: string;
+  type?: string;
+  category?: string | null;
+  isDefault?: boolean;
+}
+
 interface ProductDrawerEditorProps {
   isOpen: boolean;
   onClose: () => void;
   product: ProductSerialized | null;
   categories: string[];
+  sizeCharts?: SizeChartOption[];
   onSave: (data: CreateProductInput) => Promise<void>;
   isSaving: boolean;
   errorMessage: string;
@@ -33,6 +42,7 @@ export default function ProductDrawerEditor({
   onClose,
   product,
   categories,
+  sizeCharts,
   onSave,
   isSaving,
   errorMessage,
@@ -44,6 +54,7 @@ export default function ProductDrawerEditor({
   const [formSlug, setFormSlug] = useState('');
   const [formCategory, setFormCategory] = useState('Ready To Wear');
   const [formDescription, setFormDescription] = useState('');
+  const [formSizeChartId, setFormSizeChartId] = useState<string>('');
   const [formImages, setFormImages] = useState<string[]>([]);
   const [formIsActive, setFormIsActive] = useState(true);
   const [formVariants, setFormVariants] = useState<VariantInput[]>([]);
@@ -61,6 +72,7 @@ export default function ProductDrawerEditor({
       setFormSlug(product.slug || '');
       setFormCategory(product.category || 'Ready To Wear');
       setFormDescription(product.description || '');
+      setFormSizeChartId((product as any).sizeChartId || '');
       setFormImages(product.images && product.images.length > 0 ? product.images : []);
       setFormIsActive(product.isActive ?? true);
       setFormVariants(
@@ -113,6 +125,7 @@ export default function ProductDrawerEditor({
       setFormSlug('');
       setFormCategory('Ready To Wear');
       setFormDescription('');
+      setFormSizeChartId('');
       setFormImages(['/images/products/default-product.jpg']);
       setFormIsActive(true);
       setFormVariants([
@@ -274,6 +287,7 @@ export default function ProductDrawerEditor({
       slug: formSlug.trim() || formName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       category: formCategory,
       description: formDescription,
+      sizeChartId: formSizeChartId || null,
       images: formImages.length > 0 ? formImages : ['/images/products/default-product.jpg'],
       isActive: formIsActive,
       variants: formVariants,
@@ -411,6 +425,27 @@ export default function ProductDrawerEditor({
                   {!categories.includes('Bridal') && <option value="Bridal">Bridal</option>}
                   {!categories.includes('Accessories') && <option value="Accessories">Accessories</option>}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
+                  Linked Size Chart Template
+                </label>
+                <select
+                  value={formSizeChartId}
+                  onChange={(e) => setFormSizeChartId(e.target.value)}
+                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none focus:border-neutral-600 font-mono"
+                >
+                  <option value="">Default (Auto-fallback to global default chart)</option>
+                  {sizeCharts?.map((sc) => (
+                    <option key={sc.id} value={sc.id}>
+                      {sc.name} {sc.type === 'WEIGHT_HEIGHT' ? '[Weight & Height]' : '[Body CM]'} {sc.category ? `(${sc.category})` : ''} {sc.isDefault ? '[Default]' : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-neutral-500 mt-1 font-sans">
+                  Quickly link a dedicated size chart template for this product.
+                </p>
               </div>
 
               <div>

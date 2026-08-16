@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight, ChevronDown, Sparkles, X, Layers, Search } from 'lucide-react';
-import { NavCategoryItem } from '@/lib/services/nav-category';
+import type { NavCategoryItem } from '@/lib/types/nav-category';
 
 export interface CategoryTreeSidebarProps {
   categoriesTree?: NavCategoryItem[];
@@ -630,7 +630,7 @@ export default function CategoryTreeSidebar({
                             >
                               <span className="truncate">{l2.item.name}</span>
                               {hasL3 && (
-                                <span className="ml-1 flex items-center text-[10px] opacity-80">
+                                <span className="ml-1 flex items-center text-[10px] opacity-80 shrink-0">
                                   <ChevronRight
                                     className={`w-3.5 h-3.5 transition-transform duration-200 ${
                                       isPopoverOpen || isL2Expanded ? 'rotate-90' : ''
@@ -639,28 +639,6 @@ export default function CategoryTreeSidebar({
                                 </span>
                               )}
                             </button>
-
-                            {hasL3 && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setExpandedDesktopL2Map((prev) => ({
-                                    ...prev,
-                                    [l2Id]: !prev[l2Id],
-                                  }));
-                                }}
-                                className="p-1 text-neutral-400 hover:text-neutral-900 rounded hover:bg-neutral-100 transition-colors shrink-0"
-                                aria-label={isL2Expanded ? 'Collapse subcategories' : 'Expand subcategories'}
-                                title={isL2Expanded ? 'Collapse subcategories' : 'Expand subcategories'}
-                              >
-                                <ChevronDown
-                                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                                    isL2Expanded ? 'rotate-180' : ''
-                                  }`}
-                                />
-                              </button>
-                            )}
                           </div>
 
                           {/* Smooth Popover Overlay for Level 3 Subcategories */}

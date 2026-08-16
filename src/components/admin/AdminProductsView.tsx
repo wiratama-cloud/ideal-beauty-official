@@ -25,9 +25,10 @@ import ProductDrawerEditor from './products/ProductDrawerEditor';
 
 interface AdminProductsViewProps {
   initialProducts: ProductSerialized[];
+  initialSizeCharts?: any[];
 }
 
-export default function AdminProductsView({ initialProducts }: AdminProductsViewProps) {
+export default function AdminProductsView({ initialProducts, initialSizeCharts = [] }: AdminProductsViewProps) {
   const [products, setProducts] = useState<ProductSerialized[]>(initialProducts);
   const [isPending, startTransition] = useTransition();
 
@@ -383,6 +384,7 @@ export default function AdminProductsView({ initialProducts }: AdminProductsView
           onClose={() => setIsDrawerOpen(false)}
           product={editingProduct}
           categories={categoriesList}
+          sizeCharts={initialSizeCharts}
           onSave={handleSaveProductDrawer}
           isSaving={isSavingDrawer}
           errorMessage={drawerError}

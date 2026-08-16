@@ -37,6 +37,16 @@ import {
   removeAdminAccess,
   requireAdminAccess,
 } from '@/lib/services/access';
+import {
+  getSizeCharts,
+  getSizeChartById,
+  getDefaultSizeChart,
+  createSizeChart,
+  updateSizeChart,
+  deleteSizeChart,
+  linkProductsToSizeChart,
+  CreateSizeChartInput,
+} from '@/lib/services/size-chart';
 
 export async function logExpenseAction(data: CreateExpenseInput) {
   await requireAdminAccess();
@@ -458,6 +468,7 @@ export interface CreateProductInput {
   category?: string;
   images: string[];
   isActive?: boolean;
+  sizeChartId?: string | null;
   variants: VariantInput[];
 }
 
@@ -465,6 +476,7 @@ export async function getFullAdminProductsAction() {
   await requireAdminAccess();
   const products = await prisma.product.findMany({
     include: {
+      sizeChart: true,
       variants: {
         orderBy: { sku: 'asc' },
       },
@@ -490,6 +502,7 @@ export async function createProductAction(data: CreateProductInput) {
       category: data.category || 'Ready To Wear',
       images: data.images && data.images.length > 0 ? data.images : ['/images/products/default-product.jpg'],
       isActive: data.isActive ?? true,
+      sizeChartId: data.sizeChartId || null,
       variants: {
         create: data.variants.map((v) => {
           const saleTotal = Math.max(0, Number(v.stockSaleTotal ?? v.stockTotal) || 0);
@@ -560,6 +573,7 @@ export async function updateProductAction(productId: string, data: CreateProduct
         category: data.category || 'Ready To Wear',
         images: data.images,
         isActive: data.isActive ?? true,
+        sizeChartId: data.sizeChartId !== undefined ? data.sizeChartId : undefined,
       },
     });
 
@@ -1020,4 +1034,83 @@ export async function removeAdminAccessAction(idOrEmail: string) {
   });
   safeRevalidatePath('/admin/access');
   return result;
+}
+
+// Size Chart Management Actions
+export async function getSizeChartsAction() {
+  await requireAdminAccess();
+  return await getSizeCharts();
+}
+
+export async function getSizeChartByIdAction(id: string) {
+  await requireAdminAccess();
+  return await getSizeChartById(id);
+}
+
+export async function createSizeChartAction(data: CreateSizeChartInput) {
+  await requireAdminAccess();
+  const chart = await createSizeChart(data);
+  safeRevalidatePath('/admin/size-charts');
+  safeRevalidatePath('/admin/products');
+  safeRevalidatePath('/products');
+
+  await recordAuditLog({
+    action: 'CREATE_SIZE_CHART',
+    entity: 'SIZE_CHART',
+    entityId: chart.id,
+    details: { name: chart.name },
+  });
+
+  return chart;
+}
+
+export async function updateSizeChartAction(id: string, data: CreateSizeChartInput) {
+  await requireAdminAccess();
+  const chart = await updateSizeChart(id, data);
+  safeRevalidatePath('/admin/size-charts');
+  safeRevalidatePath('/admin/products');
+  safeRevalidatePath('/products');
+
+  await recordAuditLog({
+    action: 'UPDATE_SIZE_CHART',
+    entity: 'SIZE_CHART',
+    entityId: chart.id,
+    details: { name: chart.name },
+  });
+
+  return chart;
+}
+
+export async function deleteSizeChartAction(id: string) {
+  await requireAdminAccess();
+  const deleted = await deleteSizeChart(id);
+  safeRevalidatePath('/admin/size-charts');
+  safeRevalidatePath('/admin/products');
+  safeRevalidatePath('/products');
+
+  await recordAuditLog({
+    action: 'DELETE_SIZE_CHART',
+    entity: 'SIZE_CHART',
+    entityId: id,
+    details: { name: deleted.name },
+  });
+
+  return deleted;
+}
+
+export async function linkProductsToSizeChartAction(sizeChartId: string | null, productIds: string[]) {
+  await requireAdminAccess();
+  const res = await linkProductsToSizeChart(sizeChartId, productIds);
+  safeRevalidatePath('/admin/size-charts');
+  safeRevalidatePath('/admin/products');
+  safeRevalidatePath('/products');
+
+  await recordAuditLog({
+    action: 'LINK_PRODUCTS_SIZE_CHART',
+    entity: 'SIZE_CHART',
+    entityId: sizeChartId || 'UNLINK',
+    details: { productCount: res.count, productIds },
+  });
+
+  return res;
 }

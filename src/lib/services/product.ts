@@ -1,6 +1,7 @@
 import { prisma } from '../prisma';
 import { getCategoryAndDescendantNames } from './nav-category';
 import { serializeProduct } from '../utils/serialization';
+import { getDefaultSizeChart } from './size-chart';
 
 export interface GetProductsParams {
   category?: string;
@@ -79,6 +80,7 @@ export async function getProductBySlug(slug: string) {
   const product = await prisma.product.findUnique({
     where: { slug },
     include: {
+      sizeChart: true,
       variants: {
         orderBy: {
           sku: 'asc',
@@ -89,7 +91,15 @@ export async function getProductBySlug(slug: string) {
 
   if (!product) return null;
 
-  return serializeProduct(product);
+  const serialized = serializeProduct(product) as any;
+  if (!serialized.sizeChart) {
+    const defaultChart = await getDefaultSizeChart();
+    if (defaultChart) {
+      serialized.sizeChart = defaultChart;
+    }
+  }
+
+  return serialized;
 }
 
 export async function getCategories() {
