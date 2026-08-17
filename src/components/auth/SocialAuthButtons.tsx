@@ -15,9 +15,12 @@ import { Loader2 } from 'lucide-react';
 interface SocialAuthButtonsProps {
   onSuccess?: () => void;
   provider?: 'google' | 'facebook' | 'apple';
+  label?: string;
+  className?: string;
+  disabled?: boolean;
 }
 
-export default function SocialAuthButtons({ onSuccess, provider }: SocialAuthButtonsProps) {
+export default function SocialAuthButtons({ onSuccess, provider, label, className, disabled }: SocialAuthButtonsProps) {
   const searchParams = useSearchParams();
   const [loadingProvider, setLoadingProvider] = useState<'google' | 'facebook' | 'apple' | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +29,7 @@ export default function SocialAuthButtons({ onSuccess, provider }: SocialAuthBut
   const safeRedirectUrl = redirectParam.startsWith('/') && !redirectParam.startsWith('//') ? redirectParam : '/account';
 
   const handleSocialSignIn = async (providerType: 'google' | 'facebook' | 'apple') => {
+    if (disabled) return;
     if (!isFirebaseConfigured || !auth) {
       setError('Social sign-in is currently unavailable.');
       return;
@@ -68,14 +72,21 @@ export default function SocialAuthButtons({ onSuccess, provider }: SocialAuthBut
     <button
       type="button"
       onClick={() => handleSocialSignIn('google')}
-      disabled={loadingProvider !== null}
-      aria-label="Sign in with Google"
-      className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-white border border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50 transition-colors text-xs font-medium text-neutral-800 disabled:opacity-50 w-full"
+      disabled={disabled || loadingProvider !== null}
+      aria-label={label || 'Sign in with Google'}
+      className={
+        className ||
+        `flex items-center justify-center space-x-2 py-2.5 px-3 border transition-colors text-xs font-medium w-full ${
+          disabled
+            ? 'bg-neutral-100 border-neutral-200 text-neutral-400 cursor-not-allowed opacity-60'
+            : 'bg-white border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50 text-neutral-800 disabled:opacity-50'
+        }`
+      }
     >
       {loadingProvider === 'google' ? (
         <Loader2 className="w-4 h-4 animate-spin text-neutral-600" />
       ) : (
-        <svg className="w-4 h-4" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
           <path
             fill="#4285F4"
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -94,7 +105,7 @@ export default function SocialAuthButtons({ onSuccess, provider }: SocialAuthBut
           />
         </svg>
       )}
-      <span>Connect Google</span>
+      <span>{label || 'Connect Google'}</span>
     </button>
   );
 
@@ -102,9 +113,16 @@ export default function SocialAuthButtons({ onSuccess, provider }: SocialAuthBut
     <button
       type="button"
       onClick={() => handleSocialSignIn('facebook')}
-      disabled={loadingProvider !== null}
+      disabled={disabled || loadingProvider !== null}
       aria-label="Sign in with Facebook"
-      className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-white border border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50 transition-colors text-xs font-medium text-neutral-800 disabled:opacity-50 w-full"
+      className={
+        className ||
+        `flex items-center justify-center space-x-2 py-2.5 px-3 border transition-colors text-xs font-medium w-full ${
+          disabled
+            ? 'bg-neutral-100 border-neutral-200 text-neutral-400 cursor-not-allowed opacity-60'
+            : 'bg-white border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50 text-neutral-800 disabled:opacity-50'
+        }`
+      }
     >
       {loadingProvider === 'facebook' ? (
         <Loader2 className="w-4 h-4 animate-spin text-neutral-600" />
@@ -121,9 +139,16 @@ export default function SocialAuthButtons({ onSuccess, provider }: SocialAuthBut
     <button
       type="button"
       onClick={() => handleSocialSignIn('apple')}
-      disabled={loadingProvider !== null}
+      disabled={disabled || loadingProvider !== null}
       aria-label="Sign in with Apple"
-      className="flex items-center justify-center space-x-2 py-2.5 px-3 bg-white border border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50 transition-colors text-xs font-medium text-neutral-800 disabled:opacity-50 w-full"
+      className={
+        className ||
+        `flex items-center justify-center space-x-2 py-2.5 px-3 border transition-colors text-xs font-medium w-full ${
+          disabled
+            ? 'bg-neutral-100 border-neutral-200 text-neutral-400 cursor-not-allowed opacity-60'
+            : 'bg-white border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50 text-neutral-800 disabled:opacity-50'
+        }`
+      }
     >
       {loadingProvider === 'apple' ? (
         <Loader2 className="w-4 h-4 animate-spin text-neutral-600" />
