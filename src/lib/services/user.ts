@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { prisma } from '../prisma';
+import { isValidPhoneNumber } from '../utils/phone';
 
 export interface UpdateProfileInput {
   name?: string;
@@ -56,6 +57,9 @@ export async function updateUserProfile(userId: string, data: UpdateProfileInput
   }
   if (data.phone !== undefined) {
     const cleanPhone = data.phone ? data.phone.trim() : null;
+    if (cleanPhone && !isValidPhoneNumber(cleanPhone)) {
+      throw new Error('Invalid phone number format. Please enter a valid phone number (e.g. +62 812-3456-7890 or 081234567890).');
+    }
     updateData.phone = cleanPhone;
     if (user.phone !== cleanPhone) {
       updateData.isPhoneVerified = false;

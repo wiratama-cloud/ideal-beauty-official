@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { updateProfileAction } from '@/app/actions/account';
 import { sendEmailVerificationAction, verifyEmailOtpAction } from '@/app/actions/auth';
-import { User, Mail, Phone, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
 import PhoneAuthForm from '@/components/auth/PhoneAuthForm';
+import { isValidPhoneNumber, formatPhoneNumber, formatOtp, cleanOtp } from '@/lib/utils/phone';
 
 interface ProfileTabProps {
   user: {
@@ -21,9 +22,10 @@ export default function ProfileTab({ user }: ProfileTabProps) {
   const [formData, setFormData] = useState({
     name: user.name || '',
     email: user.email || '',
-    phone: user.phone || '',
+    phone: user.phone ? formatPhoneNumber(user.phone) : '+62 ',
   });
   const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
+  const [isChangePhoneModalOpen, setIsChangePhoneModalOpen] = useState(false);
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [emailCode, setEmailCode] = useState('');
   const [isSendingEmailCode, setIsSendingEmailCode] = useState(false);
@@ -35,7 +37,8 @@ export default function ProfileTab({ user }: ProfileTabProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const newval = name === 'phone' ? formatPhoneNumber(value) : value;
+    setFormData((prev) => ({ ...prev, [name]: newval }));
   };
 
   const handleSendEmailCode = async () => {
@@ -62,7 +65,7 @@ export default function ProfileTab({ user }: ProfileTabProps) {
     setIsConfirmingEmailCode(true);
     setEmailCodeStatus(null);
     try {
-      await verifyEmailOtpAction(emailCode);
+      await verifyEmailOtpAction(cleanOtp(emailCode));
       setEmailCodeStatus({
         type: 'success',
         text: 'Email address verified successfully!',
@@ -85,6 +88,16 @@ export default function ProfileTab({ user }: ProfileTabProps) {
     setIsLoading(true);
     setStatusMessage(null);
 
+    const trimmedPhone = formData.phone.trim();
+    if (trimmedPhone && !isValidPhoneNumber(trimmedPhone)) {
+      setStatusMessage({
+        type: 'error',
+        text: 'Please enter a valid phone number (e.g. +62 812-3456-7890 or 081234567890).',
+      });
+      setIsLoading(false);
+      return;
+    }
+
     const currentEmail = user.email ? user.email.trim().toLowerCase() : '';
     const newEmail = formData.email.trim().toLowerCase();
     const emailChanged = newEmail !== currentEmail;
@@ -98,23 +111,25 @@ export default function ProfileTab({ user }: ProfileTabProps) {
       });
 
       if (res.success) {
-        let msg = 'Your profile information has been updated successfully.';
-        if (emailChanged && phoneChanged) {
-          msg = 'Profile updated successfully. Both your new email address and mobile phone number require re-verification.';
-        } else if (emailChanged) {
-          msg = 'Profile updated successfully. Your new email address requires re-verification.';
-        } else if (phoneChanged) {
-          msg = 'Profile updated successfully. Your new mobile phone number requires re-verification.';
+        if (phoneChanged) {
+          setIsVerifyingPhone(true);
+          setStatusMessage({
+            type: 'success',
+            text: 'Profile updated. Please complete mobile phone verification for your new number below.',
+          });
+        } else {
+          let msg = 'Your profile information has been updated successfully.';
+          if (emailChanged) {
+            msg = 'Profile updated successfully. Your new email address requires re-verification.';
+          }
+          setStatusMessage({
+            type: 'success',
+            text: msg,
+          });
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
         }
-
-        setStatusMessage({
-          type: 'success',
-          text: msg,
-        });
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
       } else {
         setStatusMessage({
           type: 'error',
@@ -165,10 +180,10 @@ export default function ProfileTab({ user }: ProfileTabProps) {
           ) : (
             <button
               type="button"
-              onClick={() => setIsVerifyingPhone(!isVerifyingPhone)}
+              onClick={() => setIsChangePhoneModalOpen(true)}
               className="text-amber-800 bg-amber-50 px-2.5 py-1 text-[10px] uppercase tracking-wider font-medium border border-amber-200 hover:bg-amber-100 transition-colors"
             >
-              {isVerifyingPhone ? 'Cancel Phone Verify' : 'Verify Phone'}
+              Verify Phone
             </button>
           )}
         </div>
@@ -216,10 +231,11 @@ export default function ProfileTab({ user }: ProfileTabProps) {
               <input
                 type="text"
                 value={emailCode}
-                onChange={(e) => setEmailCode(e.target.value)}
-                placeholder="Enter 6-digit code (e.g. 123456)"
+                onChange={(e) => setEmailCode(formatOtp(e.target.value))}
+                placeholder="123-456"
+                maxLength={7}
                 required
-                className="border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-black font-mono w-full bg-white"
+                className="border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-black font-mono w-full bg-white text-center font-medium"
               />
               <button
                 type="submit"
@@ -239,6 +255,7 @@ export default function ProfileTab({ user }: ProfileTabProps) {
         <div className="bg-neutral-50 p-4 border border-neutral-200 space-y-3">
           <p className="text-xs text-neutral-700">Please verify your mobile phone number using SMS OTP.</p>
           <PhoneAuthForm
+            initialPhoneNumber={formData.phone}
             isProfileVerification={true}
             onSuccess={() => {
               setIsVerifyingPhone(false);
@@ -305,22 +322,31 @@ export default function ProfileTab({ user }: ProfileTabProps) {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <label htmlFor="phone" className="block text-[11px] uppercase tracking-wider text-neutral-600 font-medium">
               Phone Number
             </label>
-            <div className="relative">
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-                placeholder="+62 812-3456-7890"
-                className="w-full border border-neutral-200 pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-black font-light bg-white text-neutral-900"
-              />
-              <Phone className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  disabled
+                  readOnly
+                  placeholder="+62 812-3456-7890"
+                  className="w-full border border-neutral-200 pl-9 pr-3 py-2 text-xs font-light bg-neutral-100 text-neutral-500 cursor-not-allowed"
+                />
+                <Phone className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsChangePhoneModalOpen(true)}
+                className="px-4 py-2 bg-neutral-900 text-white text-xs font-medium hover:bg-black transition-colors shrink-0 flex items-center justify-center space-x-1"
+              >
+                <span>Change Phone Number</span>
+              </button>
             </div>
           </div>
         </div>
@@ -342,6 +368,40 @@ export default function ProfileTab({ user }: ProfileTabProps) {
           </button>
         </div>
       </form>
+
+      {/* Change & Verify Phone Number Dialog Modal */}
+      {isChangePhoneModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white border border-neutral-200 max-w-md w-full p-6 sm:p-8 space-y-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={() => setIsChangePhoneModalOpen(false)}
+              className="absolute top-4 right-4 text-neutral-400 hover:text-black transition-colors"
+              aria-label="Close dialog"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="border-b border-neutral-100 pb-4">
+              <h2 className="font-serif text-xl font-normal text-neutral-900">
+                Change & Verify Phone Number
+              </h2>
+              <p className="text-neutral-500 font-light text-xs mt-1">
+                Enter your new mobile phone number to receive an SMS OTP for verification.
+              </p>
+            </div>
+
+            <PhoneAuthForm
+              initialPhoneNumber={formData.phone}
+              isProfileVerification={true}
+              onSuccess={() => {
+                setIsChangePhoneModalOpen(false);
+                window.location.reload();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

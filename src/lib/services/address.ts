@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { isValidPhoneNumber } from '../utils/phone';
 
 export interface AddressInput {
   id?: string;
@@ -26,6 +27,10 @@ export async function getAddressById(addressId: string) {
 }
 
 export async function createAddress(userId: string, data: AddressInput) {
+  if (data.phone && !isValidPhoneNumber(data.phone)) {
+    throw new Error('Invalid recipient phone number format. Please enter a valid phone number (e.g. +62 812-3456-7890 or 081234567890).');
+  }
+
   const existingCount = await prisma.address.count({
     where: { userId },
   });
@@ -72,6 +77,12 @@ export async function updateAddress(
   }
 
   const effectiveUserId = existingAddress.userId;
+
+  if (data.phone !== undefined && data.phone !== null && data.phone.trim() !== '') {
+    if (!isValidPhoneNumber(data.phone)) {
+      throw new Error('Invalid recipient phone number format. Please enter a valid phone number (e.g. +62 812-3456-7890 or 081234567890).');
+    }
+  }
 
   if (data.isDefault) {
     await prisma.address.updateMany({

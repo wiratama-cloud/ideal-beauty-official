@@ -6,16 +6,30 @@ import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'fi
 import { Loader2, Phone, ShieldCheck, ArrowRight } from 'lucide-react';
 import { verifyFirebaseTokenAction, linkPhoneToUserAction } from '@/app/actions/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { formatPhoneNumber, formatOtp, cleanOtp } from '@/lib/utils/phone';
 
 interface PhoneAuthFormProps {
+  initialPhoneNumber?: string;
   isProfileVerification?: boolean;
   onSuccess?: () => void;
 }
 
-export default function PhoneAuthForm({ isProfileVerification = false, onSuccess }: PhoneAuthFormProps) {
+export default function PhoneAuthForm({
+  initialPhoneNumber = '',
+  isProfileVerification = false,
+  onSuccess,
+}: PhoneAuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState(() =>
+    initialPhoneNumber ? formatPhoneNumber(initialPhoneNumber) : '+62 '
+  );
+
+  useEffect(() => {
+    if (initialPhoneNumber) {
+      setPhoneNumber(formatPhoneNumber(initialPhoneNumber));
+    }
+  }, [initialPhoneNumber]);
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +89,8 @@ export default function PhoneAuthForm({ isProfileVerification = false, onSuccess
     setError(null);
 
     try {
-      const credential = await confirmationResult.confirm(otp);
+      const rawOtp = cleanOtp(otp);
+      const credential = await confirmationResult.confirm(rawOtp);
       const idToken = await credential.user.getIdToken();
 
       if (isProfileVerification) {
@@ -109,8 +124,8 @@ export default function PhoneAuthForm({ isProfileVerification = false, onSuccess
               type="tel"
               required
               value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="+62 812..."
+              onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
+              placeholder="+62 812-3456-7890"
               className="w-full bg-neutral-50 border border-neutral-200 px-3.5 py-2.5 text-xs focus:outline-none focus:border-black transition-colors"
             />
           </div>
@@ -131,11 +146,11 @@ export default function PhoneAuthForm({ isProfileVerification = false, onSuccess
             <input
               type="text"
               required
-              maxLength={6}
+              maxLength={7}
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="123456"
-              className="w-full bg-neutral-50 border border-neutral-200 px-3.5 py-2.5 text-xs tracking-widest focus:outline-none focus:border-black transition-colors"
+              onChange={(e) => setOtp(formatOtp(e.target.value))}
+              placeholder="123-456"
+              className="w-full bg-neutral-50 border border-neutral-200 px-3.5 py-2.5 text-xs font-mono tracking-widest focus:outline-none focus:border-black transition-colors text-center font-medium"
             />
           </div>
           <button

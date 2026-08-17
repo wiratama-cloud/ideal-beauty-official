@@ -10,8 +10,8 @@ describe('Header Layout & Rearranged Action Items', () => {
     // Verify grid layout with 12 columns
     expect(headerContent).toContain('grid grid-cols-12 items-center');
 
-    // Verify logo center spans 6 columns with flex centering
-    expect(headerContent).toContain('col-span-6 flex flex-col items-center justify-center text-center');
+    // Verify logo center spans responsive 5 columns on mobile and 6 columns on desktop with flex centering
+    expect(headerContent).toContain('col-span-5 sm:col-span-6 flex flex-col items-center justify-center text-center');
 
     // Verify logo text content "IDEAL BEAUTY" and "OFFICIAL"
     expect(headerContent).toContain('IDEAL BEAUTY');
@@ -45,5 +45,13 @@ describe('Header Layout & Rearranged Action Items', () => {
     expect(bagsIdx).toBeLessThan(ordersIdx);
     expect(ordersIdx).toBeLessThan(profileIdx);
     expect(profileIdx).toBeLessThan(loginIdx);
+  });
+
+  it('should not contain EMAIL or PHONE status badges in AccountView overview banner', () => {
+    const accountViewPath = path.resolve(__dirname, '../src/components/account/AccountView.tsx');
+    const accountViewContent = fs.readFileSync(accountViewPath, 'utf-8');
+
+    expect(accountViewContent).not.toContain('EMAIL:');
+    expect(accountViewContent).not.toContain('PHONE:');
   });
 });

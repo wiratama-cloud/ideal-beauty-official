@@ -30,10 +30,30 @@ export async function verifyFirebaseTokenAction(token: string) {
   });
 
   if (user) {
+    // Ensure user record still exists in DB
+    const existingDbUser = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!existingDbUser) {
+      user = null;
+    } else {
+      user = existingDbUser;
+    }
+  }
+
+  if (user) {
     // True upsert logic
     const updateData: any = {};
 
     if (user.firebaseUid !== uid) {
+      // Disassociate uid from any existing record if different
+      const existingUidUser = await prisma.user.findUnique({
+        where: { firebaseUid: uid },
+      });
+      if (existingUidUser && existingUidUser.id !== user.id) {
+        await prisma.user.update({
+          where: { id: existingUidUser.id },
+          data: { firebaseUid: null },
+        });
+      }
       updateData.firebaseUid = uid;
     }
 
@@ -43,7 +63,10 @@ export async function verifyFirebaseTokenAction(token: string) {
 
     if (email) {
       if (user.email !== email) {
-        updateData.email = email;
+        const existingEmailUser = await prisma.user.findUnique({ where: { email } });
+        if (!existingEmailUser) {
+          updateData.email = email;
+        }
       }
       if (!user.isEmailVerified) {
         updateData.isEmailVerified = true;
@@ -60,10 +83,27 @@ export async function verifyFirebaseTokenAction(token: string) {
     }
 
     if (Object.keys(updateData).length > 0) {
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: updateData,
-      });
+      try {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: updateData,
+        });
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+          user = await prisma.user.create({
+            data: {
+              firebaseUid: uid,
+              email: email || null,
+              phone: phone_number,
+              isPhoneVerified: !!phone_number,
+              isEmailVerified: !!email,
+              name: tokenName || 'Ideal Beauty Patron',
+            },
+          });
+        } else {
+          throw err;
+        }
+      }
     }
   } else {
     // Create new user
@@ -88,24 +128,78 @@ export async function verifyFirebaseTokenAction(token: string) {
 export async function linkPhoneToUserAction(token: string) {
   const decodedToken = await verifyIdToken(token);
   if (!decodedToken) throw new Error('Invalid Firebase ID token');
-  const { phone_number } = decodedToken;
+  const { phone_number, uid } = decodedToken as any;
   if (!phone_number) throw new Error('No phone number in token');
 
   const userId = await getLoggedInUserId();
-  if (!userId) throw new Error('Not logged in');
+  if (!userId) {
+    return await verifyFirebaseTokenAction(token);
+  }
+
+  const currentUser = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!currentUser) {
+    return await verifyFirebaseTokenAction(token);
+  }
+
+  // Handle firebaseUid conflicts
+  if (uid && currentUser.firebaseUid !== uid) {
+    const existingUidUser = await prisma.user.findUnique({
+      where: { firebaseUid: uid },
+    });
+
+    if (existingUidUser && existingUidUser.id !== currentUser.id) {
+      await prisma.user.update({
+        where: { id: existingUidUser.id },
+        data: { firebaseUid: null },
+      });
+    }
+  }
+
+  // Handle existing phone records
+  if (phone_number && currentUser.phone !== phone_number) {
+    const existingPhoneUser = await prisma.user.findFirst({
+      where: {
+        phone: phone_number,
+        NOT: { id: currentUser.id },
+      },
+    });
+
+    if (existingPhoneUser) {
+      if (!existingPhoneUser.email && !existingPhoneUser.firebaseUid) {
+        await prisma.user.update({
+          where: { id: existingPhoneUser.id },
+          data: { phone: null, isPhoneVerified: false },
+        });
+      } else {
+        throw new Error('This phone number is already associated with another account.');
+      }
+    }
+  }
 
   try {
-    return await prisma.user.update({
-      where: { id: userId },
+    const updatedUser = await prisma.user.update({
+      where: { id: currentUser.id },
       data: {
         phone: phone_number,
         isPhoneVerified: true,
-        firebaseUid: decodedToken.uid,
+        ...(uid ? { firebaseUid: uid } : {}),
       },
     });
-  } catch (error) {
+
+    await setLoggedInUserId(updatedUser.id);
+    return updatedUser;
+  } catch (error: any) {
+    if (error?.message === 'This phone number is already associated with another account.') {
+      throw error;
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       throw new Error('This phone number is already associated with another account.');
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return await verifyFirebaseTokenAction(token);
     }
     throw error;
   }

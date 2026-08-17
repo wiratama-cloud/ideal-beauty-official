@@ -301,7 +301,7 @@ export default function Header({ initialNavCategories = [], initialIsAdmin = fal
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="grid grid-cols-12 items-center h-16 sm:h-20">
           {/* Mobile menu button & Desktop Search Bar (Left) */}
-          <div className="col-span-3 flex items-center justify-start">
+          <div className="col-span-2 sm:col-span-3 flex items-center justify-start">
             <div className="lg:hidden">
               <button
                 type="button"
@@ -455,28 +455,28 @@ export default function Header({ initialNavCategories = [], initialIsAdmin = fal
           </div>
 
           {/* Logo Center */}
-          <div className="col-span-6 flex flex-col items-center justify-center text-center px-1">
+          <div className="col-span-5 sm:col-span-6 flex flex-col items-center justify-center text-center px-1">
             <Link href="/" className="inline-flex flex-col items-center justify-center text-center group">
-              <span className="font-sans text-lg sm:text-2xl md:text-3xl tracking-[0.15em] sm:tracking-[0.2em] uppercase font-light text-neutral-900 block leading-tight pr-[0.15em] sm:pr-[0.2em]">
+              <span className="font-sans text-base sm:text-2xl md:text-3xl tracking-[0.1em] sm:tracking-[0.2em] uppercase font-light text-neutral-900 block leading-tight pr-[0.1em] sm:pr-[0.2em]">
                 IDEAL BEAUTY
               </span>
-              <span className="block text-[8px] sm:text-[9px] tracking-[0.25em] sm:tracking-[0.3em] uppercase text-neutral-400 font-sans mt-0.5 leading-tight pr-[0.25em] sm:pr-[0.3em]">
+              <span className="block text-[7px] sm:text-[9px] tracking-[0.2em] sm:tracking-[0.3em] uppercase text-neutral-400 font-sans mt-0.5 leading-tight pr-[0.2em] sm:pr-[0.3em]">
                 OFFICIAL
               </span>
             </Link>
           </div>
 
           {/* Action Icons Right */}
-          <div className="col-span-3 flex items-center justify-end space-x-1 sm:space-x-2.5">
+          <div className="col-span-5 sm:col-span-3 flex items-center justify-end space-x-0.5 sm:space-x-2.5">
             {/* 1. ADMIN */}
             {isAdmin && (
               <Link
                 href="/admin/dashboard"
-                className="text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300/80 rounded-full px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-semibold tracking-wider uppercase flex items-center space-x-1 transition-colors shrink-0 shadow-xs"
+                className="w-8 h-8 sm:w-auto sm:h-auto aspect-square sm:aspect-auto text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300/80 rounded-full p-0 sm:px-2.5 sm:py-1 text-[11px] sm:text-xs font-semibold tracking-wider uppercase flex items-center justify-center space-x-0 sm:space-x-1 transition-colors shrink-0 shadow-xs"
                 title="Go to Admin Portal"
                 aria-label="Admin Portal"
               >
-                <Shield className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                <Shield className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-amber-700 shrink-0" />
                 <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
@@ -484,7 +484,7 @@ export default function Header({ initialNavCategories = [], initialIsAdmin = fal
             {/* 2. Liked */}
             <Link
               href="/account/wishlist"
-              className="text-neutral-700 hover:text-black transition-colors relative p-1 sm:p-1.5 min-h-[44px] min-w-[36px] sm:min-w-[44px] flex items-center justify-center"
+              className="text-neutral-700 hover:text-black transition-colors relative p-1 sm:p-1.5 min-h-[44px] min-w-[30px] sm:min-w-[44px] flex items-center justify-center"
               title="Liked"
               aria-label="Liked"
             >
@@ -495,7 +495,7 @@ export default function Header({ initialNavCategories = [], initialIsAdmin = fal
             <button
               type="button"
               onClick={toggleCartDrawer}
-              className="text-neutral-700 hover:text-black transition-colors relative p-1 sm:p-1.5 min-h-[44px] min-w-[36px] sm:min-w-[44px] flex items-center justify-center cursor-pointer"
+              className="text-neutral-700 hover:text-black transition-colors relative p-1 sm:p-1.5 min-h-[44px] min-w-[30px] sm:min-w-[44px] flex items-center justify-center cursor-pointer"
               aria-label="Shopping Cart"
               title="Shopping Cart"
               suppressHydrationWarning
@@ -511,7 +511,7 @@ export default function Header({ initialNavCategories = [], initialIsAdmin = fal
             {/* 4. Orders */}
             <Link
               href="/account/orders"
-              className="text-neutral-700 hover:text-black transition-colors relative p-1 sm:p-1.5 min-h-[44px] min-w-[36px] sm:min-w-[44px] flex items-center justify-center"
+              className="text-neutral-700 hover:text-black transition-colors relative p-1 sm:p-1.5 min-h-[44px] min-w-[30px] sm:min-w-[44px] flex items-center justify-center"
               title="Orders"
               aria-label="Orders"
             >
@@ -522,7 +522,7 @@ export default function Header({ initialNavCategories = [], initialIsAdmin = fal
             {currentUser ? (
               <Link
                 href="/account"
-                className="text-neutral-700 hover:text-black transition-colors p-1 sm:p-1.5 min-h-[44px] flex items-center justify-center space-x-1.5 text-xs font-medium"
+                className="w-8 h-8 sm:w-auto sm:h-auto aspect-square sm:aspect-auto text-neutral-700 hover:text-black transition-colors p-0 sm:p-1.5 min-h-0 sm:min-h-[44px] min-w-0 sm:min-w-[44px] flex items-center justify-center space-x-0 sm:space-x-1.5 text-xs font-medium rounded-full"
                 title={currentUser.name || currentUser.email || 'Profile'}
                 aria-label="Profile"
               >
@@ -534,12 +534,12 @@ export default function Header({ initialNavCategories = [], initialIsAdmin = fal
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center space-x-1 sm:space-x-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-wider bg-black hover:bg-neutral-800 text-white px-2.5 sm:px-3 py-1.5 rounded-full transition-colors shrink-0 shadow-2xs"
+                className="w-8 h-8 sm:w-auto sm:h-auto aspect-square sm:aspect-auto inline-flex items-center justify-center space-x-0 sm:space-x-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider bg-black hover:bg-neutral-800 text-white p-0 sm:px-3 sm:py-1.5 rounded-full transition-colors shrink-0 shadow-2xs"
                 title="Login"
                 aria-label="Login"
               >
-                <User className="w-3.5 h-3.5 shrink-0" />
-                <span>Login</span>
+                <User className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Login</span>
               </Link>
             )}
           </div>

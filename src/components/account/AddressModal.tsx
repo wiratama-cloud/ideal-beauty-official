@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createAddressAction, updateAddressAction } from '@/app/actions/account';
 import { X, Loader2, AlertCircle, MapPin, Phone, User, Tag } from 'lucide-react';
+import { isValidPhoneNumber, formatPhoneNumber } from '@/lib/utils/phone';
 
 export interface AddressData {
   id?: string;
@@ -49,7 +50,7 @@ export default function AddressModal({
         id: addressToEdit.id,
         label: addressToEdit.label || '',
         recipientName: addressToEdit.recipientName || '',
-        phone: addressToEdit.phone || '',
+        phone: addressToEdit.phone ? formatPhoneNumber(addressToEdit.phone) : '+62 ',
         addressLine1: addressToEdit.addressLine1 || '',
         city: addressToEdit.city || '',
         province: addressToEdit.province || '',
@@ -60,7 +61,7 @@ export default function AddressModal({
       setFormData({
         label: 'Home',
         recipientName: '',
-        phone: '',
+        phone: '+62 ',
         addressLine1: '',
         city: '',
         province: '',
@@ -77,7 +78,7 @@ export default function AddressModal({
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === 'checkbox' ? checked : (name === 'phone' ? formatPhoneNumber(value) : value),
     }));
   };
 
@@ -85,6 +86,12 @@ export default function AddressModal({
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage(null);
+
+    if (!isValidPhoneNumber(formData.phone)) {
+      setErrorMessage('Please enter a valid phone number (e.g. +62 812-3456-7890 or 081234567890).');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       let res;
