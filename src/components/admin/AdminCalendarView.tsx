@@ -260,16 +260,16 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100 font-sans text-xs">
+    <div className="min-h-screen bg-neutral-50 pb-16 font-sans text-xs">
       <AdminHeader
         title="Rental Calendar & Maintenance Console"
-        subtitle="Atelier Rental Fleet Tracker"
+        subtitle="ATELIER RENTAL FLEET TRACKER"
         activeTab="calendar"
         action={
           <button
             type="button"
             onClick={() => handleOpenModal()}
-            className="bg-black text-white px-4 py-2.5 uppercase tracking-widest text-[10px] hover:bg-neutral-800 transition-colors flex items-center space-x-2"
+            className="bg-black text-white px-4 py-2.5 uppercase tracking-widest text-[10px] font-medium hover:bg-neutral-800 transition-colors flex items-center space-x-2 rounded-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Maintenance Block</span>
@@ -277,39 +277,39 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         {/* Top KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white p-5 border border-neutral-200 shadow-xs flex items-center space-x-4">
+          <div className="bg-white p-5 border border-neutral-200 shadow-2xs rounded-xs flex items-center space-x-4">
             <div className="p-3 bg-rose-50 text-rose-600 rounded-full">
               <ShoppingBag className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-neutral-400 block font-medium">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block font-semibold">
                 Active Rental Orders
               </span>
               <span className="font-serif text-2xl font-light text-neutral-900">{totalActiveBookings}</span>
             </div>
           </div>
 
-          <div className="bg-white p-5 border border-neutral-200 shadow-xs flex items-center space-x-4">
+          <div className="bg-white p-5 border border-neutral-200 shadow-2xs rounded-xs flex items-center space-x-4">
             <div className="p-3 bg-amber-50 text-amber-600 rounded-full">
               <Wrench className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-neutral-400 block font-medium">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block font-semibold">
                 Scheduled Maintenance / Cleaning
               </span>
               <span className="font-serif text-2xl font-light text-neutral-900">{totalMaintenanceBlocks}</span>
             </div>
           </div>
 
-          <div className="bg-white p-5 border border-neutral-200 shadow-xs flex items-center space-x-4">
+          <div className="bg-white p-5 border border-neutral-200 shadow-2xs rounded-xs flex items-center space-x-4">
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-full">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-neutral-400 block font-medium">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block font-semibold">
                 Total Rental Fleet Units
               </span>
               <span className="font-serif text-2xl font-light text-neutral-900">{totalRentalFleet}</span>
@@ -318,7 +318,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
         </div>
 
         {/* Filters & Month Picker */}
-        <div className="bg-white p-5 border border-neutral-200 space-y-4 shadow-xs">
+        <div className="bg-white p-5 border border-neutral-200 space-y-4 shadow-2xs rounded-xs">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
               <div className="relative flex-1 md:w-64">
@@ -328,14 +328,14 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
                   placeholder="Search product or SKU..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-neutral-50 border border-neutral-200 text-xs focus:outline-none focus:border-black font-sans"
+                  className="w-full pl-9 pr-3 py-2 bg-neutral-50 border border-neutral-200 text-xs focus:outline-hidden focus:border-black font-sans rounded-xs"
                 />
               </div>
 
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-neutral-50 border border-neutral-200 px-3 py-2 text-xs focus:outline-none focus:border-black font-sans"
+                className="bg-neutral-50 border border-neutral-200 px-3 py-2 text-xs focus:outline-hidden focus:border-black font-sans rounded-xs"
               >
                 <option value="ALL">All Categories</option>
                 {categories.map((cat) => (
@@ -351,7 +351,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="p-1 hover:bg-neutral-200 text-neutral-700 transition-colors"
+                className="p-1 hover:bg-neutral-200 text-neutral-700 transition-colors rounded-xs"
                 title="Previous Month"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -364,7 +364,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1 hover:bg-neutral-200 text-neutral-700 transition-colors"
+                className="p-1 hover:bg-neutral-200 text-neutral-700 transition-colors rounded-xs"
                 title="Next Month"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -373,7 +373,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
           </div>
 
           {/* Color Legend */}
-          <div className="flex flex-wrap items-center gap-6 pt-3 border-t border-neutral-100 text-[10px] uppercase tracking-wider text-neutral-600 font-medium">
+          <div className="flex flex-wrap items-center gap-6 pt-3 border-t border-neutral-100 text-[10px] font-mono uppercase tracking-wider text-neutral-600 font-medium">
             <div className="flex items-center space-x-1.5">
               <span className="w-3 h-3 bg-emerald-100 border border-emerald-300 rounded-xs inline-block"></span>
               <span>Available</span>
@@ -390,22 +390,22 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
         </div>
 
         {/* Variant Schedule Grid */}
-        <div className="bg-white border border-neutral-200 shadow-xs overflow-hidden">
+        <div className="bg-white border border-neutral-200 shadow-2xs rounded-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left font-sans text-xs">
               <thead>
-                <tr className="bg-neutral-50 border-b border-neutral-200 text-[10px] text-neutral-500 uppercase tracking-wider">
-                  <th className="py-3 px-4 min-w-[200px] font-medium sticky left-0 bg-neutral-50 shadow-xs z-10">
+                <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[10px] font-mono text-neutral-500 uppercase tracking-wider font-semibold">
+                  <th className="py-3 px-4 min-w-[200px] sticky left-0 bg-neutral-50/80 shadow-xs z-10">
                     Product / Variant SKU
                   </th>
-                  <th className="py-3 px-3 w-24 text-center font-medium">Fleet Size</th>
-                  <th className="py-3 px-3 w-28 text-right font-medium">Rent Rate</th>
+                  <th className="py-3 px-3 w-24 text-center font-semibold">Fleet Size</th>
+                  <th className="py-3 px-3 w-28 text-right font-semibold">Rent Rate</th>
                   {Array.from({ length: daysInMonth }).map((_, idx) => (
                     <th key={idx} className="py-3 px-1 w-8 text-center font-mono font-normal">
                       {idx + 1}
                     </th>
                   ))}
-                  <th className="py-3 px-4 text-right font-medium">Action</th>
+                  <th className="py-3 px-4 text-right font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
@@ -574,15 +574,15 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
             </table>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Detail Popover / Modal */}
       {detailItem && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white max-w-md w-full p-6 space-y-4 border border-neutral-300 shadow-xl">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white max-w-md w-full p-6 space-y-4 border border-neutral-200 shadow-xl rounded-xs">
             <div className="flex justify-between items-start border-b border-neutral-100 pb-3">
               <div>
-                <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-sans block">
+                <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-400 block">
                   {detailItem.type === 'BOOKING' ? 'Customer Order Booking' : 'Maintenance / Dry Cleaning'}
                 </span>
                 <h3 className="font-serif text-lg font-medium text-neutral-900">{detailItem.title}</h3>
@@ -598,7 +598,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
             </div>
 
             <div className="space-y-2 text-xs font-mono">
-              <div className="bg-neutral-50 p-3 border border-neutral-200 space-y-1">
+              <div className="bg-neutral-50 p-3 border border-neutral-200 space-y-1 rounded-xs">
                 <div className="text-neutral-500 text-[10px] uppercase">Schedule Period</div>
                 <div className="text-neutral-900 font-bold">
                   {detailItem.startDate} → {detailItem.endDate}
@@ -606,7 +606,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
               </div>
 
               {detailItem.notes && (
-                <div className="bg-neutral-50 p-3 border border-neutral-200 space-y-1 font-sans">
+                <div className="bg-neutral-50 p-3 border border-neutral-200 space-y-1 font-sans rounded-xs">
                   <div className="text-neutral-500 text-[10px] uppercase font-mono">Notes</div>
                   <div className="text-neutral-800">{detailItem.notes}</div>
                 </div>
@@ -619,7 +619,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
                   type="button"
                   disabled={deletingBlockId === detailItem.blockId}
                   onClick={() => handleDeleteBlock(detailItem.blockId!)}
-                  className="bg-rose-600 text-white px-3 py-2 text-[10px] uppercase tracking-wider font-medium hover:bg-rose-700 transition-colors flex items-center space-x-1"
+                  className="bg-rose-600 text-white px-3 py-2 text-[10px] uppercase tracking-wider font-medium hover:bg-rose-700 transition-colors flex items-center space-x-1 rounded-xs"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>{deletingBlockId === detailItem.blockId ? 'Deleting...' : 'Remove Block'}</span>
@@ -628,7 +628,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
               <button
                 type="button"
                 onClick={() => setDetailItem(null)}
-                className="bg-neutral-200 text-neutral-800 px-4 py-2 text-[10px] uppercase tracking-wider font-medium hover:bg-neutral-300"
+                className="bg-neutral-200 text-neutral-800 px-4 py-2 text-[10px] uppercase tracking-wider font-medium hover:bg-neutral-300 rounded-xs"
               >
                 Close
               </button>
@@ -639,11 +639,11 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
 
       {/* Add Maintenance Block Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <form onSubmit={handleCreateBlock} className="bg-white max-w-lg w-full p-6 space-y-5 border border-neutral-300 shadow-xl font-sans">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <form onSubmit={handleCreateBlock} className="bg-white max-w-lg w-full p-6 space-y-5 border border-neutral-200 shadow-xl font-sans rounded-xs">
             <div className="flex justify-between items-start border-b border-neutral-100 pb-3">
               <div>
-                <span className="text-[10px] uppercase tracking-widest text-neutral-400 block">
+                <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-400 block">
                   Atelier Inventory Control
                 </span>
                 <h3 className="font-serif text-xl font-light text-neutral-900">Schedule Maintenance Block</h3>
@@ -658,7 +658,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
             </div>
 
             {modalErrorMessage && (
-              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center space-x-2">
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center space-x-2 rounded-xs">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{modalErrorMessage}</span>
               </div>
@@ -666,13 +666,13 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
 
             <div className="space-y-4 text-xs">
               <div>
-                <label className="block text-[10px] uppercase tracking-wider text-neutral-600 font-medium mb-1">
+                <label className="block text-[10px] uppercase font-mono tracking-wider text-neutral-600 font-medium mb-1">
                   Product Variant
                 </label>
                 <select
                   value={selectedVariantId}
                   onChange={(e) => setSelectedVariantId(e.target.value)}
-                  className="w-full bg-neutral-50 border border-neutral-300 p-2.5 text-xs font-sans focus:outline-none focus:border-black"
+                  className="w-full bg-neutral-50 border border-neutral-300 p-2.5 text-xs font-sans focus:outline-hidden focus:border-black rounded-xs"
                 >
                   {allVariants.map((v) => (
                     <option key={v.variantId} value={v.variantId}>
@@ -684,19 +684,19 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-neutral-600 font-medium mb-1">
+                  <label className="block text-[10px] uppercase font-mono tracking-wider text-neutral-600 font-medium mb-1">
                     Start Date
                   </label>
                   <input
                     type="date"
                     value={startDateInput}
                     onChange={(e) => setStartDateInput(e.target.value)}
-                    className="w-full bg-white border border-neutral-300 p-2 text-xs font-mono focus:outline-none focus:border-black"
+                    className="w-full bg-white border border-neutral-300 p-2 text-xs font-mono focus:outline-hidden focus:border-black rounded-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-neutral-600 font-medium mb-1">
+                  <label className="block text-[10px] uppercase font-mono tracking-wider text-neutral-600 font-medium mb-1">
                     End Date
                   </label>
                   <input
@@ -704,19 +704,19 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
                     value={endDateInput}
                     min={startDateInput}
                     onChange={(e) => setEndDateInput(e.target.value)}
-                    className="w-full bg-white border border-neutral-300 p-2 text-xs font-mono focus:outline-none focus:border-black"
+                    className="w-full bg-white border border-neutral-300 p-2 text-xs font-mono focus:outline-hidden focus:border-black rounded-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase tracking-wider text-neutral-600 font-medium mb-1">
+                <label className="block text-[10px] uppercase font-mono tracking-wider text-neutral-600 font-medium mb-1">
                   Block Reason
                 </label>
                 <select
                   value={reasonInput}
                   onChange={(e) => setReasonInput(e.target.value)}
-                  className="w-full bg-neutral-50 border border-neutral-300 p-2.5 text-xs font-sans focus:outline-none focus:border-black"
+                  className="w-full bg-neutral-50 border border-neutral-300 p-2.5 text-xs font-sans focus:outline-hidden focus:border-black rounded-xs"
                 >
                   <option value="MAINTENANCE">General Atelier Maintenance</option>
                   <option value="DRY_CLEANING">Dry Cleaning & Pressing</option>
@@ -726,7 +726,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase tracking-wider text-neutral-600 font-medium mb-1">
+                <label className="block text-[10px] uppercase font-mono tracking-wider text-neutral-600 font-medium mb-1">
                   Notes (Optional)
                 </label>
                 <textarea
@@ -734,7 +734,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
                   value={notesInput}
                   onChange={(e) => setNotesInput(e.target.value)}
                   placeholder="e.g., Scheduled dry cleaning at French Cleaners Senopati"
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs font-sans focus:outline-none focus:border-black"
+                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs font-sans focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
             </div>
@@ -743,7 +743,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 border border-neutral-300 text-neutral-700 uppercase tracking-wider text-[10px] hover:bg-neutral-100"
+                className="px-4 py-2 border border-neutral-300 text-neutral-700 uppercase tracking-wider text-[10px] hover:bg-neutral-100 rounded-xs"
               >
                 Cancel
               </button>
@@ -751,7 +751,7 @@ export default function AdminCalendarView({ initialProducts }: AdminCalendarView
               <button
                 type="submit"
                 disabled={isSavingBlock}
-                className="bg-black text-white px-5 py-2 uppercase tracking-wider text-[10px] font-medium hover:bg-neutral-800 disabled:opacity-50"
+                className="bg-black text-white px-5 py-2 uppercase tracking-wider text-[10px] font-medium hover:bg-neutral-800 disabled:opacity-50 rounded-xs"
               >
                 {isSavingBlock ? 'Saving...' : 'Create Block'}
               </button>

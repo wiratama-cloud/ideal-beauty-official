@@ -54,7 +54,7 @@ export default function OrderMetricsBar({ orders }: OrderMetricsBarProps) {
   }).length;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
       {/* Total Orders */}
       <div className="bg-white border border-neutral-200 p-4 rounded-xs shadow-2xs hover:border-neutral-300 transition-colors">
         <div className="flex items-center justify-between text-neutral-400 mb-2">
@@ -64,7 +64,7 @@ export default function OrderMetricsBar({ orders }: OrderMetricsBarProps) {
           <ShoppingBag className="w-4 h-4 text-neutral-400" />
         </div>
         <div className="text-xl font-serif font-medium text-neutral-900">{totalOrders}</div>
-        <p className="text-[10px] text-neutral-500 mt-1">All time fulfillment</p>
+        <p className="text-[10px] text-neutral-500 font-mono mt-1">All time fulfillment</p>
       </div>
 
       {/* Total Revenue */}
@@ -75,10 +75,10 @@ export default function OrderMetricsBar({ orders }: OrderMetricsBarProps) {
           </span>
           <DollarSign className="w-4 h-4 text-emerald-600" />
         </div>
-        <div className="text-lg font-mono font-bold text-emerald-800 truncate">
+        <div className="text-lg sm:text-xl font-serif font-medium text-emerald-900 truncate">
           {formatIDR(totalRevenue)}
         </div>
-        <p className="text-[10px] text-neutral-500 mt-1">Confirmed payments</p>
+        <p className="text-[10px] text-emerald-700 font-mono mt-1">Confirmed payments</p>
       </div>
 
       {/* Active Rentals */}
@@ -90,7 +90,7 @@ export default function OrderMetricsBar({ orders }: OrderMetricsBarProps) {
           <Calendar className="w-4 h-4 text-amber-600" />
         </div>
         <div className="text-xl font-serif font-medium text-amber-900">{activeRentalsCount}</div>
-        <p className="text-[10px] text-neutral-500 mt-1">Currently with customer</p>
+        <p className="text-[10px] text-neutral-500 font-mono mt-1">Currently with customer</p>
       </div>
 
       {/* Overdue Rentals */}
@@ -109,7 +109,7 @@ export default function OrderMetricsBar({ orders }: OrderMetricsBarProps) {
             </span>
           )}
         </div>
-        <p className="text-[10px] text-neutral-500 mt-1">Return dates passed</p>
+        <p className="text-[10px] text-neutral-500 font-mono mt-1">Return dates passed</p>
       </div>
 
       {/* Pending / Unpaid */}
@@ -123,7 +123,7 @@ export default function OrderMetricsBar({ orders }: OrderMetricsBarProps) {
         <div className="text-xl font-serif font-medium text-neutral-900">
           {pendingFulfillmentCount}
         </div>
-        <p className="text-[10px] text-neutral-500 mt-1">Awaiting status / balance</p>
+        <p className="text-[10px] text-neutral-500 font-mono mt-1">Awaiting status / balance</p>
       </div>
     </div>
   );

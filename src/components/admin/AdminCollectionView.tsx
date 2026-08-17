@@ -381,16 +381,16 @@ export default function AdminCollectionView({
   };
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-neutral-100 font-sans pb-24">
+    <div className="min-h-screen bg-neutral-50 pb-24 text-xs font-sans text-neutral-900">
       <AdminHeader
-        title="Collection & Taxonomy Management"
-        subtitle="Define 1, 2, and 3+ level category tree hierarchies, parent-child relationships, and leaf image assets"
+        title={`Collection & Taxonomy (${categories.length})`}
+        subtitle="CATEGORY TREE HIERARCHIES, PARENT-CHILD RELATIONSHIPS & LEAF ASSETS"
         activeTab="collection"
         action={
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={expandAll}
-              className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 rounded-xs text-xs font-medium flex items-center space-x-1.5 transition-colors"
+              className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 rounded-xs text-xs font-medium flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
               title="Expand all tree branches"
             >
               <ChevronsDown className="w-3.5 h-3.5" />
@@ -398,7 +398,7 @@ export default function AdminCollectionView({
             </button>
             <button
               onClick={collapseAll}
-              className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 rounded-xs text-xs font-medium flex items-center space-x-1.5 transition-colors"
+              className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 rounded-xs text-xs font-medium flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
               title="Collapse all tree branches"
             >
               <ChevronsUp className="w-3.5 h-3.5" />
@@ -407,14 +407,14 @@ export default function AdminCollectionView({
             <button
               onClick={handleResetDefaults}
               disabled={isSubmitting}
-              className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 rounded-xs text-xs font-medium flex items-center space-x-1.5 transition-colors"
+              className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 rounded-xs text-xs font-medium flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset Tree</span>
             </button>
             <button
               onClick={handleStartAdd}
-              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xs text-xs flex items-center space-x-1.5 transition-colors shadow-sm"
+              className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-xs text-xs flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Add Collection</span>
@@ -423,71 +423,71 @@ export default function AdminCollectionView({
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         {/* Status Message */}
         {message && (
           <div
             className={`p-4 rounded-xs border text-xs flex items-center justify-between ${
               message.type === 'success'
-                ? 'bg-emerald-950/80 border-emerald-800 text-emerald-200'
-                : 'bg-rose-950/80 border-rose-800 text-rose-200'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-rose-50 border-rose-200 text-rose-800'
             }`}
           >
             <div className="flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 flex-shrink-0" />
+              <Sparkles className="w-4 h-4 flex-shrink-0 text-emerald-600" />
               <span>{message.text}</span>
             </div>
-            <button onClick={() => setMessage(null)} className="hover:opacity-75">
+            <button onClick={() => setMessage(null)} className="hover:opacity-75 cursor-pointer">
               <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-neutral-800/80 border border-neutral-700/60 rounded-xs p-4 flex items-center space-x-3">
-            <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xs border border-amber-500/20">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-white border border-neutral-200 rounded-xs p-4 flex items-center space-x-3 shadow-2xs hover:border-neutral-300 transition-colors">
+            <div className="p-2.5 bg-amber-50 text-amber-700 rounded-xs border border-amber-200">
               <Layers className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400">Total Collections</p>
-              <p className="text-xl font-serif text-white">{totalCount}</p>
+              <p className="text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-500">Total Collections</p>
+              <p className="text-xl font-serif font-medium text-neutral-900">{totalCount}</p>
             </div>
           </div>
 
-          <div className="bg-neutral-800/80 border border-neutral-700/60 rounded-xs p-4 flex items-center space-x-3">
-            <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xs border border-blue-500/20">
+          <div className="bg-white border border-neutral-200 rounded-xs p-4 flex items-center space-x-3 shadow-2xs hover:border-neutral-300 transition-colors">
+            <div className="p-2.5 bg-blue-50 text-blue-700 rounded-xs border border-blue-200">
               <GitMerge className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400">Root Collections</p>
-              <p className="text-xl font-serif text-white">{rootCount}</p>
+              <p className="text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-500">Root Collections</p>
+              <p className="text-xl font-serif font-medium text-neutral-900">{rootCount}</p>
             </div>
           </div>
 
-          <div className="bg-neutral-800/80 border border-neutral-700/60 rounded-xs p-4 flex items-center space-x-3">
-            <div className="p-2.5 bg-purple-500/10 text-purple-400 rounded-xs border border-purple-500/20">
+          <div className="bg-white border border-neutral-200 rounded-xs p-4 flex items-center space-x-3 shadow-2xs hover:border-neutral-300 transition-colors">
+            <div className="p-2.5 bg-purple-50 text-purple-700 rounded-xs border border-purple-200">
               <FolderPlus className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400">Nested Sub-items</p>
-              <p className="text-xl font-serif text-white">{subCount}</p>
+              <p className="text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-500">Nested Sub-items</p>
+              <p className="text-xl font-serif font-medium text-neutral-900">{subCount}</p>
             </div>
           </div>
 
-          <div className="bg-neutral-800/80 border border-neutral-700/60 rounded-xs p-4 flex items-center space-x-3">
-            <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xs border border-emerald-500/20">
+          <div className="bg-white border border-neutral-200 rounded-xs p-4 flex items-center space-x-3 shadow-2xs hover:border-neutral-300 transition-colors">
+            <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-xs border border-emerald-200">
               <Eye className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400">Active Live</p>
-              <p className="text-xl font-serif text-white">{activeCount}</p>
+              <p className="text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-500">Active Live</p>
+              <p className="text-xl font-serif font-medium text-emerald-900">{activeCount}</p>
             </div>
           </div>
         </div>
 
         {/* Search & Actions Bar */}
-        <div className="bg-neutral-800/60 border border-neutral-700/60 p-4 rounded-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bg-white border border-neutral-200 p-3 rounded-xs flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-neutral-400" />
             <input
@@ -495,37 +495,37 @@ export default function AdminCollectionView({
               placeholder="Search collections..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-neutral-900 border border-neutral-700 rounded-xs pl-9 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500"
+              className="w-full bg-neutral-50 border border-neutral-200 rounded-xs pl-9 pr-8 py-1.5 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-400"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-2.5 text-neutral-400 hover:text-white"
+                className="absolute right-2.5 top-2.5 text-neutral-400 hover:text-neutral-700 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          <div className="text-xs text-neutral-400 flex items-center space-x-2">
+          <div className="text-xs text-neutral-500 flex items-center space-x-2">
             <span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
-            <span>Tip: Click <strong className="text-amber-400">+ Sub</strong> on any row to instantly create a nested collection.</span>
+            <span>Tip: Click <strong className="text-amber-700">+ Sub</strong> on any row to instantly create a nested collection.</span>
           </div>
         </div>
 
-        {/* Form Modal (Add or Edit Collection) */}
+        {/* Form Card (Add or Edit Collection) */}
         {(isAdding || editingId) && (
-          <div className="bg-neutral-800 border border-amber-500/40 rounded-xs p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-neutral-700 pb-3">
+          <div className="bg-white border border-neutral-300 rounded-xs p-6 shadow-md space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
               <div className="flex items-center space-x-2">
-                <div className="p-1.5 bg-amber-500/10 text-amber-400 rounded-xs">
+                <div className="p-1.5 bg-amber-50 text-amber-700 rounded-xs border border-amber-200">
                   {isAdding ? <Plus className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
                 </div>
-                <h3 className="font-serif text-base text-white">
+                <h3 className="font-serif text-base font-medium text-neutral-900">
                   {isAdding ? 'Add New Collection' : 'Edit Collection'}
                 </h3>
               </div>
-              <button onClick={resetForm} className="text-neutral-400 hover:text-white p-1">
+              <button onClick={resetForm} className="text-neutral-400 hover:text-neutral-700 p-1 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -533,7 +533,7 @@ export default function AdminCollectionView({
             <form onSubmit={handleSubmitForm} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-neutral-400 mb-1">
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-600 font-semibold mb-1">
                     Collection Name *
                   </label>
                   <input
@@ -542,18 +542,18 @@ export default function AdminCollectionView({
                     value={formName}
                     onChange={(e) => handleNameChange(e.target.value)}
                     placeholder="e.g. Haute Couture, Kaftans, Lehengas"
-                    className="w-full bg-neutral-900 border border-neutral-700 rounded-xs px-3 py-2 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-neutral-200 rounded-xs px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-400 shadow-2xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-neutral-400 mb-1">
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-600 font-semibold mb-1">
                     Parent Collection (Tree Node)
                   </label>
                   <select
                     value={formParentId}
                     onChange={(e) => setFormParentId(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-700 rounded-xs px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-neutral-200 rounded-xs px-3 py-2 text-neutral-900 focus:outline-none focus:border-neutral-400 shadow-2xs cursor-pointer"
                   >
                     <option value="">None (Top-Level Root Collection)</option>
                     {parentOptions.map((opt) => (
@@ -567,7 +567,7 @@ export default function AdminCollectionView({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-neutral-400 mb-1">
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-600 font-semibold mb-1">
                     Storefront Link URL *
                   </label>
                   <input
@@ -576,12 +576,12 @@ export default function AdminCollectionView({
                     value={formHref}
                     onChange={(e) => setFormHref(e.target.value)}
                     placeholder="e.g. /products?category=Kaftans"
-                    className="w-full bg-neutral-900 border border-neutral-700 rounded-xs px-3 py-2 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-neutral-200 rounded-xs px-3 py-2 text-neutral-900 font-mono placeholder-neutral-400 focus:outline-none focus:border-neutral-400 shadow-2xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-neutral-400 mb-1">
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-600 font-semibold mb-1">
                     Leaf Image Asset URL
                   </label>
                   <div className="flex items-center space-x-2">
@@ -590,10 +590,10 @@ export default function AdminCollectionView({
                       value={formImageUrl}
                       onChange={(e) => setFormImageUrl(e.target.value)}
                       placeholder="/images/products/default-product.jpg"
-                      className="w-full bg-neutral-900 border border-neutral-700 rounded-xs px-3 py-2 text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500"
+                      className="w-full bg-white border border-neutral-200 rounded-xs px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-400 shadow-2xs"
                     />
                     {formImageUrl.trim() && (
-                      <div className="w-9 h-9 relative rounded-xs border border-neutral-700 overflow-hidden flex-shrink-0 bg-neutral-950">
+                      <div className="w-9 h-9 relative rounded-xs border border-neutral-200 overflow-hidden flex-shrink-0 bg-neutral-100">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={formImageUrl}
@@ -609,15 +609,15 @@ export default function AdminCollectionView({
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 pt-2 border-t border-neutral-700/60">
+              <div className="flex items-center space-x-2 pt-2 border-t border-neutral-200">
                 <input
                   type="checkbox"
                   id="formIsActive"
                   checked={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.checked)}
-                  className="rounded bg-neutral-900 border-neutral-700 text-amber-500 focus:ring-0"
+                  className="rounded-xs bg-white border-neutral-300 text-neutral-900 focus:ring-0 cursor-pointer"
                 />
-                <label htmlFor="formIsActive" className="text-neutral-300">
+                <label htmlFor="formIsActive" className="text-neutral-700 font-medium cursor-pointer">
                   Publish & Active on Storefront
                 </label>
               </div>
@@ -626,14 +626,14 @@ export default function AdminCollectionView({
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 border border-neutral-700 text-neutral-300 hover:bg-neutral-700/50 rounded-xs transition-colors"
+                  className="px-4 py-2 border border-neutral-200 text-neutral-700 hover:bg-neutral-100 rounded-xs transition-colors cursor-pointer shadow-2xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xs transition-colors shadow-sm"
+                  className="px-5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-xs transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
                 >
                   {isSubmitting ? 'Saving...' : isAdding ? 'Create Collection' : 'Update Collection'}
                 </button>
@@ -643,28 +643,28 @@ export default function AdminCollectionView({
         )}
 
         {/* Tree Table View */}
-        <div className="bg-neutral-800/80 border border-neutral-700/60 rounded-xs overflow-hidden shadow-sm">
+        <div className="bg-white border border-neutral-200 rounded-xs overflow-hidden shadow-2xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-neutral-200">
-              <thead className="bg-neutral-900/80 border-b border-neutral-700 text-[10px] uppercase tracking-wider text-neutral-400">
+            <table className="w-full text-left text-xs text-neutral-800">
+              <thead className="bg-neutral-50/80 border-b border-neutral-200 text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-500">
                 <tr>
-                  <th className="py-3 px-4 font-medium">Collection Hierarchy</th>
-                  <th className="py-3 px-4 font-medium">Level</th>
-                  <th className="py-3 px-4 font-medium">Leaf Asset</th>
-                  <th className="py-3 px-4 font-medium">Storefront Route</th>
-                  <th className="py-3 px-4 font-medium text-center">Status</th>
-                  <th className="py-3 px-4 font-medium text-right">Actions</th>
+                  <th className="py-3 px-4">Collection Hierarchy</th>
+                  <th className="py-3 px-4">Level</th>
+                  <th className="py-3 px-4">Leaf Asset</th>
+                  <th className="py-3 px-4">Storefront Route</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-700/50">
+              <tbody className="divide-y divide-neutral-100">
                 {filteredRows.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-12 text-center text-neutral-500">
-                      <Layers className="w-8 h-8 mx-auto mb-2 text-neutral-600" />
-                      <p className="font-serif text-sm">No collections found matching query.</p>
+                      <Layers className="w-8 h-8 mx-auto mb-2 text-neutral-400" />
+                      <p className="font-serif text-sm text-neutral-700">No collections found matching query.</p>
                       <button
                         onClick={handleResetDefaults}
-                        className="mt-3 px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xs hover:bg-amber-500/20"
+                        className="mt-3 px-3 py-1 bg-neutral-50 hover:bg-neutral-100 text-neutral-700 border border-neutral-200 rounded-xs transition-colors cursor-pointer shadow-2xs"
                       >
                         Reset Default Tree
                       </button>
@@ -679,8 +679,8 @@ export default function AdminCollectionView({
                     return (
                       <tr
                         key={node.id}
-                        className={`hover:bg-neutral-700/30 transition-colors ${
-                          node.depth === 0 ? 'bg-neutral-800/40' : ''
+                        className={`hover:bg-neutral-50/60 transition-colors ${
+                          node.depth === 0 ? 'bg-neutral-50/30' : ''
                         }`}
                       >
                         {/* Collection Hierarchy Cell */}
@@ -689,33 +689,33 @@ export default function AdminCollectionView({
                             {hasChildren ? (
                               <button
                                 onClick={() => toggleCollapse(node.id)}
-                                className="p-1 rounded text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
+                                className="p-1 rounded-xs text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
                                 title={isCollapsed ? 'Expand subcategories' : 'Collapse subcategories'}
                               >
                                 {isCollapsed ? (
-                                  <ChevronRight className="w-4 h-4 text-amber-400" />
+                                  <ChevronRight className="w-4 h-4 text-amber-600" />
                                 ) : (
-                                  <ChevronDown className="w-4 h-4 text-amber-400" />
+                                  <ChevronDown className="w-4 h-4 text-amber-600" />
                                 )}
                               </button>
                             ) : (
-                              <span className="w-6 h-4 inline-block text-center text-neutral-600">
+                              <span className="w-6 h-4 inline-block text-center text-neutral-400 font-mono">
                                 {node.depth > 0 ? '└' : '•'}
                               </span>
                             )}
 
                             {node.depth === 0 ? (
-                              <FolderOpen className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                              <FolderOpen className="w-4 h-4 text-amber-600 flex-shrink-0" />
                             ) : (
-                              <Folder className="w-4 h-4 text-amber-500/70 flex-shrink-0" />
+                              <Folder className="w-4 h-4 text-amber-500 flex-shrink-0" />
                             )}
 
-                            <span className="font-medium text-white tracking-wide">
+                            <span className="font-medium text-neutral-900">
                               {node.name}
                             </span>
 
                             {hasChildren && (
-                              <span className="text-[10px] bg-neutral-900 border border-neutral-700 text-amber-400/90 px-1.5 py-0.5 rounded-full font-mono ml-2">
+                              <span className="text-[10px] bg-amber-50 border border-amber-200 text-amber-800 px-1.5 py-0.5 rounded-xs font-mono ml-2">
                                 {node.children.length} sub
                               </span>
                             )}
@@ -725,12 +725,12 @@ export default function AdminCollectionView({
                         {/* Level Badge */}
                         <td className="py-3 px-4">
                           <span
-                            className={`px-2 py-0.5 rounded-xs text-[10px] uppercase font-mono tracking-wider ${
+                            className={`px-2 py-0.5 rounded-xs text-[10px] uppercase font-mono tracking-wider font-semibold ${
                               node.depth === 0
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                ? 'bg-amber-50 text-amber-800 border border-amber-200'
                                 : node.depth === 1
-                                ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                                : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                                : 'bg-purple-50 text-purple-800 border border-purple-200'
                             }`}
                           >
                             {node.depth === 0 ? 'Root' : `L${node.depth} Sub`}
@@ -740,7 +740,7 @@ export default function AdminCollectionView({
                         {/* Leaf Asset Thumbnail */}
                         <td className="py-3 px-4">
                           {node.imageUrl ? (
-                            <div className="w-8 h-8 relative rounded-xs overflow-hidden border border-neutral-700 bg-neutral-950 flex-shrink-0">
+                            <div className="w-8 h-8 relative rounded-xs overflow-hidden border border-neutral-200 bg-neutral-100 flex-shrink-0">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={node.imageUrl}
@@ -752,19 +752,19 @@ export default function AdminCollectionView({
                               />
                             </div>
                           ) : (
-                            <span className="text-neutral-600 text-[10px] italic">No image</span>
+                            <span className="text-neutral-400 text-[10px] italic">No image</span>
                           )}
                         </td>
 
                         {/* Route Link */}
-                        <td className="py-3 px-4 text-neutral-400 font-mono text-[11px] truncate max-w-[200px]">
+                        <td className="py-3 px-4 text-neutral-600 font-mono text-[11px] truncate max-w-[200px]">
                           <a
                             href={node.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:text-amber-400 flex items-center space-x-1 group"
+                            className="hover:text-amber-800 flex items-center space-x-1 group"
                           >
-                            <LinkIcon className="w-3 h-3 text-neutral-500 group-hover:text-amber-400 flex-shrink-0" />
+                            <LinkIcon className="w-3 h-3 text-neutral-400 group-hover:text-amber-800 flex-shrink-0" />
                             <span className="truncate">{node.href}</span>
                           </a>
                         </td>
@@ -772,10 +772,10 @@ export default function AdminCollectionView({
                         {/* Status */}
                         <td className="py-3 px-4 text-center">
                           <span
-                            className={`px-2 py-0.5 rounded-xs text-[10px] font-semibold uppercase ${
+                            className={`px-2 py-0.5 rounded-xs text-[10px] font-mono font-semibold uppercase ${
                               node.isActive
-                                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                                : 'bg-neutral-900 text-neutral-500 border border-neutral-800'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-neutral-100 text-neutral-500 border border-neutral-200'
                             }`}
                           >
                             {node.isActive ? 'Active' : 'Hidden'}
@@ -784,18 +784,18 @@ export default function AdminCollectionView({
 
                         {/* Action Buttons */}
                         <td className="py-3 px-4 text-right">
-                          <div className="flex items-center justify-end space-x-1.5">
+                          <div className="flex items-center justify-end space-x-1">
                             {/* Reorder controls */}
                             <button
                               onClick={() => handleMoveOrder(node, 'up')}
-                              className="p-1 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded-xs transition-colors"
+                              className="p-1 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-xs transition-colors cursor-pointer"
                               title="Move Up"
                             >
                               <ArrowUp className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleMoveOrder(node, 'down')}
-                              className="p-1 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded-xs transition-colors"
+                              className="p-1 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-xs transition-colors cursor-pointer"
                               title="Move Down"
                             >
                               <ArrowDown className="w-3.5 h-3.5" />
@@ -804,7 +804,7 @@ export default function AdminCollectionView({
                             {/* Add Subcategory Quick Action */}
                             <button
                               onClick={() => handleAddSubcategory(node)}
-                              className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xs text-[11px] font-medium flex items-center space-x-1 transition-colors"
+                              className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xs text-[11px] font-medium flex items-center space-x-1 transition-colors cursor-pointer"
                               title={`Add subcategory under ${node.name}`}
                             >
                               <Plus className="w-3 h-3" />
@@ -814,7 +814,7 @@ export default function AdminCollectionView({
                             {/* Edit */}
                             <button
                               onClick={() => handleStartEdit(node)}
-                              className="p-1 text-neutral-400 hover:text-amber-400 hover:bg-neutral-700 rounded-xs transition-colors"
+                              className="p-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-xs transition-colors cursor-pointer border border-neutral-200"
                               title="Edit Collection"
                             >
                               <Edit2 className="w-3 h-3" />
@@ -823,7 +823,7 @@ export default function AdminCollectionView({
                             {/* Delete */}
                             <button
                               onClick={() => handleDelete(node.id, node.name)}
-                              className="p-1 text-neutral-400 hover:text-rose-400 hover:bg-neutral-700 rounded-xs transition-colors"
+                              className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xs transition-colors cursor-pointer border border-rose-200"
                               title="Delete Collection"
                             >
                               <Trash2 className="w-3 h-3" />
@@ -838,7 +838,7 @@ export default function AdminCollectionView({
             </table>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

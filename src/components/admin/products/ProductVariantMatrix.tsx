@@ -96,23 +96,25 @@ export default function ProductVariantMatrix({
 
   if (!variants || variants.length === 0) {
     return (
-      <div className="p-4 bg-neutral-950 text-center text-xs text-neutral-500 italic border-t border-neutral-800">
+      <div className="p-4 bg-neutral-50 text-center text-xs text-neutral-500 italic border-t border-neutral-200">
         No variants configured for this product.
       </div>
     );
   }
 
   return (
-    <div className="bg-neutral-950 p-4 border-t border-neutral-800 space-y-3">
-      <div className="flex items-center justify-between text-xs text-neutral-400 font-medium pb-1 border-b border-neutral-800">
-        <span>Variant Matrix & Inventory Management</span>
-        <span>{variants.length} SKU(s)</span>
+    <div className="bg-neutral-50/50 p-4 border-t border-neutral-200 space-y-3">
+      <div className="flex items-center justify-between text-xs text-neutral-600 font-medium pb-2 border-b border-neutral-200">
+        <span className="font-mono text-[10px] uppercase tracking-wider font-semibold text-neutral-500">
+          Variant Matrix & Inventory Control
+        </span>
+        <span className="text-[11px] font-mono text-neutral-500">{variants.length} SKU(s)</span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-xs text-left">
           <thead>
-            <tr className="text-neutral-500 uppercase tracking-wider font-semibold border-b border-neutral-800/80">
+            <tr className="text-neutral-500 uppercase tracking-wider font-mono text-[10px] font-semibold border-b border-neutral-200">
               <th className="py-2 px-3">SKU</th>
               <th className="py-2 px-3">Attributes</th>
               <th className="py-2 px-3">Sale Price</th>
@@ -124,7 +126,7 @@ export default function ProductVariantMatrix({
               <th className="py-2 px-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-850">
+          <tbody className="divide-y divide-neutral-200">
             {variants.map((variant) => {
               const currentStock = stockState[variant.id] || {
                 total: variant.stockTotal,
@@ -140,38 +142,38 @@ export default function ProductVariantMatrix({
                 : 'Free Size';
 
               return (
-                <tr key={variant.id} className="hover:bg-neutral-900/50 transition-colors">
+                <tr key={variant.id} className="hover:bg-neutral-100/50 transition-colors">
                   {/* SKU */}
-                  <td className="py-2.5 px-3 font-mono font-medium text-neutral-200">
+                  <td className="py-2.5 px-3 font-mono font-medium text-neutral-900">
                     {variant.sku}
                   </td>
 
                   {/* Attributes */}
-                  <td className="py-2.5 px-3 text-neutral-400">{attrString}</td>
+                  <td className="py-2.5 px-3 text-neutral-600">{attrString}</td>
 
                   {/* Sale Price */}
-                  <td className="py-2.5 px-3 text-neutral-300">
+                  <td className="py-2.5 px-3 text-neutral-800 font-mono">
                     {variant.priceSale !== null && variant.priceSale !== undefined
                       ? `Rp ${variant.priceSale.toLocaleString('id-ID')}`
                       : '-'}
                   </td>
 
                   {/* Rent Price */}
-                  <td className="py-2.5 px-3 text-neutral-300">
+                  <td className="py-2.5 px-3 text-neutral-800 font-mono">
                     {variant.priceRent !== null && variant.priceRent !== undefined
                       ? `Rp ${variant.priceRent.toLocaleString('id-ID')}`
                       : '-'}
                   </td>
 
                   {/* Compare-At Price */}
-                  <td className="py-2.5 px-3 text-neutral-400">
+                  <td className="py-2.5 px-3 text-neutral-500 font-mono">
                     {variant.compareAtPrice !== null && variant.compareAtPrice !== undefined
                       ? `Rp ${variant.compareAtPrice.toLocaleString('id-ID')}`
                       : '-'}
                   </td>
 
                   {/* Cost Price */}
-                  <td className="py-2.5 px-3 text-neutral-400">
+                  <td className="py-2.5 px-3 text-neutral-500 font-mono">
                     {variant.costPrice !== null && variant.costPrice !== undefined
                       ? `Rp ${variant.costPrice.toLocaleString('id-ID')}`
                       : '-'}
@@ -180,11 +182,11 @@ export default function ProductVariantMatrix({
                   {/* Stock Available with Warning Indicators & Quick Edit */}
                   <td className="py-2.5 px-3">
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center bg-neutral-900 border border-neutral-700 rounded-md">
+                      <div className="flex items-center bg-white border border-neutral-200 rounded-xs shadow-2xs">
                         <button
                           type="button"
                           onClick={() => handleStockChange(variant.id, 'available', -1)}
-                          className="p-1 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-l-md transition-colors"
+                          className="p-1 hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 rounded-l-xs transition-colors cursor-pointer"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -192,12 +194,12 @@ export default function ProductVariantMatrix({
                           type="number"
                           value={currentStock.available}
                           onChange={(e) => handleDirectInput(variant.id, 'available', e.target.value)}
-                          className="w-12 text-center bg-transparent text-white font-medium focus:outline-none"
+                          className="w-12 text-center bg-transparent text-neutral-900 font-medium text-xs focus:outline-none"
                         />
                         <button
                           type="button"
                           onClick={() => handleStockChange(variant.id, 'available', 1)}
-                          className="p-1 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-r-md transition-colors"
+                          className="p-1 hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 rounded-r-xs transition-colors cursor-pointer"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -205,15 +207,15 @@ export default function ProductVariantMatrix({
 
                       {/* Stock Warning Pill */}
                       {isOutOfStock ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-950 border border-rose-800 text-rose-400">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-semibold bg-rose-50 border border-rose-200 text-rose-700">
                           <AlertCircle className="w-3 h-3" /> Out of Stock
                         </span>
                       ) : isLowStock ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-950 border border-amber-800 text-amber-400">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-semibold bg-amber-50 border border-amber-200 text-amber-700">
                           <AlertCircle className="w-3 h-3" /> Low Stock
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950 border border-emerald-900 text-emerald-400">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-xs text-[10px] font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700">
                           In Stock
                         </span>
                       )}
@@ -222,11 +224,11 @@ export default function ProductVariantMatrix({
 
                   {/* Stock Total Quick Edit */}
                   <td className="py-2.5 px-3">
-                    <div className="flex items-center bg-neutral-900 border border-neutral-700 rounded-md w-fit">
+                    <div className="flex items-center bg-white border border-neutral-200 rounded-xs shadow-2xs w-fit">
                       <button
                         type="button"
                         onClick={() => handleStockChange(variant.id, 'total', -1)}
-                        className="p-1 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-l-md transition-colors"
+                        className="p-1 hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 rounded-l-xs transition-colors cursor-pointer"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
@@ -234,12 +236,12 @@ export default function ProductVariantMatrix({
                         type="number"
                         value={currentStock.total}
                         onChange={(e) => handleDirectInput(variant.id, 'total', e.target.value)}
-                        className="w-12 text-center bg-transparent text-white font-medium focus:outline-none"
+                        className="w-12 text-center bg-transparent text-neutral-900 font-medium text-xs focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => handleStockChange(variant.id, 'total', 1)}
-                        className="p-1 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-r-md transition-colors"
+                        className="p-1 hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 rounded-r-xs transition-colors cursor-pointer"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
@@ -252,13 +254,13 @@ export default function ProductVariantMatrix({
                       type="button"
                       onClick={() => handleSave(variant)}
                       disabled={savingVariantId === variant.id}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-neutral-200 text-black font-semibold rounded text-[11px] transition-colors disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-xs text-[11px] transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
                     >
                       {savingVariantId === variant.id ? (
                         <span>Saving...</span>
                       ) : savedSuccessId === variant.id ? (
                         <>
-                          <CheckCircle className="w-3 h-3 text-emerald-600" />
+                          <CheckCircle className="w-3 h-3 text-emerald-400" />
                           <span>Saved!</span>
                         </>
                       ) : (

@@ -169,7 +169,7 @@ export default function OrderTable({
                     className="pt-4 first:pt-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="relative w-14 aspect-[3/4] bg-neutral-100 flex-shrink-0 border border-neutral-200">
+                      <div className="relative w-14 aspect-[3/4] bg-neutral-100 flex-shrink-0 border border-neutral-200 rounded-xs overflow-hidden">
                         <Image
                           src={image}
                           alt={product?.name || ''}
@@ -232,7 +232,7 @@ export default function OrderTable({
                           value={item.rentalStatus}
                           disabled={isPending}
                           onChange={(e) => onUpdateRentalStatus(item.id, e.target.value)}
-                          className="bg-white border border-neutral-300 p-1.5 text-xs font-mono text-neutral-900 focus:outline-hidden"
+                          className="bg-white border border-neutral-300 p-1.5 text-xs font-mono text-neutral-900 focus:outline-hidden rounded-xs"
                         >
                           <option value="OUT_WITH_CUSTOMER">OUT WITH CUSTOMER</option>
                           <option value="RETURNED">RETURNED IN GOOD CONDITION</option>

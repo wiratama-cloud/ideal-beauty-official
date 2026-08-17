@@ -168,15 +168,15 @@ export default function AdminVouchersView({ initialVouchers, customers }: AdminV
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-16">
+    <div className="min-h-screen bg-neutral-50 pb-16 font-light text-xs">
       <AdminHeader
         title="Vouchers & Promo Management"
-        subtitle="Marketing & Customer Incentives"
+        subtitle="MARKETING & CUSTOMER INCENTIVES"
         activeTab="vouchers"
         action={
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-2 bg-black hover:bg-neutral-800 text-white px-4 py-2.5 rounded-xs text-xs uppercase tracking-widest font-medium transition-colors"
+            className="flex items-center space-x-2 bg-black hover:bg-neutral-800 text-white px-4 py-2.5 rounded-xs text-[10px] uppercase tracking-widest font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Generate New Voucher</span>
@@ -187,9 +187,9 @@ export default function AdminVouchersView({ initialVouchers, customers }: AdminV
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         {/* KPI Header Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white p-5 border border-neutral-200 rounded-xs flex items-center justify-between">
+          <div className="bg-white p-5 border border-neutral-200 rounded-xs shadow-2xs flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium block mb-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-semibold block mb-1">
                 Total Vouchers
               </span>
               <span className="text-2xl font-serif text-neutral-900">{vouchers.length}</span>
@@ -199,9 +199,9 @@ export default function AdminVouchersView({ initialVouchers, customers }: AdminV
             </div>
           </div>
 
-          <div className="bg-white p-5 border border-neutral-200 rounded-xs flex items-center justify-between">
+          <div className="bg-white p-5 border border-neutral-200 rounded-xs shadow-2xs flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium block mb-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-semibold block mb-1">
                 Active Campaigns
               </span>
               <span className="text-2xl font-serif text-emerald-700">
@@ -213,9 +213,9 @@ export default function AdminVouchersView({ initialVouchers, customers }: AdminV
             </div>
           </div>
 
-          <div className="bg-white p-5 border border-neutral-200 rounded-xs flex items-center justify-between">
+          <div className="bg-white p-5 border border-neutral-200 rounded-xs shadow-2xs flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium block mb-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-semibold block mb-1">
                 Total Redemptions
               </span>
               <span className="text-2xl font-serif text-amber-700">
@@ -229,7 +229,7 @@ export default function AdminVouchersView({ initialVouchers, customers }: AdminV
         </div>
 
         {/* Filter & Search Toolbar */}
-        <div className="bg-white p-4 border border-neutral-200 rounded-xs flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="bg-white p-4 border border-neutral-200 rounded-xs shadow-2xs flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-80">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input
@@ -237,19 +237,19 @@ export default function AdminVouchersView({ initialVouchers, customers }: AdminV
               placeholder="Search code or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-neutral-200 rounded-xs text-xs focus:outline-hidden focus:border-black"
+              className="w-full pl-9 pr-3 py-2 border border-neutral-200 rounded-xs text-xs focus:outline-hidden focus:border-black font-mono"
             />
           </div>
 
           <div className="flex items-center space-x-2 w-full md:w-auto overflow-x-auto">
-            <span className="text-xs text-neutral-400 font-medium uppercase tracking-wider whitespace-nowrap mr-1">
+            <span className="text-[10px] font-mono text-neutral-400 font-semibold uppercase tracking-wider whitespace-nowrap mr-1">
               Target:
             </span>
             {(['ALL', 'EVENT', 'CUSTOMER'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilterTarget(t)}
-                className={`px-3 py-1.5 text-[10px] uppercase tracking-wider font-medium rounded-xs transition-colors whitespace-nowrap ${
+                className={`px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider font-medium rounded-xs transition-colors whitespace-nowrap ${
                   filterTarget === t
                     ? 'bg-black text-white'
                     : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
@@ -262,11 +262,11 @@ export default function AdminVouchersView({ initialVouchers, customers }: AdminV
         </div>
 
         {/* Vouchers Table */}
-        <div className="bg-white border border-neutral-200 rounded-xs overflow-hidden">
+        <div className="bg-white border border-neutral-200 rounded-xs overflow-hidden shadow-2xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-neutral-100/70 border-b border-neutral-200 text-[10px] uppercase tracking-widest text-neutral-500 font-semibold">
+                <tr className="bg-neutral-50/80 border-b border-neutral-200 text-[10px] font-mono uppercase tracking-wider text-neutral-500 font-semibold">
                   <th className="py-3 px-4">Voucher Code</th>
                   <th className="py-3 px-4">Target / Recipient</th>
                   <th className="py-3 px-4">Discount</th>

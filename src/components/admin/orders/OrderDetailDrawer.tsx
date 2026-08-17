@@ -260,7 +260,7 @@ export default function OrderDetailDrawer({
                 return (
                   <div key={item.id} className="pt-3 first:pt-0 flex items-start justify-between gap-3">
                     <div className="flex items-start space-x-3">
-                      <div className="relative w-12 aspect-[3/4] bg-neutral-100 flex-shrink-0 border border-neutral-200">
+                      <div className="relative w-12 aspect-[3/4] bg-neutral-100 flex-shrink-0 border border-neutral-200 rounded-xs overflow-hidden">
                         <Image
                           src={image}
                           alt={product?.name || ''}

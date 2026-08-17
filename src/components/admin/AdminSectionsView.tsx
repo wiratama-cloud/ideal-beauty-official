@@ -415,7 +415,7 @@ export default function AdminSectionsView({
   };
 
   return (
-    <div className="space-y-8 pb-12 font-light text-xs">
+    <div className="min-h-screen bg-neutral-50 pb-16 text-xs">
       <AdminHeader
         title="Storefront Landing Sections"
         subtitle="LANDING PAGE & CONTENT CURATION"
@@ -434,10 +434,10 @@ export default function AdminSectionsView({
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         {/* Success Toast */}
         {successMessage && (
-          <div className="bg-black text-white px-4 py-3 text-xs uppercase tracking-widest font-mono flex items-center justify-between rounded-sm shadow-md animate-fade-in">
+          <div className="bg-black text-white px-4 py-3 text-xs uppercase tracking-widest font-mono flex items-center justify-between rounded-xs shadow-md animate-fade-in">
             <span>✓ {successMessage}</span>
             <button onClick={() => setSuccessMessage(null)} className="text-neutral-400 hover:text-white">
               <X className="w-4 h-4" />
@@ -445,17 +445,17 @@ export default function AdminSectionsView({
           </div>
         )}
 
-        {/* Hero Banner Management Card */}
-        <div className="bg-neutral-900 text-white p-6 sm:p-8 space-y-6 shadow-md rounded-sm border border-neutral-800">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+        {/* Hero Banner Management Card (Atelier Light Theme) */}
+        <div className="bg-white text-neutral-900 p-6 sm:p-8 space-y-6 shadow-2xs rounded-xs border border-neutral-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 pb-4">
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 font-mono">
+                <Sparkles className="w-4 h-4 text-amber-600" />
+                <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-500 font-mono">
                   Homepage Hero Banner Configuration
                 </span>
               </div>
-              <h2 className="font-serif text-xl sm:text-2xl font-light text-white">
+              <h2 className="font-serif text-xl sm:text-2xl font-medium text-neutral-900">
                 {heroBanner.title || 'Haute Couture Hero Banner'}
               </h2>
             </div>
@@ -466,18 +466,18 @@ export default function AdminSectionsView({
                 onClick={() => setHeroBanner((prev) => ({ ...prev, isActive: !prev.isActive }))}
                 className={`px-3 py-1.5 uppercase tracking-widest text-[10px] border font-mono transition-colors flex items-center space-x-1.5 rounded-xs ${
                   heroBanner.isActive
-                    ? 'border-emerald-500/50 text-emerald-400 bg-emerald-950/30'
-                    : 'border-neutral-700 text-neutral-400 bg-neutral-800/50'
+                    ? 'border-emerald-200 text-emerald-800 bg-emerald-50'
+                    : 'border-neutral-200 text-neutral-600 bg-neutral-100'
                 }`}
               >
-                {heroBanner.isActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                {heroBanner.isActive ? <Eye className="w-3.5 h-3.5 text-emerald-600" /> : <EyeOff className="w-3.5 h-3.5 text-neutral-400" />}
                 <span>{heroBanner.isActive ? 'Active on Live Site' : 'Hidden'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsEditingHero(!isEditingHero)}
-                className="px-4 py-2 uppercase tracking-widest text-[10px] bg-white text-black font-medium hover:bg-neutral-200 transition-colors flex items-center space-x-1.5 rounded-xs"
+                className="px-4 py-2 uppercase tracking-widest text-[10px] bg-black text-white font-medium hover:bg-neutral-800 transition-colors flex items-center space-x-1.5 rounded-xs"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>{isEditingHero ? 'Close Editor' : 'Edit Hero Banner'}</span>
@@ -487,7 +487,7 @@ export default function AdminSectionsView({
 
           {/* Live Banner Preview Box */}
           {!isEditingHero && (
-            <div className="relative overflow-hidden rounded-sm border border-neutral-800 min-h-[200px] sm:min-h-[240px] flex items-center justify-center bg-neutral-950 p-6 text-center">
+            <div className="relative overflow-hidden rounded-xs border border-neutral-200 min-h-[200px] sm:min-h-[240px] flex items-center justify-center bg-neutral-900 p-6 text-center shadow-inner">
               <div
                 className="absolute inset-0 bg-cover bg-center opacity-50 scale-105"
                 style={{ backgroundImage: `url(${heroBanner.imageUrl || '/images/hero/hero-banner.jpg'})` }}
@@ -523,7 +523,7 @@ export default function AdminSectionsView({
             <form onSubmit={handleSaveHeroBanner} className="space-y-6 pt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-600">
                     Season Tagline
                   </label>
                   <input
@@ -532,12 +532,12 @@ export default function AdminSectionsView({
                     placeholder="AUTUMN / WINTER HAUTE COUTURE 2026"
                     value={heroBanner.tagline}
                     onChange={(e) => setHeroBanner({ ...heroBanner, tagline: e.target.value })}
-                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                    className="w-full bg-white border border-neutral-200 p-2.5 text-xs text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-600">
                     Main Headline Title
                   </label>
                   <input
@@ -546,12 +546,12 @@ export default function AdminSectionsView({
                     placeholder="Elegance Woven in Gold & Velvet"
                     value={heroBanner.title}
                     onChange={(e) => setHeroBanner({ ...heroBanner, title: e.target.value })}
-                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                    className="w-full bg-white border border-neutral-200 p-2.5 text-xs text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                   />
                 </div>
 
                 <div className="md:col-span-2 space-y-1">
-                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-600">
                     Banner Description Paragraph
                   </label>
                   <textarea
@@ -560,12 +560,12 @@ export default function AdminSectionsView({
                     placeholder="Discover hand-crafted bridal ensembles, imperial kaftans, and couture rentals..."
                     value={heroBanner.description}
                     onChange={(e) => setHeroBanner({ ...heroBanner, description: e.target.value })}
-                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                    className="w-full bg-white border border-neutral-200 p-2.5 text-xs text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-600">
                     Primary Button Label
                   </label>
                   <input
@@ -573,12 +573,12 @@ export default function AdminSectionsView({
                     placeholder="Explore Collections"
                     value={heroBanner.primaryCtaLabel}
                     onChange={(e) => setHeroBanner({ ...heroBanner, primaryCtaLabel: e.target.value })}
-                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                    className="w-full bg-white border border-neutral-200 p-2.5 text-xs text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-600">
                     Primary Button Link URL
                   </label>
                   <input
@@ -586,12 +586,12 @@ export default function AdminSectionsView({
                     placeholder="/products"
                     value={heroBanner.primaryCtaUrl}
                     onChange={(e) => setHeroBanner({ ...heroBanner, primaryCtaUrl: e.target.value })}
-                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs font-mono text-amber-300 focus:outline-none focus:border-amber-400 rounded-sm"
+                    className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-600">
                     Secondary Button Label (Optional)
                   </label>
                   <input
@@ -599,12 +599,12 @@ export default function AdminSectionsView({
                     placeholder="Rent Luxury Wear"
                     value={heroBanner.secondaryCtaLabel || ''}
                     onChange={(e) => setHeroBanner({ ...heroBanner, secondaryCtaLabel: e.target.value })}
-                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                    className="w-full bg-white border border-neutral-200 p-2.5 text-xs text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-600">
                     Secondary Button Link URL
                   </label>
                   <input
@@ -612,17 +612,17 @@ export default function AdminSectionsView({
                     placeholder="/products?type=RENTAL"
                     value={heroBanner.secondaryCtaUrl || ''}
                     onChange={(e) => setHeroBanner({ ...heroBanner, secondaryCtaUrl: e.target.value })}
-                    className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs font-mono text-amber-300 focus:outline-none focus:border-amber-400 rounded-sm"
+                    className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                   />
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-400">
+                  <label className="block uppercase tracking-wider text-[10px] font-medium text-neutral-600">
                     Hero Background Image
                   </label>
                   <div className="flex flex-col sm:flex-row items-center gap-4">
                     {heroBanner.imageUrl && (
-                      <div className="relative w-32 h-20 bg-neutral-800 overflow-hidden rounded-sm border border-neutral-700 shrink-0">
+                      <div className="relative w-32 h-20 bg-neutral-100 overflow-hidden rounded-xs border border-neutral-200 shrink-0">
                         <img
                           src={heroBanner.imageUrl}
                           alt="Background Preview"
@@ -642,11 +642,11 @@ export default function AdminSectionsView({
                         placeholder="/images/hero/hero-banner.jpg or uploaded image URL"
                         value={heroBanner.imageUrl || ''}
                         onChange={(e) => setHeroBanner({ ...heroBanner, imageUrl: e.target.value })}
-                        className="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-xs font-mono text-white focus:outline-none focus:border-amber-400 rounded-sm"
+                        className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                       />
                       <div className="flex flex-wrap items-center gap-3">
-                        <label className="cursor-pointer bg-neutral-800 border border-neutral-700 hover:border-amber-400 text-neutral-200 px-3 py-1.5 text-[10px] uppercase tracking-wider font-mono flex items-center space-x-1.5 rounded-xs transition-colors">
-                          <Upload className="w-3.5 h-3.5 text-amber-400" />
+                        <label className="cursor-pointer bg-white border border-neutral-200 hover:border-black text-neutral-800 px-3 py-1.5 text-[10px] uppercase tracking-wider font-mono flex items-center space-x-1.5 rounded-xs transition-colors">
+                          <Upload className="w-3.5 h-3.5 text-amber-600" />
                           <span>Upload Image File</span>
                           <input
                             type="file"
@@ -666,12 +666,12 @@ export default function AdminSectionsView({
                         <button
                           type="button"
                           onClick={() => setHeroBanner((prev) => ({ ...prev, imageUrl: '/images/hero/hero-banner.jpg' }))}
-                          className="bg-neutral-800 border border-neutral-700 hover:border-neutral-500 text-neutral-400 hover:text-white px-3 py-1.5 text-[10px] uppercase tracking-wider font-mono transition-colors rounded-xs"
+                          className="bg-white border border-neutral-200 hover:border-black text-neutral-600 hover:text-black px-3 py-1.5 text-[10px] uppercase tracking-wider font-mono transition-colors rounded-xs"
                         >
                           Reset Default Image
                         </button>
                         {isUploadingImage && (
-                          <span className="text-[10px] font-mono text-amber-400 animate-pulse">
+                          <span className="text-[10px] font-mono text-amber-600 animate-pulse">
                             Uploading file...
                           </span>
                         )}
@@ -681,18 +681,18 @@ export default function AdminSectionsView({
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-800">
+              <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-100">
                 <button
                   type="button"
                   onClick={() => setIsEditingHero(false)}
-                  className="px-5 py-2.5 uppercase tracking-widest text-[10px] border border-neutral-700 text-neutral-300 hover:border-white transition-colors rounded-sm"
+                  className="px-5 py-2.5 uppercase tracking-widest text-[10px] border border-neutral-200 text-neutral-700 hover:border-black transition-colors rounded-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingHero}
-                  className="px-6 py-2.5 uppercase tracking-widest text-[10px] bg-amber-500 text-black font-medium hover:bg-amber-400 transition-colors flex items-center space-x-1.5 rounded-sm"
+                  className="px-6 py-2.5 uppercase tracking-widest text-[10px] bg-black text-white font-medium hover:bg-neutral-800 transition-colors flex items-center space-x-1.5 rounded-xs"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{isSavingHero ? 'Saving Hero Banner...' : 'Save Hero Banner'}</span>
@@ -706,9 +706,9 @@ export default function AdminSectionsView({
         {isCreatingSection && (
           <form
             onSubmit={handleCreateSection}
-            className="bg-neutral-50 border border-neutral-200 p-6 sm:p-8 space-y-6 shadow-sm rounded-sm"
+            className="bg-white border border-neutral-200 p-6 sm:p-8 space-y-6 shadow-2xs rounded-xs"
           >
-            <div className="flex items-center space-x-2 border-b border-neutral-200 pb-3">
+            <div className="flex items-center space-x-2 border-b border-neutral-100 pb-3">
               <Sparkles className="w-4 h-4 text-amber-600" />
               <h2 className="font-serif text-lg text-neutral-900 font-medium">
                 Configure New Landing Page Section
@@ -726,7 +726,7 @@ export default function AdminSectionsView({
                   placeholder="e.g., New Arrivals, Featured Brands, Editor's Picks"
                   value={newSectionTitle}
                   onChange={(e) => setNewSectionTitle(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
 
@@ -739,7 +739,7 @@ export default function AdminSectionsView({
                   placeholder="e.g., Explore runway releases curated for every wardrobe"
                   value={newSectionSubtitle}
                   onChange={(e) => setNewSectionSubtitle(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
 
@@ -750,7 +750,7 @@ export default function AdminSectionsView({
                 <select
                   value={newSectionType}
                   onChange={(e) => setNewSectionType(e.target.value as SectionType)}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 >
                   <option value="NEW_ARRIVALS">NEW_ARRIVALS (Supports Category Tabs)</option>
                   <option value="FEATURED_BRANDS">FEATURED_BRANDS (Brand Cards / Logos)</option>
@@ -769,7 +769,7 @@ export default function AdminSectionsView({
                   placeholder="e.g., /products or /products?category=Women"
                   value={newSectionViewAllUrl}
                   onChange={(e) => setNewSectionViewAllUrl(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
 
@@ -782,7 +782,7 @@ export default function AdminSectionsView({
                   placeholder="Women, Men, Kids"
                   value={newSectionTabs}
                   onChange={(e) => setNewSectionTabs(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
 
@@ -794,23 +794,23 @@ export default function AdminSectionsView({
                   type="number"
                   value={newSectionDisplayOrder}
                   onChange={(e) => setNewSectionDisplayOrder(Number(e.target.value))}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-200">
+            <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-100">
               <button
                 type="button"
                 onClick={() => setIsCreatingSection(false)}
-                className="px-5 py-2.5 uppercase tracking-widest text-[10px] border border-neutral-300 text-neutral-700 hover:border-black transition-colors rounded-sm"
+                className="px-5 py-2.5 uppercase tracking-widest text-[10px] border border-neutral-200 text-neutral-700 hover:border-black transition-colors rounded-xs"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-6 py-2.5 uppercase tracking-widest text-[10px] bg-black text-white hover:bg-neutral-800 transition-colors rounded-sm"
+                className="px-6 py-2.5 uppercase tracking-widest text-[10px] bg-black text-white hover:bg-neutral-800 transition-colors rounded-xs"
               >
                 {isLoading ? 'Saving...' : 'Save Section'}
               </button>
@@ -822,7 +822,7 @@ export default function AdminSectionsView({
         {editingSection && (
           <form
             onSubmit={handleUpdateSection}
-            className="bg-amber-50/50 border border-amber-300 p-6 sm:p-8 space-y-6 shadow-md rounded-sm"
+            className="bg-amber-50/40 border border-amber-200 p-6 sm:p-8 space-y-6 shadow-2xs rounded-xs"
           >
             <div className="flex justify-between items-center border-b border-amber-200 pb-3">
               <div className="flex items-center space-x-2">
@@ -850,7 +850,7 @@ export default function AdminSectionsView({
                   required
                   value={editSectionTitle}
                   onChange={(e) => setEditSectionTitle(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
 
@@ -862,7 +862,7 @@ export default function AdminSectionsView({
                   type="text"
                   value={editSectionSubtitle}
                   onChange={(e) => setEditSectionSubtitle(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
 
@@ -873,7 +873,7 @@ export default function AdminSectionsView({
                 <select
                   value={editSectionType}
                   onChange={(e) => setEditSectionType(e.target.value as SectionType)}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 >
                   <option value="NEW_ARRIVALS">NEW_ARRIVALS (Supports Category Tabs)</option>
                   <option value="FEATURED_BRANDS">FEATURED_BRANDS (Brand Cards / Logos)</option>
@@ -891,7 +891,7 @@ export default function AdminSectionsView({
                   type="text"
                   value={editSectionViewAllUrl}
                   onChange={(e) => setEditSectionViewAllUrl(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
 
@@ -903,7 +903,7 @@ export default function AdminSectionsView({
                   type="text"
                   value={editSectionTabs}
                   onChange={(e) => setEditSectionTabs(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
 
@@ -915,7 +915,7 @@ export default function AdminSectionsView({
                   type="number"
                   value={editSectionDisplayOrder}
                   onChange={(e) => setEditSectionDisplayOrder(Number(e.target.value))}
-                  className="w-full bg-white border border-neutral-300 p-2.5 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                  className="w-full bg-white border border-neutral-200 p-2.5 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                 />
               </div>
             </div>
@@ -924,14 +924,14 @@ export default function AdminSectionsView({
               <button
                 type="button"
                 onClick={() => setEditingSection(null)}
-                className="px-5 py-2.5 uppercase tracking-widest text-[10px] border border-neutral-300 bg-white text-neutral-700 hover:border-black transition-colors rounded-sm"
+                className="px-5 py-2.5 uppercase tracking-widest text-[10px] border border-neutral-200 bg-white text-neutral-700 hover:border-black transition-colors rounded-xs"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-6 py-2.5 uppercase tracking-widest text-[10px] bg-black text-white hover:bg-neutral-800 transition-colors rounded-sm flex items-center space-x-1"
+                className="px-6 py-2.5 uppercase tracking-widest text-[10px] bg-black text-white hover:bg-neutral-800 transition-colors rounded-xs flex items-center space-x-1"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>{isLoading ? 'Saving Changes...' : 'Update Section'}</span>
@@ -950,7 +950,7 @@ export default function AdminSectionsView({
             return (
               <div
                 key={section.id}
-                className={`bg-white border transition-all rounded-sm shadow-sm ${
+                className={`bg-white border transition-all rounded-xs shadow-2xs ${
                   section.isActive ? 'border-neutral-200' : 'border-neutral-200 opacity-60 bg-neutral-50'
                 }`}
               >
@@ -958,14 +958,14 @@ export default function AdminSectionsView({
                 <div className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div className="space-y-1 flex-1">
                     <div className="flex items-center space-x-3">
-                      <span className="font-mono bg-neutral-100 text-neutral-800 text-[10px] font-bold px-2 py-0.5 rounded-sm">
+                      <span className="font-mono bg-neutral-100 text-neutral-800 text-[10px] font-bold px-2 py-0.5 rounded-xs">
                         TYPE: {section.type}
                       </span>
                       <span className="font-mono text-[10px] text-neutral-400">
                         ORDER: #{section.displayOrder}
                       </span>
                       {!section.isActive && (
-                        <span className="bg-rose-100 text-rose-800 text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest rounded-sm">
+                        <span className="bg-rose-50 text-rose-800 border border-rose-200 text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest rounded-xs">
                           INACTIVE
                         </span>
                       )}
@@ -990,15 +990,15 @@ export default function AdminSectionsView({
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleToggleActive(section)}
-                      className="p-2 border border-neutral-300 hover:border-black text-neutral-700 transition-colors rounded-sm"
+                      className="p-2 border border-neutral-200 hover:border-black text-neutral-700 transition-colors rounded-xs"
                       title={section.isActive ? 'Hide from Landing Page' : 'Show on Landing Page'}
                     >
-                      {section.isActive ? <Eye className="w-4 h-4 text-emerald-700" /> : <EyeOff className="w-4 h-4 text-rose-700" />}
+                      {section.isActive ? <Eye className="w-4 h-4 text-emerald-700" /> : <EyeOff className="w-4 h-4 text-neutral-400" />}
                     </button>
 
                     <button
                       onClick={() => startEditingSection(section)}
-                      className="p-2 border border-neutral-300 hover:border-black text-neutral-700 hover:text-black transition-colors rounded-sm"
+                      className="p-2 border border-neutral-200 hover:border-black text-neutral-700 hover:text-black transition-colors rounded-xs"
                       title="Edit Section Metadata"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -1006,7 +1006,7 @@ export default function AdminSectionsView({
 
                     <button
                       onClick={() => handleDeleteSection(section.id)}
-                      className="p-2 border border-neutral-300 hover:border-rose-600 text-neutral-700 hover:text-rose-600 transition-colors rounded-sm"
+                      className="p-2 border border-neutral-200 hover:border-rose-600 text-neutral-700 hover:text-rose-600 transition-colors rounded-xs"
                       title="Delete Section"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1014,7 +1014,7 @@ export default function AdminSectionsView({
 
                     <button
                       onClick={() => setExpandedSectionId(isExpanded ? null : section.id)}
-                      className="bg-neutral-900 text-white px-4 py-2 text-[10px] uppercase tracking-widest flex items-center space-x-1.5 hover:bg-neutral-800 transition-colors rounded-sm"
+                      className="bg-neutral-900 text-white px-4 py-2 text-[10px] uppercase tracking-widest flex items-center space-x-1.5 hover:bg-neutral-800 transition-colors rounded-xs"
                     >
                       <span>Items ({section.items.length})</span>
                       {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -1031,7 +1031,7 @@ export default function AdminSectionsView({
                       </h3>
                       <button
                         onClick={() => startAddingItem(section.id)}
-                        className="bg-black text-white px-3 py-1.5 text-[10px] uppercase tracking-widest font-medium hover:bg-neutral-800 transition-colors flex items-center space-x-1 rounded-sm"
+                        className="bg-black text-white px-3 py-1.5 text-[10px] uppercase tracking-widest font-medium hover:bg-neutral-800 transition-colors flex items-center space-x-1 rounded-xs"
                       >
                         <Plus className="w-3 h-3" />
                         <span>Add Content Item</span>
@@ -1040,7 +1040,7 @@ export default function AdminSectionsView({
 
                     {/* Add or Edit Item Form */}
                     {(addingItemToSectionId === section.id || (editingItem && editingItem.sectionId === section.id)) && (
-                      <div className="bg-white p-5 border border-neutral-300 space-y-4 rounded-sm shadow-sm">
+                      <div className="bg-white p-5 border border-neutral-200 space-y-4 rounded-xs shadow-2xs">
                         <div className="flex justify-between items-center border-b border-neutral-100 pb-2">
                           <h4 className="font-serif text-xs font-semibold text-neutral-800 uppercase tracking-wider">
                             {editingItem ? `Edit Item in ${section.title}` : `Add New Item to ${section.title}`}
@@ -1076,7 +1076,7 @@ export default function AdminSectionsView({
                                   setItemLinkUrl(`/products/${selectedP.slug}`);
                                 }
                               }}
-                              className="w-full bg-white border border-neutral-300 p-2 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                              className="w-full bg-white border border-neutral-200 p-2 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                             >
                               <option value="">-- Select Product --</option>
                               {products.map((p) => (
@@ -1089,13 +1089,13 @@ export default function AdminSectionsView({
 
                           {/* Selected Product Details Preview */}
                           {itemProductId && (
-                            <div className="md:col-span-2 bg-neutral-50 border border-neutral-200 p-3 flex items-center space-x-3 rounded-sm">
+                            <div className="md:col-span-2 bg-neutral-50 border border-neutral-200 p-3 flex items-center space-x-3 rounded-xs">
                               {(() => {
                                 const p = products.find((prod) => prod.id === itemProductId);
                                 if (!p) return null;
                                 return (
                                   <>
-                                    <div className="relative w-12 aspect-[3/4] bg-neutral-200 rounded-sm overflow-hidden shrink-0">
+                                    <div className="relative w-12 aspect-[3/4] bg-neutral-100 rounded-xs overflow-hidden shrink-0 border border-neutral-200">
                                       <Image
                                         src={p.images?.[0] || '/images/products/default-product.jpg'}
                                         alt={p.name}
@@ -1128,7 +1128,7 @@ export default function AdminSectionsView({
                               type="number"
                               value={itemDisplayOrder}
                               onChange={(e) => setItemDisplayOrder(Number(e.target.value))}
-                              className="w-full bg-white border border-neutral-300 p-2 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                              className="w-full bg-white border border-neutral-200 p-2 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                             />
                           </div>
 
@@ -1141,7 +1141,7 @@ export default function AdminSectionsView({
                               <select
                                 value={itemCategoryTab}
                                 onChange={(e) => setItemCategoryTab(e.target.value)}
-                                className="w-full bg-white border border-neutral-300 p-2 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black rounded-sm"
+                                className="w-full bg-white border border-neutral-200 p-2 text-xs font-mono text-neutral-900 focus:outline-hidden focus:border-black rounded-xs"
                               >
                                 <option value="">-- All Tabs / None --</option>
                                 {section.tabs.map((tab: string) => (
@@ -1161,7 +1161,7 @@ export default function AdminSectionsView({
                               setAddingItemToSectionId(null);
                               setEditingItem(null);
                             }}
-                            className="px-4 py-1.5 uppercase text-[10px] tracking-wider border border-neutral-300 hover:border-black rounded-sm"
+                            className="px-4 py-1.5 uppercase text-[10px] tracking-wider border border-neutral-200 hover:border-black rounded-xs"
                           >
                             Cancel
                           </button>
@@ -1175,7 +1175,7 @@ export default function AdminSectionsView({
                               }
                             }}
                             disabled={isLoading}
-                            className="px-4 py-1.5 uppercase text-[10px] tracking-wider bg-black text-white hover:bg-neutral-800 rounded-sm"
+                            className="px-4 py-1.5 uppercase text-[10px] tracking-wider bg-black text-white hover:bg-neutral-800 rounded-xs"
                           >
                             {isLoading ? 'Saving...' : editingItem ? 'Update Item' : 'Add Item'}
                           </button>
@@ -1200,10 +1200,10 @@ export default function AdminSectionsView({
                           return (
                             <div
                               key={item.id}
-                              className="bg-white border border-neutral-200 p-4 flex flex-col justify-between space-y-3 rounded-sm hover:border-neutral-400 transition-colors"
+                              className="bg-white border border-neutral-200 p-4 flex flex-col justify-between space-y-3 rounded-xs shadow-2xs hover:border-neutral-300 transition-colors"
                             >
                               <div className="flex items-start space-x-3">
-                                <div className="relative w-16 aspect-[3/4] bg-neutral-100 flex-shrink-0 rounded-sm overflow-hidden">
+                                <div className="relative w-16 aspect-[3/4] bg-neutral-100 shrink-0 rounded-xs overflow-hidden border border-neutral-200">
                                   <Image
                                     src={displayImage}
                                     alt={item.title || 'Item image'}
@@ -1277,7 +1277,7 @@ export default function AdminSectionsView({
             );
           })}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

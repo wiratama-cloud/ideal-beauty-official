@@ -107,10 +107,10 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-neutral-50 pb-16 text-xs">
       <AdminHeader
         title="Access Control"
-        subtitle="Manage administrator access permissions, whitelist email addresses, and team roles"
+        subtitle="ADMINISTRATOR ACCESS PERMISSIONS & ROLE MANAGEMENT"
         activeTab="access"
         action={
           <button
@@ -119,7 +119,7 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
               setNewEmail('');
               setIsAddModalOpen(true);
             }}
-            className="px-4 py-2 bg-neutral-900 text-white hover:bg-black font-medium text-xs rounded-sm transition-all shadow-xs flex items-center space-x-2"
+            className="px-4 py-2 bg-neutral-900 text-white hover:bg-black font-medium text-xs rounded-xs transition-all shadow-xs flex items-center space-x-2"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Grant Admin Access</span>
@@ -127,12 +127,12 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
         }
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         {/* Analytics & Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-white p-5 border border-neutral-200 rounded-sm shadow-2xs flex items-center justify-between">
+          <div className="bg-white p-5 border border-neutral-200 rounded-xs shadow-2xs flex items-center justify-between">
             <div>
-              <p className="text-2xs font-mono uppercase text-neutral-400 tracking-wider font-medium">
+              <p className="text-[10px] font-mono uppercase text-neutral-400 tracking-wider font-medium">
                 Total Administrators
               </p>
               <h3 className="text-2xl font-serif font-medium text-neutral-900 mt-1">
@@ -144,9 +144,9 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
             </div>
           </div>
 
-          <div className="bg-white p-5 border border-neutral-200 rounded-sm shadow-2xs flex items-center justify-between">
+          <div className="bg-white p-5 border border-neutral-200 rounded-xs shadow-2xs flex items-center justify-between">
             <div>
-              <p className="text-2xs font-mono uppercase text-neutral-400 tracking-wider font-medium">
+              <p className="text-[10px] font-mono uppercase text-neutral-400 tracking-wider font-medium">
                 Primary Root Admin
               </p>
               <h3 className="text-sm font-medium text-neutral-900 mt-1 truncate max-w-[200px]" title={primaryAdmin?.email}>
@@ -162,9 +162,9 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
             </div>
           </div>
 
-          <div className="bg-white p-5 border border-neutral-200 rounded-sm shadow-2xs flex items-center justify-between">
+          <div className="bg-white p-5 border border-neutral-200 rounded-xs shadow-2xs flex items-center justify-between">
             <div>
-              <p className="text-2xs font-mono uppercase text-neutral-400 tracking-wider font-medium">
+              <p className="text-[10px] font-mono uppercase text-neutral-400 tracking-wider font-medium">
                 Access Verification
               </p>
               <h3 className="text-sm font-medium text-emerald-700 mt-1 flex items-center space-x-1.5">
@@ -182,7 +182,7 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
         </div>
 
         {/* Access List Table Container */}
-        <div className="bg-white border border-neutral-200 rounded-sm shadow-2xs overflow-hidden">
+        <div className="bg-white border border-neutral-200 rounded-xs shadow-2xs overflow-hidden">
           {/* Table Header Controls */}
           <div className="p-4 border-b border-neutral-200 bg-neutral-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative max-w-md w-full">
@@ -192,10 +192,10 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
                 placeholder="Search administrators by email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-1.5 text-xs bg-white border border-neutral-300 rounded-sm focus:outline-none focus:border-neutral-900 transition-colors"
+                className="w-full pl-9 pr-4 py-1.5 text-xs bg-white border border-neutral-300 rounded-xs focus:outline-hidden focus:border-neutral-900 transition-colors font-mono"
               />
             </div>
-            <div className="text-2xs text-neutral-500 font-mono">
+            <div className="text-[10px] text-neutral-500 font-mono">
               Showing {filteredAdmins.length} of {admins.length} entries
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-neutral-100 text-neutral-600 uppercase font-mono text-[10px] tracking-wider border-b border-neutral-200">
+              <thead className="bg-neutral-50/80 text-neutral-500 uppercase font-mono text-[10px] tracking-wider border-b border-neutral-200">
                 <tr>
                   <th className="py-3 px-4 font-semibold">Administrator Email</th>
                   <th className="py-3 px-4 font-semibold">Role</th>
@@ -213,10 +213,10 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
                   <th className="py-3 px-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-200 text-neutral-700">
+              <tbody className="divide-y divide-neutral-100 text-neutral-700">
                 {filteredAdmins.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-neutral-400 font-light">
+                    <td colSpan={6} className="py-8 text-center text-neutral-400 font-light font-sans">
                       No administrator accounts found matching "{searchQuery}".
                     </td>
                   </tr>
@@ -237,7 +237,7 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
                             <span className="font-mono text-xs">{admin.email}</span>
                             <button
                               onClick={() => handleCopyEmail(admin.email)}
-                              className="text-neutral-400 hover:text-neutral-700 p-0.5 rounded transition-colors"
+                              className="text-neutral-400 hover:text-neutral-700 p-0.5 rounded-xs transition-colors"
                               title="Copy Email"
                             >
                               {copiedEmail === admin.email ? (
@@ -247,33 +247,33 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
                               )}
                             </button>
                             {isPrimary && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-xs text-[9px] font-mono font-semibold bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider">
                                 Primary Admin
                               </span>
                             )}
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-3xs font-mono font-medium bg-neutral-100 text-neutral-800 uppercase">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-xs text-[9px] font-mono font-medium bg-neutral-100 text-neutral-800 uppercase">
                             {admin.role || 'ADMIN'}
                           </span>
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center space-x-1 text-emerald-700 text-2xs font-medium">
+                          <span className="inline-flex items-center space-x-1 text-emerald-700 text-xs font-medium">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>Authorized</span>
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-mono text-2xs text-neutral-500">
+                        <td className="py-3.5 px-4 font-mono text-[10px] text-neutral-500">
                           {admin.addedBy || 'SYSTEM'}
                         </td>
-                        <td className="py-3.5 px-4 text-neutral-500 font-mono text-2xs">
+                        <td className="py-3.5 px-4 text-neutral-500 font-mono text-[10px]">
                           {dateFormatted}
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           {isPrimary ? (
                             <span
-                              className="inline-flex items-center space-x-1 text-2xs text-neutral-400 bg-neutral-100 px-2.5 py-1 rounded-sm border border-neutral-200 font-mono cursor-not-allowed"
+                              className="inline-flex items-center space-x-1 text-[10px] text-neutral-400 bg-neutral-100 px-2.5 py-1 rounded-xs border border-neutral-200 font-mono cursor-not-allowed"
                               title="Protected primary admin email cannot be revoked"
                             >
                               <Lock className="w-3 h-3" />
@@ -285,7 +285,7 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
                                 setDeleteError(null);
                                 setDeleteTarget(admin);
                               }}
-                              className="inline-flex items-center space-x-1 px-2.5 py-1 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-sm text-2xs font-medium transition-colors"
+                              className="inline-flex items-center space-x-1 px-2.5 py-1 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-xs text-[10px] font-medium transition-colors"
                             >
                               <Trash2 className="w-3 h-3" />
                               <span>Revoke Access</span>
@@ -305,7 +305,7 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
       {/* Grant Admin Access Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-neutral-200 rounded-sm shadow-xl max-w-md w-full p-6 relative animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white border border-neutral-200 rounded-xs shadow-xl max-w-md w-full p-6 relative animate-in fade-in zoom-in-95 duration-150">
             <button
               onClick={() => setIsAddModalOpen(false)}
               className="absolute top-4 right-4 text-neutral-400 hover:text-black p-1"
@@ -314,17 +314,17 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
             </button>
 
             <div className="flex items-center space-x-3 text-neutral-900 mb-4">
-              <div className="p-2 bg-neutral-900 text-white rounded-sm">
+              <div className="p-2 bg-neutral-900 text-white rounded-xs">
                 <UserPlus className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="font-serif font-medium text-base">Grant Admin Access</h3>
-                <p className="text-2xs text-neutral-500">Whitelist an email address for admin portal access</p>
+                <p className="text-[10px] text-neutral-500 font-mono">Whitelist an email address for admin portal access</p>
               </div>
             </div>
 
             {addError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-sm flex items-start space-x-2">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xs flex items-start space-x-2">
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                 <span>{addError}</span>
               </div>
@@ -332,7 +332,7 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
 
             <form onSubmit={handleAddAdmin} className="space-y-4">
               <div>
-                <label className="block text-2xs font-mono uppercase tracking-wider text-neutral-600 mb-1">
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-600 mb-1">
                   Team Member Email <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -343,10 +343,10 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
                     placeholder="e.g. manager@idealbeautyofficial.com"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-neutral-300 rounded-sm focus:outline-none focus:border-neutral-900"
+                    className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-neutral-300 rounded-xs focus:outline-hidden focus:border-neutral-900 font-mono"
                   />
                 </div>
-                <p className="text-[11px] text-neutral-500 mt-1">
+                <p className="text-[10px] text-neutral-500 mt-1 font-sans">
                   User will be granted full administrative privileges upon logging in with this email.
                 </p>
               </div>
@@ -355,14 +355,14 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-3.5 py-1.5 border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-xs rounded-sm transition-colors"
+                  className="px-3.5 py-1.5 border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-xs rounded-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={addLoading}
-                  className="px-4 py-1.5 bg-neutral-900 text-white hover:bg-black text-xs font-medium rounded-sm transition-colors flex items-center space-x-1.5 disabled:opacity-50"
+                  className="px-4 py-1.5 bg-neutral-900 text-white hover:bg-black text-xs font-medium rounded-xs transition-colors flex items-center space-x-1.5 disabled:opacity-50"
                 >
                   {addLoading ? (
                     <>
@@ -382,7 +382,7 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
       {/* Revoke Access Confirmation Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-neutral-200 rounded-sm shadow-xl max-w-md w-full p-6 relative">
+          <div className="bg-white border border-neutral-200 rounded-xs shadow-xl max-w-md w-full p-6 relative">
             <button
               onClick={() => setDeleteTarget(null)}
               className="absolute top-4 right-4 text-neutral-400 hover:text-black p-1"
@@ -391,17 +391,17 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
             </button>
 
             <div className="flex items-center space-x-3 text-red-700 mb-4">
-              <div className="p-2 bg-red-100 rounded-sm">
+              <div className="p-2 bg-red-100 rounded-xs">
                 <ShieldAlert className="w-5 h-5 text-red-600" />
               </div>
               <div>
                 <h3 className="font-serif font-medium text-base text-neutral-900">Revoke Admin Access</h3>
-                <p className="text-2xs text-neutral-500">Remove portal access permissions</p>
+                <p className="text-[10px] text-neutral-500 font-mono">Remove portal access permissions</p>
               </div>
             </div>
 
             {deleteError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-sm flex items-start space-x-2">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xs flex items-start space-x-2">
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                 <span>{deleteError}</span>
               </div>
@@ -417,7 +417,7 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
               <button
                 type="button"
                 onClick={() => setDeleteTarget(null)}
-                className="px-3.5 py-1.5 border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-xs rounded-sm transition-colors"
+                className="px-3.5 py-1.5 border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-xs rounded-xs transition-colors"
               >
                 Cancel
               </button>
@@ -425,7 +425,7 @@ export default function AdminAccessView({ initialAdmins }: AdminAccessViewProps)
                 type="button"
                 onClick={handleRemoveAdmin}
                 disabled={deleteLoading}
-                className="px-4 py-1.5 bg-red-600 text-white hover:bg-red-700 text-xs font-medium rounded-sm transition-colors flex items-center space-x-1.5 disabled:opacity-50"
+                className="px-4 py-1.5 bg-red-600 text-white hover:bg-red-700 text-xs font-medium rounded-xs transition-colors flex items-center space-x-1.5 disabled:opacity-50"
               >
                 {deleteLoading ? (
                   <>

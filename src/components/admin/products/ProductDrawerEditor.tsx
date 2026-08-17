@@ -347,57 +347,68 @@ export default function ProductDrawerEditor({
     await onSave(payload);
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-neutral-900 border-l border-neutral-800 h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+    <div className="fixed inset-0 z-50 overflow-hidden">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        onClick={onClose}
+      />
+
+      <div className="fixed inset-y-0 right-0 max-w-2xl w-full bg-white shadow-2xl flex flex-col z-50 animate-in slide-in-from-right duration-300">
         {/* Drawer Header */}
-        <div className="p-5 border-b border-neutral-800 flex items-center justify-between bg-neutral-950">
+        <div className="px-6 py-4 border-b border-neutral-200 flex justify-between items-center bg-neutral-900 text-white">
           <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">
+            <h2 className="font-serif text-lg font-light tracking-wide">
               {product ? 'Edit Product' : 'Add New Product'}
             </h2>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-neutral-400 mt-0.5">
               {product ? `Managing /${product.slug}` : 'Create a new catalog entry with variants and pricing.'}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-850 transition-colors"
+            className="p-2 text-neutral-400 hover:text-white rounded-xs hover:bg-neutral-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Selector */}
-        <div className="flex border-b border-neutral-800 bg-neutral-950/50 px-5 text-xs font-medium text-neutral-400">
+        <div className="flex border-b border-neutral-200 bg-neutral-50 px-6 text-xs font-medium text-neutral-500">
           <button
+            type="button"
             onClick={() => setActiveTab('general')}
-            className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${
+            className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors cursor-pointer ${
               activeTab === 'general'
-                ? 'border-white text-white font-semibold'
-                : 'border-transparent hover:text-neutral-200'
+                ? 'border-neutral-900 text-neutral-900 font-semibold'
+                : 'border-transparent hover:text-neutral-900'
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
             <span>General Details</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('media')}
-            className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${
+            className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors cursor-pointer ${
               activeTab === 'media'
-                ? 'border-white text-white font-semibold'
-                : 'border-transparent hover:text-neutral-200'
+                ? 'border-neutral-900 text-neutral-900 font-semibold'
+                : 'border-transparent hover:text-neutral-900'
             }`}
           >
             <ImageIcon className="w-3.5 h-3.5" />
             <span>Media Gallery ({formImages.length})</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('variants')}
-            className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${
+            className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors cursor-pointer ${
               activeTab === 'variants'
-                ? 'border-white text-white font-semibold'
-                : 'border-transparent hover:text-neutral-200'
+                ? 'border-neutral-900 text-neutral-900 font-semibold'
+                : 'border-transparent hover:text-neutral-900'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
@@ -407,19 +418,19 @@ export default function ProductDrawerEditor({
 
         {/* Error Notification */}
         {errorMessage && (
-          <div className="mx-5 mt-4 p-3 bg-rose-950/80 border border-rose-800 text-rose-300 text-xs rounded-lg flex items-center gap-2">
+          <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {/* Form Content Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 bg-white text-neutral-900">
           {/* TAB 1: General Details */}
           {activeTab === 'general' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-mono font-semibold text-neutral-600 uppercase tracking-wider mb-1.5">
                   Product Name *
                 </label>
                 <input
@@ -428,19 +439,19 @@ export default function ProductDrawerEditor({
                   placeholder="e.g. Silk Evening Gown"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none focus:border-neutral-600"
+                  className="w-full bg-white border border-neutral-200 rounded-xs px-3.5 py-2 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-400 shadow-2xs transition-colors"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                  <label className="text-[10px] font-mono font-semibold text-neutral-600 uppercase tracking-wider">
                     Slug *
                   </label>
                   <button
                     type="button"
                     onClick={handleAutoSlug}
-                    className="inline-flex items-center gap-1 text-[11px] text-neutral-400 hover:text-white"
+                    className="inline-flex items-center gap-1 text-[11px] text-neutral-500 hover:text-neutral-900 cursor-pointer"
                   >
                     <Sparkles className="w-3 h-3" /> Auto-generate
                   </button>
@@ -451,18 +462,18 @@ export default function ProductDrawerEditor({
                   placeholder="silk-evening-gown"
                   value={formSlug}
                   onChange={(e) => setFormSlug(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3.5 py-2 text-sm text-white font-mono focus:outline-none focus:border-neutral-600"
+                  className="w-full bg-white border border-neutral-200 rounded-xs px-3.5 py-2 text-xs text-neutral-900 font-mono focus:outline-none focus:border-neutral-400 shadow-2xs transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-mono font-semibold text-neutral-600 uppercase tracking-wider mb-1.5">
                   Category
                 </label>
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none focus:border-neutral-600"
+                  className="w-full bg-white border border-neutral-200 rounded-xs px-3.5 py-2 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 shadow-2xs cursor-pointer"
                 >
                   {categories
                     .filter((c) => c !== 'All')
@@ -479,13 +490,13 @@ export default function ProductDrawerEditor({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-mono font-semibold text-neutral-600 uppercase tracking-wider mb-1.5">
                   Linked Size Chart Template
                 </label>
                 <select
                   value={formSizeChartId}
                   onChange={(e) => setFormSizeChartId(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none focus:border-neutral-600 font-mono"
+                  className="w-full bg-white border border-neutral-200 rounded-xs px-3.5 py-2 text-xs text-neutral-900 focus:outline-none focus:border-neutral-400 shadow-2xs cursor-pointer font-mono"
                 >
                   <option value="">Default (Auto-fallback to global default chart)</option>
                   {sizeCharts?.map((sc) => (
@@ -500,7 +511,7 @@ export default function ProductDrawerEditor({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-mono font-semibold text-neutral-600 uppercase tracking-wider mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -508,14 +519,14 @@ export default function ProductDrawerEditor({
                   placeholder="Enter detailed garment description..."
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none focus:border-neutral-600"
+                  className="w-full bg-white border border-neutral-200 rounded-xs px-3.5 py-2 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-400 shadow-2xs transition-colors"
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-neutral-950 border border-neutral-800 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-200 rounded-xs">
                 <div>
-                  <span className="text-xs font-semibold text-white block">Active Status</span>
-                  <span className="text-[11px] text-neutral-400">
+                  <span className="text-xs font-semibold text-neutral-900 block">Active Status</span>
+                  <span className="text-[11px] text-neutral-500">
                     Control store visibility for customers.
                   </span>
                 </div>
@@ -523,7 +534,7 @@ export default function ProductDrawerEditor({
                   type="checkbox"
                   checked={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.checked)}
-                  className="w-5 h-5 rounded border-neutral-700 text-emerald-500 focus:ring-0 bg-neutral-900"
+                  className="w-4 h-4 rounded-xs border-neutral-300 text-neutral-900 focus:ring-0 cursor-pointer"
                 />
               </div>
             </div>
@@ -540,15 +551,15 @@ export default function ProductDrawerEditor({
                 }}
                 onDragLeave={() => setIsDragOverDropzone(false)}
                 onDrop={handleDropzoneDrop}
-                className={`p-4 border-2 border-dashed rounded-xl text-center cursor-pointer transition-colors ${
+                className={`p-6 border-2 border-dashed rounded-xs text-center cursor-pointer transition-colors ${
                   isDragOverDropzone
-                    ? 'border-white bg-neutral-800/80 text-white'
-                    : 'border-neutral-800 bg-neutral-950/60 text-neutral-400 hover:border-neutral-700'
+                    ? 'border-neutral-900 bg-neutral-100 text-neutral-900'
+                    : 'border-neutral-300 bg-neutral-50 text-neutral-600 hover:border-neutral-400'
                 }`}
               >
                 <div className="flex flex-col items-center justify-center gap-1.5">
-                  <Upload className="w-5 h-5 text-neutral-400" />
-                  <span className="text-xs font-medium text-neutral-200">
+                  <Upload className="w-5 h-5 text-neutral-500" />
+                  <span className="text-xs font-medium text-neutral-800">
                     Drag & drop product images here to upload
                   </span>
                   <span className="text-[10px] text-neutral-500">
@@ -558,11 +569,11 @@ export default function ProductDrawerEditor({
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                <label className="block text-[10px] font-mono font-semibold text-neutral-600 uppercase tracking-wider">
                   Product Image Upload
                 </label>
                 <div>
-                  <label className="w-full py-2.5 bg-white hover:bg-neutral-200 text-black font-semibold rounded-lg text-xs cursor-pointer flex items-center justify-center gap-2 transition-colors shadow-sm">
+                  <label className="w-full py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-xs text-xs cursor-pointer flex items-center justify-center gap-2 transition-colors shadow-2xs">
                     <Upload className="w-4 h-4" />
                     <span>{isUploading ? 'Uploading...' : 'Upload Image File'}</span>
                     <input
@@ -578,7 +589,7 @@ export default function ProductDrawerEditor({
 
               {/* Image Preview List with Drag-and-Drop Reordering */}
               <div className="space-y-2">
-                <span className="text-xs text-neutral-400 font-medium">
+                <span className="text-xs text-neutral-600 font-medium">
                   Image Gallery ({formImages.length} items) - Drag items to reorder. First image is Primary.
                 </span>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -599,13 +610,13 @@ export default function ProductDrawerEditor({
                         }
                       }}
                       onDragEnd={() => setDraggedImageIndex(null)}
-                      className={`group relative bg-neutral-950 border rounded-lg p-2 flex flex-col items-center cursor-grab active:cursor-grabbing transition-all ${
+                      className={`group relative bg-neutral-50 border rounded-xs p-2 flex flex-col items-center cursor-grab active:cursor-grabbing transition-all ${
                         draggedImageIndex === index
-                          ? 'border-white opacity-50 scale-95'
-                          : 'border-neutral-800 hover:border-neutral-700'
+                          ? 'border-neutral-900 opacity-50 scale-95'
+                          : 'border-neutral-200 hover:border-neutral-300'
                       }`}
                     >
-                      <div className="relative w-full h-32 bg-neutral-900 rounded overflow-hidden mb-2">
+                      <div className="relative w-full h-32 bg-neutral-100 rounded-xs overflow-hidden mb-2">
                         <Image
                           src={imgUrl}
                           alt={`Product media ${index}`}
@@ -613,11 +624,11 @@ export default function ProductDrawerEditor({
                           className="object-cover"
                         />
                         {index === 0 && (
-                          <span className="absolute top-1.5 left-1.5 bg-black/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded border border-neutral-700">
+                          <span className="absolute top-1.5 left-1.5 bg-neutral-900 text-white text-[10px] font-semibold px-2 py-0.5 rounded-xs">
                             Primary
                           </span>
                         )}
-                        <span className="absolute top-1.5 right-1.5 bg-black/60 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="absolute top-1.5 right-1.5 bg-neutral-900/60 text-white p-1 rounded-xs opacity-0 group-hover:opacity-100 transition-opacity">
                           <GripVertical className="w-3.5 h-3.5" />
                         </span>
                       </div>
@@ -627,18 +638,18 @@ export default function ProductDrawerEditor({
                           <button
                             type="button"
                             onClick={() => handleSetPrimaryImage(index)}
-                            className="text-neutral-400 hover:text-white"
+                            className="text-neutral-500 hover:text-neutral-900 cursor-pointer font-medium"
                           >
                             Set Primary
                           </button>
                         ) : (
-                          <span className="text-emerald-400 font-medium">Primary Image</span>
+                          <span className="text-emerald-700 font-medium">Primary Image</span>
                         )}
 
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(index)}
-                          className="text-rose-400 hover:text-rose-300 p-1"
+                          className="text-rose-600 hover:text-rose-700 p-1 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -655,10 +666,10 @@ export default function ProductDrawerEditor({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-xs font-semibold text-white uppercase tracking-wider">
+                  <h4 className="text-xs font-semibold text-neutral-900 uppercase tracking-wider font-mono">
                     Product Variants ({formVariants.length})
                   </h4>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className="text-[11px] text-neutral-500">
                     Configure pricing, stock, and SKU attributes per variant.
                   </p>
                 </div>
@@ -671,7 +682,7 @@ export default function ProductDrawerEditor({
                         if (allCollapsed) handleExpandAllVariants();
                         else handleCollapseAllVariants();
                       }}
-                      className="px-2.5 py-1.5 text-neutral-400 hover:text-white text-xs border border-neutral-800 hover:border-neutral-700 rounded-lg transition-colors font-medium"
+                      className="px-2.5 py-1.5 text-neutral-600 hover:text-neutral-900 text-xs border border-neutral-200 hover:border-neutral-300 rounded-xs transition-colors font-medium bg-white cursor-pointer shadow-2xs"
                     >
                       {formVariants.every((_, i) => collapsedIndexes[i]) ? 'Expand All' : 'Collapse All'}
                     </button>
@@ -679,7 +690,7 @@ export default function ProductDrawerEditor({
                   <button
                     type="button"
                     onClick={handleAddVariant}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded-lg text-xs transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-xs text-xs transition-colors cursor-pointer shadow-2xs"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add Variant
                   </button>
@@ -694,40 +705,40 @@ export default function ProductDrawerEditor({
                   return (
                     <div
                       key={index}
-                      className="bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden transition-all"
+                      className="bg-neutral-50/50 border border-neutral-200 rounded-xs overflow-hidden transition-all shadow-2xs"
                     >
                       {/* Variant Header - Clickable to Expand / Collapse */}
-                      <div className="p-3.5 flex items-center justify-between bg-neutral-900/40 hover:bg-neutral-900/80 transition-colors">
+                      <div className="p-3.5 flex items-center justify-between bg-neutral-100/70 hover:bg-neutral-100 transition-colors border-b border-neutral-200">
                         <div
                           onClick={() => toggleCollapseVariant(index)}
                           className="flex items-center gap-2.5 cursor-pointer select-none flex-1 min-w-0 pr-3"
                         >
-                          <span className="p-1 text-neutral-400 hover:text-white rounded hover:bg-neutral-800 transition-colors">
+                          <span className="p-1 text-neutral-500 hover:text-neutral-900 rounded-xs hover:bg-neutral-200 transition-colors">
                             {isCollapsed ? (
-                              <ChevronDown className="w-4 h-4 text-neutral-400" />
+                              <ChevronDown className="w-4 h-4 text-neutral-500" />
                             ) : (
-                              <ChevronUp className="w-4 h-4 text-neutral-400" />
+                              <ChevronUp className="w-4 h-4 text-neutral-500" />
                             )}
                           </span>
-                          <span className="text-xs font-bold text-white bg-neutral-800 px-2.5 py-1 rounded flex-shrink-0">
+                          <span className="text-xs font-mono font-semibold text-neutral-800 bg-white border border-neutral-200 px-2 py-0.5 rounded-xs flex-shrink-0">
                             Variant #{index + 1}
                           </span>
-                          <span className="text-[11px] text-neutral-300 font-mono flex-shrink-0">
+                          <span className="text-[11px] text-neutral-700 font-mono flex-shrink-0">
                             {variant.sku || 'Unassigned SKU'}
                           </span>
 
                           {isCollapsed && (
-                            <div className="flex items-center gap-2 text-[11px] text-neutral-400 truncate ml-2">
-                              <span className="bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800 font-medium text-neutral-300">
+                            <div className="flex items-center gap-2 text-[11px] text-neutral-500 truncate ml-2">
+                              <span className="bg-white px-2 py-0.5 rounded-xs border border-neutral-200 font-medium text-neutral-700">
                                 {variantSize}
                               </span>
                               {variant.priceSale && (
-                                <span className="text-emerald-400 font-mono">
+                                <span className="text-emerald-700 font-mono">
                                   Sale: Rp {Number(variant.priceSale).toLocaleString('id-ID')}
                                 </span>
                               )}
                               {variant.priceRent && (
-                                <span className="text-amber-400 font-mono">
+                                <span className="text-amber-700 font-mono">
                                   Rent: Rp {Number(variant.priceRent).toLocaleString('id-ID')}
                                 </span>
                               )}
@@ -740,7 +751,7 @@ export default function ProductDrawerEditor({
                             <button
                               type="button"
                               onClick={() => handleRemoveVariant(index)}
-                              className="text-rose-400 hover:text-rose-300 text-xs flex items-center gap-1 font-medium px-2 py-1 rounded hover:bg-rose-950/40 transition-colors"
+                              className="text-rose-600 hover:text-rose-700 text-xs flex items-center gap-1 font-medium px-2 py-1 rounded-xs hover:bg-rose-50 transition-colors cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" /> Remove
                             </button>
@@ -750,311 +761,310 @@ export default function ProductDrawerEditor({
 
                       {/* Collapsible Content Body */}
                       {!isCollapsed && (
-                        <div className="p-4 pt-2 space-y-4 border-t border-neutral-800/60">
-
-                    {/* Shared Variant Identity */}
-                    <div className="grid grid-cols-2 gap-3 text-xs bg-neutral-900/60 p-3 rounded-lg border border-neutral-800/60">
-                      <div>
-                        <label className="block text-neutral-300 font-medium mb-1">Base SKU *</label>
-                        <input
-                          type="text"
-                          required
-                          value={variant.sku}
-                          onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
-                          className="w-full bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-neutral-300 font-medium mb-1">Size / Option Attribute</label>
-                        <input
-                          type="text"
-                          value={((variant.attributes as Record<string, string> | null)?.size) || 'Free Size'}
-                          onChange={(e) =>
-                            handleVariantChange(index, 'attributes', {
-                              ...((variant.attributes as Record<string, string> | null) || {}),
-                              size: e.target.value,
-                            })
-                          }
-                          className="w-full bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-white"
-                        />
-                      </div>
-                    </div>
-
-                    {/* 🛍️ BUY / RETAIL SALE OPTION */}
-                    <div className="pt-3 border-t border-neutral-800 space-y-3">
-                      <div className="flex items-center justify-between pb-1">
-                        <div className="flex items-center gap-2">
-                          <ShoppingBag className="w-4 h-4 text-emerald-400" />
-                          <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Buy / Retail Sale Option</span>
-                        </div>
-                        <span className="text-[10px] text-emerald-400/80 font-medium uppercase tracking-wider">
-                          Purchase Mode
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                        <div>
-                          <label className="block text-neutral-400 mb-1">SKU (Buy/Sale)</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. SKU-001-BUY"
-                            value={variant.skuSale || ''}
-                            onChange={(e) => handleVariantChange(index, 'skuSale', e.target.value)}
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-emerald-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-neutral-400 mb-1">Sale Price (IDR)</label>
-                          <input
-                            type="number"
-                            placeholder="e.g. 250000"
-                            value={variant.priceSale ?? ''}
-                            onChange={(e) =>
-                              handleVariantChange(
-                                index,
-                                'priceSale',
-                                e.target.value ? parseFloat(e.target.value) : null
-                              )
-                            }
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-neutral-400 mb-1">Compare-at Price (IDR)</label>
-                          <input
-                            type="number"
-                            placeholder="Original / Strikethrough"
-                            value={variant.compareAtPrice ?? ''}
-                            onChange={(e) =>
-                              handleVariantChange(
-                                index,
-                                'compareAtPrice',
-                                e.target.value ? parseFloat(e.target.value) : null
-                              )
-                            }
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-neutral-400 mb-1">Sale Stock Total</label>
-                          <input
-                            type="number"
-                            value={variant.stockSaleTotal ?? variant.stockTotal ?? 0}
-                            onChange={(e) => {
-                              const val = Math.max(0, parseInt(e.target.value, 10) || 0);
-                              handleVariantChange(index, 'stockSaleTotal', val);
-                              handleVariantChange(index, 'stockTotal', val + (variant.stockRentTotal || 0));
-                            }}
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-neutral-400 mb-1">Sale Stock Available</label>
-                          <input
-                            type="number"
-                            value={variant.stockSaleAvailable ?? variant.stockAvailable ?? 0}
-                            onChange={(e) => {
-                              const val = Math.max(0, parseInt(e.target.value, 10) || 0);
-                              handleVariantChange(index, 'stockSaleAvailable', val);
-                              handleVariantChange(index, 'stockAvailable', val + (variant.stockRentAvailable || 0));
-                            }}
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Embedded Pre-Order Controls under Buy Option */}
-                      <div className="p-3 bg-neutral-900/90 border border-neutral-800 rounded-lg space-y-3 text-xs">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="font-semibold text-white block">Pre-Order Option</span>
-                            <span className="text-[11px] text-neutral-400">
-                              Allow customers to buy this variant on pre-order when sale stock is 0.
-                            </span>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={Boolean(variant.isPreOrder)}
-                            onChange={(e) => {
-                              const checked = e.target.checked;
-                              handleVariantChange(index, 'isPreOrder', checked);
-                              if (checked && !variant.preOrderDays) {
-                                handleVariantChange(index, 'preOrderDays', 15);
-                                if (!variant.preOrderNote) {
-                                  handleVariantChange(index, 'preOrderNote', 'Ships in 15 Days');
-                                }
-                              }
-                            }}
-                            className="w-4 h-4 rounded border-neutral-700 text-amber-500 focus:ring-0 bg-neutral-800 cursor-pointer"
-                          />
-                        </div>
-
-                        {variant.isPreOrder && (
-                          <div className="space-y-3 pt-2.5 border-t border-neutral-800">
+                        <div className="p-4 space-y-4 bg-white">
+                          {/* Shared Variant Identity */}
+                          <div className="grid grid-cols-2 gap-3 text-xs bg-neutral-50 p-3 rounded-xs border border-neutral-200">
                             <div>
-                              <label className="block text-neutral-300 font-medium mb-1.5">
-                                Pre-Order Lead Time / Wait Duration
-                              </label>
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                {[
-                                  { id: '15', label: '15 Days', days: 15 },
-                                  { id: '30', label: '30 Days', days: 30 },
-                                  { id: '45', label: '45 Days', days: 45 },
-                                  { id: 'custom', label: 'Custom', days: null },
-                                ].map((option) => {
-                                  const activePreset = getActivePreOrderPreset(variant.preOrderDays, variant.preOrderNote);
-                                  const isSelected = activePreset === option.id;
-
-                                  return (
-                                    <button
-                                      key={option.id}
-                                      type="button"
-                                      onClick={() => handleSelectPreOrderDuration(index, option.days)}
-                                      className={`py-2 px-3 rounded-lg border text-center transition-all cursor-pointer font-medium text-xs ${
-                                        isSelected
-                                          ? 'bg-amber-500/10 border-amber-500/60 text-amber-400 font-semibold shadow-xs'
-                                          : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-white'
-                                      }`}
-                                    >
-                                      {option.label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                              <label className="block text-[10px] font-mono font-semibold text-neutral-600 uppercase tracking-wider mb-1">Base SKU *</label>
+                              <input
+                                type="text"
+                                required
+                                value={variant.sku}
+                                onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
+                                className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 font-mono focus:outline-none focus:border-neutral-400"
+                              />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 pt-1">
-                              <div>
-                                <label className="block text-neutral-400 mb-1">Lead Time Days (Integer) *</label>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  placeholder="e.g. 15"
-                                  value={variant.preOrderDays ?? ''}
-                                  onChange={(e) => {
-                                    const daysVal = e.target.value ? parseInt(e.target.value, 10) : null;
-                                    handleVariantChange(index, 'preOrderDays', daysVal);
-                                    if (daysVal) {
-                                      handleVariantChange(index, 'preOrderNote', `Ships in ${daysVal} Days`);
-                                    }
-                                  }}
-                                  className="w-full bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500 font-mono"
-                                />
-                              </div>
+                            <div>
+                              <label className="block text-[10px] font-mono font-semibold text-neutral-600 uppercase tracking-wider mb-1">Size / Option Attribute</label>
+                              <input
+                                type="text"
+                                value={((variant.attributes as Record<string, string> | null)?.size) || 'Free Size'}
+                                onChange={(e) =>
+                                  handleVariantChange(index, 'attributes', {
+                                    ...((variant.attributes as Record<string, string> | null) || {}),
+                                    size: e.target.value,
+                                  })
+                                }
+                                className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 focus:outline-none focus:border-neutral-400"
+                              />
+                            </div>
+                          </div>
 
+                          {/* 🛍️ BUY / RETAIL SALE OPTION */}
+                          <div className="pt-3 border-t border-neutral-200 space-y-3">
+                            <div className="flex items-center justify-between pb-1">
+                              <div className="flex items-center gap-2">
+                                <ShoppingBag className="w-4 h-4 text-emerald-600" />
+                                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Buy / Retail Sale Option</span>
+                              </div>
+                              <span className="text-[10px] text-emerald-700 font-mono font-semibold uppercase tracking-wider bg-emerald-50 px-1.5 py-0.5 rounded-xs">
+                                Purchase Mode
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                               <div>
-                                <label className="block text-neutral-400 mb-1">Wait Duration Note</label>
+                                <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">SKU (Buy/Sale)</label>
                                 <input
                                   type="text"
-                                  placeholder="e.g. Ships in 15 Days"
-                                  value={variant.preOrderNote || ''}
-                                  onChange={(e) => handleVariantChange(index, 'preOrderNote', e.target.value)}
-                                  className="w-full bg-neutral-950 border border-neutral-700 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500"
+                                  placeholder="e.g. SKU-001-BUY"
+                                  value={variant.skuSale || ''}
+                                  onChange={(e) => handleVariantChange(index, 'skuSale', e.target.value)}
+                                  className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 font-mono focus:outline-none focus:border-neutral-400"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">Sale Price (IDR)</label>
+                                <input
+                                  type="number"
+                                  placeholder="e.g. 250000"
+                                  value={variant.priceSale ?? ''}
+                                  onChange={(e) =>
+                                    handleVariantChange(
+                                      index,
+                                      'priceSale',
+                                      e.target.value ? parseFloat(e.target.value) : null
+                                    )
+                                  }
+                                  className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 focus:outline-none focus:border-neutral-400 font-mono"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">Compare-at Price (IDR)</label>
+                                <input
+                                  type="number"
+                                  placeholder="Original / Strikethrough"
+                                  value={variant.compareAtPrice ?? ''}
+                                  onChange={(e) =>
+                                    handleVariantChange(
+                                      index,
+                                      'compareAtPrice',
+                                      e.target.value ? parseFloat(e.target.value) : null
+                                    )
+                                  }
+                                  className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 focus:outline-none focus:border-neutral-400 font-mono"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">Sale Stock Total</label>
+                                <input
+                                  type="number"
+                                  value={variant.stockSaleTotal ?? variant.stockTotal ?? 0}
+                                  onChange={(e) => {
+                                    const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                                    handleVariantChange(index, 'stockSaleTotal', val);
+                                    handleVariantChange(index, 'stockTotal', val + (variant.stockRentTotal || 0));
+                                  }}
+                                  className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 focus:outline-none focus:border-neutral-400 font-mono"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">Sale Stock Available</label>
+                                <input
+                                  type="number"
+                                  value={variant.stockSaleAvailable ?? variant.stockAvailable ?? 0}
+                                  onChange={(e) => {
+                                    const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                                    handleVariantChange(index, 'stockSaleAvailable', val);
+                                    handleVariantChange(index, 'stockAvailable', val + (variant.stockRentAvailable || 0));
+                                  }}
+                                  className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 focus:outline-none focus:border-neutral-400 font-mono"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Embedded Pre-Order Controls under Buy Option */}
+                            <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-xs space-y-3 text-xs">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <span className="font-semibold text-neutral-900 block">Pre-Order Option</span>
+                                  <span className="text-[11px] text-neutral-500">
+                                    Allow customers to buy this variant on pre-order when sale stock is 0.
+                                  </span>
+                                </div>
+                                <input
+                                  type="checkbox"
+                                  checked={Boolean(variant.isPreOrder)}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    handleVariantChange(index, 'isPreOrder', checked);
+                                    if (checked && !variant.preOrderDays) {
+                                      handleVariantChange(index, 'preOrderDays', 15);
+                                      if (!variant.preOrderNote) {
+                                        handleVariantChange(index, 'preOrderNote', 'Ships in 15 Days');
+                                      }
+                                    }
+                                  }}
+                                  className="w-4 h-4 rounded-xs border-neutral-300 text-amber-600 focus:ring-0 bg-white cursor-pointer"
+                                />
+                              </div>
+
+                              {variant.isPreOrder && (
+                                <div className="space-y-3 pt-2.5 border-t border-neutral-200">
+                                  <div>
+                                    <label className="block text-neutral-700 font-medium mb-1.5">
+                                      Pre-Order Lead Time / Wait Duration
+                                    </label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                      {[
+                                        { id: '15', label: '15 Days', days: 15 },
+                                        { id: '30', label: '30 Days', days: 30 },
+                                        { id: '45', label: '45 Days', days: 45 },
+                                        { id: 'custom', label: 'Custom', days: null },
+                                      ].map((option) => {
+                                        const activePreset = getActivePreOrderPreset(variant.preOrderDays, variant.preOrderNote);
+                                        const isSelected = activePreset === option.id;
+
+                                        return (
+                                          <button
+                                            key={option.id}
+                                            type="button"
+                                            onClick={() => handleSelectPreOrderDuration(index, option.days)}
+                                            className={`py-2 px-3 rounded-xs border text-center transition-all cursor-pointer font-medium text-xs ${
+                                              isSelected
+                                                ? 'bg-amber-50 border-amber-300 text-amber-900 font-semibold shadow-2xs'
+                                                : 'bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:text-neutral-900'
+                                            }`}
+                                          >
+                                            {option.label}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-3 pt-1">
+                                    <div>
+                                      <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">Lead Time Days (Integer) *</label>
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        placeholder="e.g. 15"
+                                        value={variant.preOrderDays ?? ''}
+                                        onChange={(e) => {
+                                          const daysVal = e.target.value ? parseInt(e.target.value, 10) : null;
+                                          handleVariantChange(index, 'preOrderDays', daysVal);
+                                          if (daysVal) {
+                                            handleVariantChange(index, 'preOrderNote', `Ships in ${daysVal} Days`);
+                                          }
+                                        }}
+                                        className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 focus:outline-none focus:border-neutral-400 font-mono"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">Wait Duration Note</label>
+                                      <input
+                                        type="text"
+                                        placeholder="e.g. Ships in 15 Days"
+                                        value={variant.preOrderNote || ''}
+                                        onChange={(e) => handleVariantChange(index, 'preOrderNote', e.target.value)}
+                                        className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 focus:outline-none focus:border-neutral-400"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* 🗝️ RENTAL OPTION */}
+                          <div className="pt-3 border-t border-neutral-200 space-y-3">
+                            <div className="flex items-center justify-between pb-1">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-amber-600" />
+                                <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Rental Option</span>
+                              </div>
+                              <span className="text-[10px] text-amber-700 font-mono font-semibold uppercase tracking-wider bg-amber-50 px-1.5 py-0.5 rounded-xs">
+                                Rental Mode
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                              <div>
+                                <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">SKU (Rent)</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. SKU-001-RENT"
+                                  value={variant.skuRent || ''}
+                                  onChange={(e) => handleVariantChange(index, 'skuRent', e.target.value)}
+                                  className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 font-mono focus:outline-none focus:border-neutral-400"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">Rent Price / 3-4 Days (IDR)</label>
+                                <input
+                                  type="number"
+                                  placeholder="e.g. 100000"
+                                  value={variant.priceRent ?? ''}
+                                  onChange={(e) =>
+                                    handleVariantChange(
+                                      index,
+                                      'priceRent',
+                                      e.target.value ? parseFloat(e.target.value) : null
+                                    )
+                                  }
+                                  className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 focus:outline-none focus:border-neutral-400 font-mono"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">Rental Stock Total</label>
+                                <input
+                                  type="number"
+                                  value={variant.stockRentTotal ?? 0}
+                                  onChange={(e) => {
+                                    const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                                    handleVariantChange(index, 'stockRentTotal', val);
+                                    handleVariantChange(index, 'stockTotal', (variant.stockSaleTotal || 0) + val);
+                                  }}
+                                  className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 focus:outline-none focus:border-neutral-400 font-mono"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-mono text-neutral-500 uppercase tracking-wider mb-1">Rental Stock Available</label>
+                                <input
+                                  type="number"
+                                  value={variant.stockRentAvailable ?? 0}
+                                  onChange={(e) => {
+                                    const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                                    handleVariantChange(index, 'stockRentAvailable', val);
+                                    handleVariantChange(index, 'stockAvailable', (variant.stockSaleAvailable || 0) + val);
+                                  }}
+                                  className="w-full bg-white border border-neutral-200 rounded-xs px-2.5 py-1.5 text-neutral-900 focus:outline-none focus:border-neutral-400 font-mono"
                                 />
                               </div>
                             </div>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
-
-                    {/* 🗝️ RENTAL OPTION */}
-                    <div className="pt-3 border-t border-neutral-800 space-y-3">
-                      <div className="flex items-center justify-between pb-1">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-amber-400" />
-                          <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">Rental Option</span>
-                        </div>
-                        <span className="text-[10px] text-amber-400/80 font-medium uppercase tracking-wider">
-                          Rental Mode
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div>
-                          <label className="block text-neutral-400 mb-1">SKU (Rent)</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. SKU-001-RENT"
-                            value={variant.skuRent || ''}
-                            onChange={(e) => handleVariantChange(index, 'skuRent', e.target.value)}
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-amber-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-neutral-400 mb-1">Rent Price / 3-4 Days (IDR)</label>
-                          <input
-                            type="number"
-                            placeholder="e.g. 100000"
-                            value={variant.priceRent ?? ''}
-                            onChange={(e) =>
-                              handleVariantChange(
-                                index,
-                                'priceRent',
-                                e.target.value ? parseFloat(e.target.value) : null
-                              )
-                            }
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-neutral-400 mb-1">Rental Stock Total</label>
-                          <input
-                            type="number"
-                            value={variant.stockRentTotal ?? 0}
-                            onChange={(e) => {
-                              const val = Math.max(0, parseInt(e.target.value, 10) || 0);
-                              handleVariantChange(index, 'stockRentTotal', val);
-                              handleVariantChange(index, 'stockTotal', (variant.stockSaleTotal || 0) + val);
-                            }}
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-neutral-400 mb-1">Rental Stock Available</label>
-                          <input
-                            type="number"
-                            value={variant.stockRentAvailable ?? 0}
-                            onChange={(e) => {
-                              const val = Math.max(0, parseInt(e.target.value, 10) || 0);
-                              handleVariantChange(index, 'stockRentAvailable', val);
-                              handleVariantChange(index, 'stockAvailable', (variant.stockSaleAvailable || 0) + val);
-                            }}
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  );
+                })}
               </div>
             </div>
           )}
 
           {/* Drawer Footer Actions */}
-          <div className="pt-4 border-t border-neutral-800 flex items-center justify-end gap-3 sticky bottom-0 bg-neutral-900 py-3">
+          <div className="pt-4 border-t border-neutral-200 flex items-center justify-end gap-3 sticky bottom-0 bg-white py-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium text-xs rounded-lg transition-colors"
+              className="px-4 py-2 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 font-medium text-xs rounded-xs transition-colors cursor-pointer shadow-2xs"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-lg shadow-sm transition-colors disabled:opacity-50"
+              className="px-5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs rounded-xs shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isSaving ? 'Saving...' : product ? 'Save Changes' : 'Create Product'}
             </button>

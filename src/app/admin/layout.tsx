@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { requireAdminAccess } from '@/lib/services/access';
 import { redirect } from 'next/navigation';
+import AdminLayoutShell from '@/components/admin/AdminLayoutShell';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   let isAuthorized = false;
@@ -16,5 +17,5 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/login');
   }
 
-  return <>{children}</>;
+  return <AdminLayoutShell>{children}</AdminLayoutShell>;
 }

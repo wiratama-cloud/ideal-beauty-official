@@ -80,7 +80,7 @@ export default function AdminAuditLogsView({
   ];
 
   return (
-    <div className="space-y-8 pb-12 font-light text-xs">
+    <div className="min-h-screen bg-neutral-50 pb-16 text-xs font-light">
       <AdminHeader
         title={`Audit Logs & System Activity (${total})`}
         subtitle="SECURITY & OPERATIONAL MUTATION AUDIT TRAIL"
@@ -97,9 +97,9 @@ export default function AdminAuditLogsView({
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         {/* Search & Filter Bar */}
-        <div className="bg-white p-4 sm:p-6 border border-neutral-200 space-y-4 shadow-2xs">
+        <div className="bg-white p-4 sm:p-6 border border-neutral-200 space-y-4 rounded-xs shadow-2xs">
           <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -108,7 +108,7 @@ export default function AdminAuditLogsView({
                 placeholder="Search action, entity ID, user name or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-neutral-300 bg-neutral-50 text-neutral-900 focus:bg-white focus:outline-none focus:border-black font-mono text-xs"
+                className="w-full pl-9 pr-4 py-2 border border-neutral-200 bg-neutral-50 text-neutral-900 focus:bg-white focus:outline-hidden focus:border-black font-mono text-xs rounded-xs"
               />
             </div>
 
@@ -117,7 +117,7 @@ export default function AdminAuditLogsView({
               <select
                 value={selectedEntity}
                 onChange={handleEntityChange}
-                className="w-full py-2 px-3 border border-neutral-300 bg-neutral-50 text-neutral-900 focus:bg-white focus:outline-none focus:border-black text-xs"
+                className="w-full py-2 px-3 border border-neutral-200 bg-neutral-50 text-neutral-900 focus:bg-white focus:outline-hidden focus:border-black text-xs rounded-xs"
               >
                 {entityOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -130,7 +130,7 @@ export default function AdminAuditLogsView({
             <button
               type="submit"
               disabled={loading}
-              className="bg-black text-white px-6 py-2 text-[10px] uppercase tracking-widest hover:bg-neutral-800 transition-colors"
+              className="bg-black text-white px-6 py-2 text-[10px] uppercase tracking-widest hover:bg-neutral-800 transition-colors rounded-xs font-medium"
             >
               Search
             </button>
@@ -138,11 +138,11 @@ export default function AdminAuditLogsView({
         </div>
 
         {/* Audit Logs Table */}
-        <div className="bg-white border border-neutral-200 overflow-hidden shadow-2xs">
+        <div className="bg-white border border-neutral-200 rounded-xs overflow-hidden shadow-2xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-neutral-200 bg-neutral-50 text-[10px] uppercase tracking-wider text-neutral-500 font-medium">
+                <tr className="border-b border-neutral-200 bg-neutral-50/80 text-[10px] font-mono uppercase tracking-wider text-neutral-500 font-semibold">
                   <th className="py-3 px-4">Timestamp</th>
                   <th className="py-3 px-4">Action</th>
                   <th className="py-3 px-4">Entity</th>
@@ -166,7 +166,7 @@ export default function AdminAuditLogsView({
                         {formatDate(log.createdAt)}
                       </td>
                       <td className="py-3 px-4">
-                        <span className="inline-block px-2 py-0.5 text-[10px] font-semibold tracking-wider bg-neutral-100 text-neutral-900 border border-neutral-200">
+                        <span className="inline-block px-2 py-0.5 text-[10px] font-semibold tracking-wider bg-neutral-100 text-neutral-900 border border-neutral-200 rounded-xs">
                           {log.action}
                         </span>
                       </td>
@@ -178,7 +178,7 @@ export default function AdminAuditLogsView({
                       </td>
                       <td className="py-3 px-4 font-sans">
                         <div className="text-neutral-900 font-medium text-[11px]">{log.userName}</div>
-                        <div className="text-neutral-400 text-[10px]">{log.userEmail}</div>
+                        <div className="text-neutral-400 text-[10px] font-mono">{log.userEmail}</div>
                       </td>
                       <td className="py-3 px-4 text-right font-sans">
                         <button
@@ -196,7 +196,7 @@ export default function AdminAuditLogsView({
             </table>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* JSON Modal */}
       {activeJsonModal && (

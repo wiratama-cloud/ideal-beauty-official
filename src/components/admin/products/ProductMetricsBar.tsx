@@ -32,81 +32,83 @@ export default function ProductMetricsBar({ products }: ProductMetricsBarProps) 
     });
   });
 
+  const activePercent = totalProducts > 0 ? Math.round((activeProducts / totalProducts) * 100) : 0;
+  const alertStockCount = lowStockCount + outOfStockCount;
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
       {/* Card 1: Total Products */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 shadow-sm hover:border-neutral-700 transition-colors">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Total Products</span>
-          <div className="p-2 bg-neutral-800/80 rounded-lg text-neutral-300">
-            <Package className="w-4 h-4" />
-          </div>
+      <div className="bg-white border border-neutral-200 p-4 rounded-xs shadow-2xs hover:border-neutral-300 transition-colors">
+        <div className="flex items-center justify-between text-neutral-400 mb-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-500">
+            Total Products
+          </span>
+          <Package className="w-4 h-4 text-neutral-400" />
         </div>
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-2xl font-semibold text-white tracking-tight">{totalProducts}</span>
-          <span className="text-xs text-neutral-500">items</span>
-        </div>
+        <div className="text-xl font-serif font-medium text-neutral-900">{totalProducts}</div>
+        <p className="text-[10px] text-neutral-500 mt-1">Catalog items</p>
       </div>
 
       {/* Card 2: Active Catalog */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 shadow-sm hover:border-neutral-700 transition-colors">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Active Catalog</span>
-          <div className="p-2 bg-emerald-950/60 border border-emerald-900/50 rounded-lg text-emerald-400">
-            <Eye className="w-4 h-4" />
-          </div>
+      <div className="bg-white border border-neutral-200 p-4 rounded-xs shadow-2xs hover:border-neutral-300 transition-colors">
+        <div className="flex items-center justify-between text-neutral-400 mb-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-500">
+            Active Catalog
+          </span>
+          <Eye className="w-4 h-4 text-emerald-600" />
         </div>
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-2xl font-semibold text-white tracking-tight">{activeProducts}</span>
-          <span className="text-xs text-emerald-400 font-medium">
-            {totalProducts > 0 ? `${Math.round((activeProducts / totalProducts) * 100)}% active` : '0%'}
+        <div className="flex items-baseline space-x-2">
+          <span className="text-xl font-serif font-medium text-emerald-900">{activeProducts}</span>
+          <span className="text-[10px] font-mono text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded-xs">
+            {activePercent}% ACTIVE
           </span>
         </div>
+        <p className="text-[10px] text-neutral-500 mt-1">Published in store</p>
       </div>
 
       {/* Card 3: Low / Out of Stock */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 shadow-sm hover:border-neutral-700 transition-colors">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Low / Out Stock</span>
-          <div className="p-2 bg-amber-950/60 border border-amber-900/50 rounded-lg text-amber-400">
-            <AlertTriangle className="w-4 h-4" />
-          </div>
-        </div>
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-2xl font-semibold text-amber-400 tracking-tight">{lowStockCount + outOfStockCount}</span>
-          <span className="text-xs text-neutral-500">
-            ({outOfStockCount} zero, {lowStockCount} low)
+      <div className="bg-white border border-neutral-200 p-4 rounded-xs shadow-2xs hover:border-neutral-300 transition-colors">
+        <div className="flex items-center justify-between text-neutral-400 mb-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-500">
+            Stock Alerts
           </span>
+          <AlertTriangle className="w-4 h-4 text-amber-600" />
         </div>
+        <div className="flex items-baseline space-x-2">
+          <span className="text-xl font-serif font-medium text-amber-900">{alertStockCount}</span>
+          {alertStockCount > 0 && (
+            <span className="text-[10px] font-mono text-amber-700 font-semibold bg-amber-50 px-1.5 py-0.5 rounded-xs">
+              {outOfStockCount} OUT
+            </span>
+          )}
+        </div>
+        <p className="text-[10px] text-neutral-500 mt-1">{lowStockCount} low, {outOfStockCount} zero stock</p>
       </div>
 
       {/* Card 4: Total Variants */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 shadow-sm hover:border-neutral-700 transition-colors">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Total Variants</span>
-          <div className="p-2 bg-neutral-800/80 rounded-lg text-neutral-300">
-            <Layers className="w-4 h-4" />
-          </div>
+      <div className="bg-white border border-neutral-200 p-4 rounded-xs shadow-2xs hover:border-neutral-300 transition-colors">
+        <div className="flex items-center justify-between text-neutral-400 mb-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-500">
+            Total Variants
+          </span>
+          <Layers className="w-4 h-4 text-neutral-400" />
         </div>
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-2xl font-semibold text-white tracking-tight">{totalVariants}</span>
-          <span className="text-xs text-neutral-500">SKUs</span>
-        </div>
+        <div className="text-xl font-serif font-medium text-neutral-900">{totalVariants}</div>
+        <p className="text-[10px] text-neutral-500 mt-1">Managed SKUs</p>
       </div>
 
       {/* Card 5: Catalog Valuation Estimate */}
-      <div className="col-span-2 md:col-span-4 lg:col-span-1 bg-neutral-900 border border-neutral-800 rounded-xl p-4 shadow-sm hover:border-neutral-700 transition-colors">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Catalog Value</span>
-          <div className="p-2 bg-blue-950/60 border border-blue-900/50 rounded-lg text-blue-400">
-            <DollarSign className="w-4 h-4" />
-          </div>
-        </div>
-        <div className="mt-3">
-          <span className="text-xl font-semibold text-white tracking-tight">
-            Rp {estimatedValuation.toLocaleString('id-ID')}
+      <div className="bg-white border border-neutral-200 p-4 rounded-xs shadow-2xs hover:border-neutral-300 transition-colors col-span-2 md:col-span-1">
+        <div className="flex items-center justify-between text-neutral-400 mb-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-500">
+            Catalog Value
           </span>
+          <DollarSign className="w-4 h-4 text-neutral-500" />
         </div>
+        <div className="text-lg font-mono font-bold text-neutral-900 truncate">
+          Rp {estimatedValuation.toLocaleString('id-ID')}
+        </div>
+        <p className="text-[10px] text-neutral-500 mt-1">Inventory retail value</p>
       </div>
     </div>
   );

@@ -244,7 +244,7 @@ export default function AdminNotificationsView({
   };
 
   return (
-    <div className="space-y-8 pb-16 font-light text-xs">
+    <div className="min-h-screen bg-neutral-50 pb-16 font-light text-xs">
       <AdminHeader
         title="Push Notifications Broadcast"
         subtitle="CUSTOMER ENGAGEMENT & FCM MESSAGING HUB"
@@ -253,7 +253,7 @@ export default function AdminNotificationsView({
           <button
             onClick={handleRefreshRecipients}
             disabled={isRefreshing}
-            className="bg-neutral-100 text-neutral-800 border border-neutral-300 px-4 py-2 uppercase tracking-widest text-[10px] hover:bg-neutral-200 transition-colors flex items-center space-x-2 rounded-xs"
+            className="bg-neutral-100 text-neutral-800 border border-neutral-300 px-4 py-2 uppercase tracking-widest text-[10px] hover:bg-neutral-200 transition-colors flex items-center space-x-2 rounded-xs font-medium"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>Refresh Users</span>
@@ -261,7 +261,7 @@ export default function AdminNotificationsView({
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         {/* Metric Cards Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white border border-neutral-200 p-5 rounded-xs space-y-1 shadow-2xs">
@@ -755,7 +755,7 @@ export default function AdminNotificationsView({
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

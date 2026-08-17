@@ -75,7 +75,7 @@ export default function AdminLedgerView({ entries: initialEntries }: AdminLedger
   };
 
   return (
-    <div className="space-y-8 pb-12 font-light text-xs">
+    <div className="min-h-screen bg-neutral-50 pb-16 font-light text-xs">
       <AdminHeader
         title={`Financial Ledger Audit Trail (${entries.length})`}
         subtitle="DOUBLE-ENTRY ACCOUNTING AUDIT LOG"
@@ -84,7 +84,7 @@ export default function AdminLedgerView({ entries: initialEntries }: AdminLedger
           <button
             onClick={handleExportCSV}
             disabled={isExporting}
-            className="bg-black text-white px-5 py-2.5 uppercase tracking-widest text-[10px] hover:bg-neutral-800 transition-colors flex items-center space-x-2 rounded-xs"
+            className="bg-black text-white px-5 py-2.5 uppercase tracking-widest text-[10px] hover:bg-neutral-800 transition-colors flex items-center space-x-2 rounded-xs font-medium"
           >
             <Download className="w-3.5 h-3.5" />
             <span>{isExporting ? 'Exporting...' : 'Export Ledger CSV'}</span>
@@ -92,141 +92,142 @@ export default function AdminLedgerView({ entries: initialEntries }: AdminLedger
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+        {/* Expense Entry Form */}
+        <div className="bg-white p-6 sm:p-8 border border-neutral-200 space-y-4 rounded-xs shadow-2xs">
+          <div className="flex items-center space-x-2 text-neutral-900 uppercase font-mono tracking-wider font-semibold border-b border-neutral-100 pb-3 text-xs">
+            <PlusCircle className="w-4 h-4 text-neutral-800" />
+            <span>Record Production COGS / R&D Expense Entry</span>
+          </div>
 
-      {/* Expense Entry Form */}
-      <div className="bg-white p-6 sm:p-8 border border-neutral-100 space-y-4 shadow-sm">
-        <div className="flex items-center space-x-2 text-neutral-900 uppercase tracking-widest font-medium border-b border-neutral-100 pb-3">
-          <PlusCircle className="w-4 h-4 text-neutral-800" />
-          <span>Record Production COGS / R&D Expense Entry</span>
+          <form onSubmit={handleAddExpense} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+            <div className="sm:col-span-3">
+              <label className="block text-neutral-600 mb-1 text-[11px] font-mono uppercase tracking-wider">Expense Category</label>
+              <select
+                value={form.expenseCategory}
+                onChange={(e) => setForm({ ...form, expenseCategory: e.target.value as any })}
+                className="w-full border border-neutral-200 p-2.5 bg-neutral-50 text-neutral-900 font-mono text-xs focus:bg-white focus:outline-hidden focus:border-black rounded-xs"
+              >
+                <option value="DESIGN_RND">DESIGN & R&D</option>
+                <option value="MANUFACTURING_COGS">MANUFACTURING COGS</option>
+                <option value="OPERATIONAL">OPERATIONAL OVERHEAD</option>
+                <option value="MARKETING">MARKETING & RUNWAY SHOWS</option>
+              </select>
+            </div>
+
+            <div className="sm:col-span-3">
+              <label className="block text-neutral-600 mb-1 text-[11px] font-mono uppercase tracking-wider">Amount (IDR)</label>
+              <input
+                type="number"
+                required
+                placeholder="e.g. 2500000"
+                value={form.amount}
+                onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                className="w-full border border-neutral-200 p-2.5 bg-neutral-50 text-neutral-900 font-mono text-xs focus:bg-white focus:outline-hidden focus:border-black rounded-xs"
+              />
+            </div>
+
+            <div className="sm:col-span-4">
+              <label className="block text-neutral-600 mb-1 text-[11px] font-mono uppercase tracking-wider">Description & Purpose</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Silk fabric procurement for bridal lehengas"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                className="w-full border border-neutral-200 p-2.5 bg-neutral-50 text-neutral-900 text-xs focus:bg-white focus:outline-hidden focus:border-black rounded-xs"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-black text-white p-2.5 uppercase tracking-widest text-[10px] hover:bg-neutral-800 transition-colors font-medium rounded-xs"
+              >
+                {isSubmitting ? 'Logging...' : 'Log Expense'}
+              </button>
+            </div>
+          </form>
         </div>
 
-        <form onSubmit={handleAddExpense} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
-          <div className="sm:col-span-3">
-            <label className="block text-neutral-600 mb-1 text-[11px]">Expense Category</label>
-            <select
-              value={form.expenseCategory}
-              onChange={(e) => setForm({ ...form, expenseCategory: e.target.value as any })}
-              className="w-full border border-neutral-300 p-2.5 bg-white text-neutral-900 font-mono text-xs focus:outline-none"
-            >
-              <option value="DESIGN_RND">DESIGN & R&D</option>
-              <option value="MANUFACTURING_COGS">MANUFACTURING COGS</option>
-              <option value="OPERATIONAL">OPERATIONAL OVERHEAD</option>
-              <option value="MARKETING">MARKETING & RUNWAY SHOWS</option>
-            </select>
-          </div>
-
-          <div className="sm:col-span-3">
-            <label className="block text-neutral-600 mb-1 text-[11px]">Amount (IDR)</label>
-            <input
-              type="number"
-              required
-              placeholder="e.g. 2500000"
-              value={form.amount}
-              onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              className="w-full border border-neutral-300 p-2.5 bg-white text-neutral-900 font-mono text-xs focus:outline-none"
-            />
-          </div>
-
-          <div className="sm:col-span-4">
-            <label className="block text-neutral-600 mb-1 text-[11px]">Description & Purpose</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Silk fabric procurement for bridal lehengas"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full border border-neutral-300 p-2.5 bg-white text-neutral-900 text-xs focus:outline-none"
-            />
-          </div>
-
-          <div className="sm:col-span-2">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-black text-white p-2.5 uppercase tracking-widest text-[10px] hover:bg-neutral-800 transition-colors font-light"
-            >
-              {isSubmitting ? 'Logging...' : 'Log Expense'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Audit Log Table */}
-      <div className="bg-white border border-neutral-100 overflow-x-auto shadow-sm">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-neutral-200 bg-neutral-50 text-[10px] uppercase tracking-widest text-neutral-500 font-medium">
-              <th className="p-4">Seq #</th>
-              <th className="p-4">Entry Date</th>
-              <th className="p-4">TranCode</th>
-              <th className="p-4">TranSeq</th>
-              <th className="p-4">Dr/Cr</th>
-              <th className="p-4">Category</th>
-              <th className="p-4">Description</th>
-              <th className="p-4 text-right">Amount (IDR)</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-neutral-100 font-mono text-[11px]">
-            {entries.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="p-8 text-center text-neutral-400 font-sans italic">
-                  No ledger audit entries recorded.
-                </td>
-              </tr>
-            ) : (
-              entries.map((entry) => {
-                const isIncome = entry.type === 'INCOME';
-                const categoryLabel = isIncome
-                  ? entry.incomeCategory || 'SALES_REVENUE'
-                  : entry.expenseCategory || 'OPERATIONAL';
-
-                return (
-                  <tr key={entry.id} className="hover:bg-neutral-50/80 transition-colors">
-                    <td className="p-4 text-neutral-500 font-bold">{entry.sequence || '-'}</td>
-                    <td className="p-4 text-neutral-500">
-                      {new Date(entry.createdAt).toLocaleDateString('id-ID', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </td>
-                    <td className="p-4 text-neutral-700">{entry.tranCode || '-'}</td>
-                    <td className="p-4 text-neutral-700">{entry.tranSequence || '1'}</td>
-                    <td className="p-4">
-                      {entry.dcType === 'CREDIT' ? (
-                        <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[9px] uppercase tracking-widest flex items-center w-max space-x-1">
-                          <ArrowUpRight className="w-3 h-3 text-emerald-600" />
-                          <span>CREDIT</span>
-                        </span>
-                      ) : entry.dcType === 'DEBIT' ? (
-                        <span className="bg-rose-100 text-rose-800 px-2 py-0.5 text-[9px] uppercase tracking-widest flex items-center w-max space-x-1">
-                          <ArrowDownRight className="w-3 h-3 text-rose-600" />
-                          <span>DEBIT</span>
-                        </span>
-                      ) : (
-                        <span className="bg-neutral-100 text-neutral-800 px-2 py-0.5 text-[9px] uppercase tracking-widest flex items-center w-max space-x-1">
-                          <span>{entry.type}</span>
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 font-sans text-neutral-700 font-medium uppercase text-[10px]">
-                      {categoryLabel}
-                    </td>
-                    <td className="p-4 font-sans text-neutral-800">{entry.description}</td>
-                    <td className={`p-4 text-right font-bold ${isIncome ? 'text-emerald-800' : 'text-rose-800'}`}>
-                      {isIncome ? '+' : '-'}{formatIDR(Number(entry.amount))}
+        {/* Audit Log Table */}
+        <div className="bg-white border border-neutral-200 rounded-xs overflow-hidden shadow-2xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-neutral-200 bg-neutral-50/80 text-[10px] font-mono uppercase tracking-wider text-neutral-500 font-semibold">
+                  <th className="p-4">Seq #</th>
+                  <th className="p-4">Entry Date</th>
+                  <th className="p-4">TranCode</th>
+                  <th className="p-4">TranSeq</th>
+                  <th className="p-4">Dr/Cr</th>
+                  <th className="p-4">Category</th>
+                  <th className="p-4">Description</th>
+                  <th className="p-4 text-right">Amount (IDR)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100 font-mono text-[11px]">
+                {entries.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-8 text-center text-neutral-400 font-sans italic">
+                      No ledger audit entries recorded.
                     </td>
                   </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                ) : (
+                  entries.map((entry) => {
+                    const isIncome = entry.type === 'INCOME';
+                    const categoryLabel = isIncome
+                      ? entry.incomeCategory || 'SALES_REVENUE'
+                      : entry.expenseCategory || 'OPERATIONAL';
+
+                    return (
+                      <tr key={entry.id} className="hover:bg-neutral-50/80 transition-colors">
+                        <td className="p-4 text-neutral-500 font-bold">{entry.sequence || '-'}</td>
+                        <td className="p-4 text-neutral-500">
+                          {new Date(entry.createdAt).toLocaleDateString('id-ID', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </td>
+                        <td className="p-4 text-neutral-700">{entry.tranCode || '-'}</td>
+                        <td className="p-4 text-neutral-700">{entry.tranSequence || '1'}</td>
+                        <td className="p-4">
+                          {entry.dcType === 'CREDIT' ? (
+                            <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[9px] uppercase tracking-widest flex items-center w-max space-x-1 rounded-xs">
+                              <ArrowUpRight className="w-3 h-3 text-emerald-600" />
+                              <span>CREDIT</span>
+                            </span>
+                          ) : entry.dcType === 'DEBIT' ? (
+                            <span className="bg-rose-100 text-rose-800 px-2 py-0.5 text-[9px] uppercase tracking-widest flex items-center w-max space-x-1 rounded-xs">
+                              <ArrowDownRight className="w-3 h-3 text-rose-600" />
+                              <span>DEBIT</span>
+                            </span>
+                          ) : (
+                            <span className="bg-neutral-100 text-neutral-800 px-2 py-0.5 text-[9px] uppercase tracking-widest flex items-center w-max space-x-1 rounded-xs">
+                              <span>{entry.type}</span>
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 font-sans text-neutral-700 font-medium uppercase text-[10px]">
+                          {categoryLabel}
+                        </td>
+                        <td className="p-4 font-sans text-neutral-800">{entry.description}</td>
+                        <td className={`p-4 text-right font-bold ${isIncome ? 'text-emerald-800' : 'text-rose-800'}`}>
+                          {isIncome ? '+' : '-'}{formatIDR(Number(entry.amount))}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
     </div>
-  </div>
   );
 }

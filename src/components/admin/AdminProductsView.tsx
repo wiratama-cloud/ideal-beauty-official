@@ -320,22 +320,14 @@ export default function AdminProductsView({ initialProducts, initialSizeCharts =
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pb-16">
-      <AdminHeader title="Products & Inventory" activeTab="products" />
+    <div className="min-h-screen bg-neutral-50 pb-16 text-xs">
+      <AdminHeader
+        title={`Products & Inventory (${products.length})`}
+        subtitle="ATELIER GARMENT CATALOG & STOCK MATRIX"
+        activeTab="products"
+      />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        {/* Page Title & Overview */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-neutral-800 pb-5">
-          <div>
-            <h1 className="text-2xl font-extrabold text-white tracking-tight uppercase">
-              Products & Inventory Management
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1">
-              Manage Atelier garment catalog, inline variant stock levels, and bulk inventory operations.
-            </p>
-          </div>
-        </div>
-
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         {/* 1. Metrics Bar */}
         <ProductMetricsBar products={products} />
 
