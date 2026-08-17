@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { getLoggedInUserId } from '@/lib/session';
 
 export function getPrimaryAdminEmail(): string {
-  const envEmail = process.env.FIRST_ADMIN_EMAIL || process.env.ADMIN_EMAIL;
+  const envEmail = process.env.ADMIN_EMAIL;
   if (envEmail && envEmail.trim()) {
     return envEmail.trim().toLowerCase();
   }

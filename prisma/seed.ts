@@ -6,7 +6,7 @@ export async function main() {
   console.log('Seeding Ideal Beauty Official database with dummy data...');
 
   // 1. Primary Admin Account & Access Control Seeding
-  const primaryAdminEmail = process.env.FIRST_ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'admin@idealbeautyofficial.com';
+  const primaryAdminEmail = process.env.ADMIN_EMAIL || 'admin@idealbeautyofficial.com';
   if (primaryAdminEmail) {
     await prisma.adminAccess.upsert({
       where: { email: primaryAdminEmail },
