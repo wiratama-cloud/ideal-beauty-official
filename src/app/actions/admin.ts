@@ -47,6 +47,7 @@ import {
   linkProductsToSizeChart,
   CreateSizeChartInput,
 } from '@/lib/services/size-chart';
+import { sendMulticastPushNotification } from '@/lib/services/notification';
 
 export async function logExpenseAction(data: CreateExpenseInput) {
   await requireAdminAccess();
@@ -1116,4 +1117,130 @@ export async function linkProductsToSizeChartAction(sizeChartId: string | null, 
   });
 
   return res;
+}
+
+// Push Notification Actions
+export async function getAdminNotificationRecipientsAction() {
+  await requireAdminAccess();
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      fcmToken: true,
+      createdAt: true,
+    },
+    orderBy: [
+      { createdAt: 'desc' },
+    ],
+  });
+
+  return users.map((user) => ({
+    id: user.id,
+    name: user.name || 'Unnamed Customer',
+    email: user.email,
+    phone: user.phone,
+    hasFcmToken: !!(user.fcmToken && user.fcmToken.trim().length > 0),
+    createdAt: user.createdAt,
+  }));
+}
+
+export interface SendAdminPushNotificationInput {
+  title: string;
+  body: string;
+  url?: string;
+  targetType: 'ALL' | 'SELECTED';
+  userIds?: string[];
+}
+
+export async function sendAdminPushNotificationAction(data: SendAdminPushNotificationInput) {
+  const adminUser = await requireAdminAccess();
+
+  if (!data.title || !data.title.trim()) {
+    throw new Error('Notification title is required.');
+  }
+
+  if (!data.body || !data.body.trim()) {
+    throw new Error('Notification message body is required.');
+  }
+
+  let tokens: string[] = [];
+  let targetedUserCount = 0;
+
+  if (data.targetType === 'ALL') {
+    const usersWithToken = await prisma.user.findMany({
+      where: {
+        fcmToken: {
+          not: null,
+        },
+      },
+      select: {
+        id: true,
+        fcmToken: true,
+      },
+    });
+
+    tokens = usersWithToken
+      .map((u) => u.fcmToken)
+      .filter((t): t is string => typeof t === 'string' && t.trim().length > 0);
+    targetedUserCount = usersWithToken.length;
+  } else if (data.targetType === 'SELECTED') {
+    if (!data.userIds || data.userIds.length === 0) {
+      throw new Error('Please select at least one recipient user.');
+    }
+
+    const usersWithToken = await prisma.user.findMany({
+      where: {
+        id: {
+          in: data.userIds,
+        },
+        fcmToken: {
+          not: null,
+        },
+      },
+      select: {
+        id: true,
+        fcmToken: true,
+      },
+    });
+
+    tokens = usersWithToken
+      .map((u) => u.fcmToken)
+      .filter((t): t is string => typeof t === 'string' && t.trim().length > 0);
+    targetedUserCount = data.userIds.length;
+  } else {
+    throw new Error('Invalid target type specified.');
+  }
+
+  const result = await sendMulticastPushNotification(
+    tokens,
+    data.title.trim(),
+    data.body.trim(),
+    data.url?.trim()
+  );
+
+  // Record audit log for tracking
+  await recordAuditLog({
+    action: 'SEND_PUSH_NOTIFICATION',
+    entity: 'NOTIFICATION',
+    entityId: data.targetType,
+    details: {
+      title: data.title.trim(),
+      body: data.body.trim(),
+      url: data.url?.trim() || null,
+      targetType: data.targetType,
+      targetedUserCount,
+      eligibleTokensCount: tokens.length,
+      sentSuccessCount: result.successCount,
+      sentFailureCount: result.failureCount,
+      sentByAdmin: adminUser.email,
+    },
+  });
+
+  return {
+    ...result,
+    targetedUserCount,
+    eligibleTokensCount: tokens.length,
+  };
 }

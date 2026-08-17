@@ -76,6 +76,7 @@ export default function AdminAuditLogsView({
     { value: 'LEDGER', label: 'Ledger' },
     { value: 'VOUCHER', label: 'Voucher' },
     { value: 'NAV_CATEGORY', label: 'Nav Category' },
+    { value: 'NOTIFICATION', label: 'Notification' },
   ];
 
   return (

@@ -320,6 +320,16 @@ export async function saveFcmTokenAction(token: string) {
   });
 }
 
+export async function deleteFcmTokenAction() {
+  const userId = await getLoggedInUserId();
+  if (!userId) throw new Error('Not logged in');
+
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { fcmToken: null },
+  });
+}
+
 export async function getCurrentUserAction() {
   const userId = await getLoggedInUserId();
   if (!userId) return null;

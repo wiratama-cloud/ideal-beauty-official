@@ -26,9 +26,14 @@ import {
   verifyFirebaseTokenAction,
   linkPhoneToUserAction,
   saveFcmTokenAction,
+  deleteFcmTokenAction,
   sendEmailVerificationAction,
   verifyEmailOtpAction,
 } from '../src/app/actions/auth';
+import {
+  deleteFcmTokenAction as accountDeleteFcmTokenAction,
+  saveFcmTokenAction as accountSaveFcmTokenAction,
+} from '../src/app/actions/account';
 import { getLoggedInUserId, setLoggedInUserId } from '../src/lib/session';
 import { uploadFileToFirebase, deleteFileFromFirebase } from '../src/lib/services/firebase-storage';
 
@@ -114,6 +119,11 @@ vi.mock('next/headers', () => ({
       cookieStoreMap.delete(name);
     },
   })),
+}));
+
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
 }));
 
 vi.mock('@/lib/firebase/admin', () => ({
@@ -380,14 +390,34 @@ describe('Account Management Services Unit & Integration Tests', () => {
     );
   });
 
-  test('FCM Push Token Save Action', async () => {
+  test('FCM Push Token Save and Delete Actions (Account Notification Toggle)', async () => {
     await setLoggedInUserId(testUser.id);
 
+    // 1. Save token via auth action (Enable notifications)
     const updated = await saveFcmTokenAction('mock_fcm_token_12345');
     expect(updated.fcmToken).toBe('mock_fcm_token_12345');
 
-    const fetched = await prisma.user.findUnique({ where: { id: testUser.id } });
+    let fetched = await prisma.user.findUnique({ where: { id: testUser.id } });
     expect(fetched?.fcmToken).toBe('mock_fcm_token_12345');
+
+    // 2. Delete token via auth action (Disable notifications)
+    const cleared = await deleteFcmTokenAction();
+    expect(cleared.fcmToken).toBeNull();
+
+    fetched = await prisma.user.findUnique({ where: { id: testUser.id } });
+    expect(fetched?.fcmToken).toBeNull();
+
+    // 3. Save and Delete via account server action
+    const accountSaved = await accountSaveFcmTokenAction('mock_fcm_token_67890');
+    expect(accountSaved.success).toBe(true);
+    expect(accountSaved.data?.fcmToken).toBe('mock_fcm_token_67890');
+
+    const accountCleared = await accountDeleteFcmTokenAction();
+    expect(accountCleared.success).toBe(true);
+    expect(accountCleared.data?.fcmToken).toBeNull();
+
+    fetched = await prisma.user.findUnique({ where: { id: testUser.id } });
+    expect(fetched?.fcmToken).toBeNull();
   });
 
   test('Email & Phone Re-Verification on Profile Change', async () => {

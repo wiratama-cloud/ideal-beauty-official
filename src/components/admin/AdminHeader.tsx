@@ -21,6 +21,7 @@ import {
   X,
   Store,
   ShieldCheck,
+  Bell,
 } from 'lucide-react';
 
 interface AdminHeaderProps {
@@ -36,6 +37,7 @@ interface AdminHeaderProps {
     | 'orders'
     | 'calendar'
     | 'vouchers'
+    | 'notifications'
     | 'ledger'
     | 'audit-logs'
     | 'access';
@@ -126,6 +128,12 @@ const NAV_GROUPS: NavGroup[] = [
         label: 'Vouchers & Promos',
         href: '/admin/vouchers',
         icon: Ticket,
+      },
+      {
+        id: 'notifications',
+        label: 'Push Notifications',
+        href: '/admin/notifications',
+        icon: Bell,
       },
     ],
   },

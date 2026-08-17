@@ -2,30 +2,64 @@
 
 import { useState, useEffect } from 'react';
 import { getToken } from 'firebase/messaging';
+import { Bell, Loader2, X } from 'lucide-react';
 import { getMessagingInstance, isFirebaseConfigured } from '@/lib/firebase/client';
 import { saveFcmTokenAction } from '@/app/actions/auth';
 
-export default function FcmNotificationPrompt() {
+export const FCM_PROMPT_DISMISSED_KEY = 'fcm_prompt_dismissed';
+
+interface FcmNotificationPromptProps {
+  isLoggedIn?: boolean;
+}
+
+export default function FcmNotificationPrompt({ isLoggedIn = false }: FcmNotificationPromptProps) {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [enabled, setEnabled] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setPermission(Notification.permission);
+    if (!isLoggedIn) return;
+
+    if (typeof window !== 'undefined') {
+      try {
+        const isDismissed = localStorage.getItem(FCM_PROMPT_DISMISSED_KEY) === 'true';
+        if (isDismissed) {
+          setDismissed(true);
+        }
+      } catch {
+        // Ignore localStorage errors
+      }
+
+      if ('Notification' in window) {
+        setPermission(Notification.permission);
+      }
     }
-  }, []);
+  }, [isLoggedIn]);
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(FCM_PROMPT_DISMISSED_KEY, 'true');
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  };
 
   const requestPermission = async () => {
-    if (!isFirebaseConfigured) return;
+    if (!isFirebaseConfigured || isRequesting) return;
 
+    setIsRequesting(true);
     try {
       const messaging = await getMessagingInstance();
       if (!messaging) return;
 
-      const permission = await Notification.requestPermission();
-      setPermission(permission);
+      const permissionResult = await Notification.requestPermission();
+      setPermission(permissionResult);
 
-      if (permission === 'granted') {
+      if (permissionResult === 'granted') {
         // Register SW manually with config
         const configParams = new URLSearchParams({
           apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
@@ -50,20 +84,55 @@ export default function FcmNotificationPrompt() {
       }
     } catch (error) {
       console.error('Error requesting notification permission:', error);
+    } finally {
+      setIsRequesting(false);
     }
   };
 
-  if (!isFirebaseConfigured || permission !== 'default' || enabled) return null;
+  if (!isLoggedIn || !isFirebaseConfigured || permission !== 'default' || enabled || dismissed) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 bg-white p-4 shadow-lg rounded-lg border border-neutral-200 z-50">
-      <p className="mb-2">Enable notifications to stay updated on your order status.</p>
-      <button
-        onClick={requestPermission}
-        className="bg-black text-white px-4 py-2 rounded"
-      >
-        Enable Notifications
-      </button>
+    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:max-w-sm sm:w-full z-50 bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-xl shadow-black/5 rounded-2xl p-4 sm:p-5 transition-all">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className="bg-neutral-100 p-2.5 rounded-full shrink-0 text-neutral-800 flex items-center justify-center">
+            <Bell className="w-5 h-5 text-neutral-800" />
+          </div>
+          <div className="flex-1 min-w-0 pr-2">
+            <h3 className="text-sm font-semibold text-neutral-900 leading-none mb-1.5">
+              Stay Updated
+            </h3>
+            <p className="text-xs text-neutral-600 leading-relaxed">
+              Enable notifications to stay updated on your order status.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleDismiss}
+          aria-label="Dismiss notification prompt"
+          className="p-1 -mr-1 -mt-1 text-neutral-400 hover:text-neutral-700 transition-colors rounded-lg hover:bg-neutral-100 shrink-0"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="mt-4 flex items-center justify-end gap-2.5 pt-1">
+        <button
+          onClick={handleDismiss}
+          disabled={isRequesting}
+          className="px-4 py-2.5 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors rounded-lg hover:bg-neutral-100/80 disabled:opacity-50 min-h-[44px] flex items-center justify-center"
+        >
+          Later
+        </button>
+        <button
+          onClick={requestPermission}
+          disabled={isRequesting}
+          className="px-5 py-2.5 text-sm font-medium text-white bg-black hover:bg-neutral-800 transition-colors rounded-lg flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 min-h-[44px]"
+        >
+          {isRequesting && <Loader2 className="w-4 h-4 animate-spin" />}
+          <span>Enable</span>
+        </button>
+      </div>
     </div>
   );
 }

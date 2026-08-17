@@ -6,11 +6,13 @@ import AccountNavigationHeader from './AccountNavigationHeader';
 import ProfileTab from './ProfileTab';
 import SecurityTab from './SecurityTab';
 import AddressTab from './AddressTab';
+import NotificationsTab from './NotificationsTab';
 import { logoutUserAction, checkIsAdminAction } from '@/app/actions/auth';
 import {
   User,
   Shield,
   MapPin,
+  Bell,
   ChevronRight,
   LogOut,
   Crown,
@@ -24,6 +26,7 @@ export interface UserAccountData {
   isPhoneVerified: boolean;
   isEmailVerified?: boolean;
   firebaseUid?: string | null;
+  fcmToken?: string | null;
   passwordHash: string | null;
   createdAt: Date | string;
   addresses: Array<{
@@ -48,7 +51,7 @@ interface AccountViewProps {
 }
 
 export default function AccountView({ account }: AccountViewProps) {
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'addresses'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'addresses' | 'notifications'>('profile');
   const [signingOut, setSigningOut] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -178,6 +181,18 @@ export default function AccountView({ account }: AccountViewProps) {
                 <MapPin className={`w-4 h-4 ${activeTab === 'addresses' ? 'text-amber-600' : 'text-neutral-400'}`} />
                 <span>Address Book ({account.addresses.length})</span>
               </button>
+
+              <button
+                onClick={() => setActiveTab('notifications')}
+                className={`flex items-center space-x-2 px-4 py-3 text-xs uppercase tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+                  activeTab === 'notifications'
+                    ? 'border-amber-600 text-neutral-900 font-medium'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
+                }`}
+              >
+                <Bell className={`w-4 h-4 ${activeTab === 'notifications' ? 'text-amber-600' : 'text-neutral-400'}`} />
+                <span>Notifications</span>
+              </button>
             </div>
           </div>
 
@@ -199,6 +214,14 @@ export default function AccountView({ account }: AccountViewProps) {
               />
             )}
             {activeTab === 'addresses' && <AddressTab addresses={account.addresses} />}
+            {activeTab === 'notifications' && (
+              <NotificationsTab
+                user={{
+                  id: account.id,
+                  fcmToken: account.fcmToken,
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

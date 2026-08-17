@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { prisma } from '@/lib/prisma';
 import { getSessionUserId } from '@/lib/session';
 import {
   getUserAccount,
@@ -109,5 +110,47 @@ export async function setDefaultAddressAction(addressId: string) {
     return { success: true, data: address };
   } catch (err: any) {
     return { success: false, error: err.message || 'Failed to set default address' };
+  }
+}
+
+export async function deleteFcmTokenAction() {
+  try {
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User session not found' };
+    }
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { fcmToken: null },
+    });
+    try {
+      revalidatePath('/account');
+    } catch {
+      // Ignored outside Next.js request context
+    }
+    return { success: true, data: user };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to disable notifications' };
+  }
+}
+
+export async function saveFcmTokenAction(token: string) {
+  try {
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User session not found' };
+    }
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { fcmToken: token },
+    });
+    try {
+      revalidatePath('/account');
+    } catch {
+      // Ignored outside Next.js request context
+    }
+    return { success: true, data: user };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to save notification token' };
   }
 }
