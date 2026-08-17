@@ -163,29 +163,42 @@ export const DEFAULT_CATEGORY_TREE_SPEC: CategoryTreeSpecItem[] = [
   { name: 'Rentals', href: '/products?type=RENTAL', displayOrder: 4, isActive: true },
 ];
 
-export function flattenSpecToNavCategories(spec = DEFAULT_CATEGORY_TREE_SPEC, parentId: string | null = null): NavCategoryItem[] {
+export function flattenSpecToNavCategories(
+  spec = DEFAULT_CATEGORY_TREE_SPEC,
+  parentId: string | null = null,
+  imageUrlMap?: Record<string, string>
+): NavCategoryItem[] {
   let result: NavCategoryItem[] = [];
   spec.forEach((item, index) => {
     const id = parentId ? `${parentId}-${index}` : `spec-${index}`;
     const { children, ...data } = item;
+    const resolvedImageUrl = item.imageUrl
+      ? (imageUrlMap && imageUrlMap[item.imageUrl] ? imageUrlMap[item.imageUrl] : item.imageUrl)
+      : undefined;
     result.push({
       id,
       parentId,
       ...data,
+      ...(resolvedImageUrl !== undefined ? { imageUrl: resolvedImageUrl } : {}),
     });
     if (children && children.length > 0) {
-      result = result.concat(flattenSpecToNavCategories(children, id));
+      result = result.concat(flattenSpecToNavCategories(children, id, imageUrlMap));
     }
   });
   return result;
 }
 
-export async function seedDefaultCategoryTree(): Promise<void> {
+export async function seedDefaultCategoryTree(imageUrlMap?: Record<string, string>): Promise<void> {
   async function seedNode(item: CategoryTreeSpecItem, parentId?: string): Promise<void> {
     const { children, ...data } = item;
+    const resolvedImageUrl = item.imageUrl
+      ? (imageUrlMap && imageUrlMap[item.imageUrl] ? imageUrlMap[item.imageUrl] : item.imageUrl)
+      : (item.imageUrl || null);
+
     const created = await prisma.navCategory.create({
       data: {
         ...data,
+        imageUrl: resolvedImageUrl,
         parentId: parentId || null,
       },
     });
@@ -386,9 +399,9 @@ export async function reorderNavCategories(orderedIds: string[]): Promise<void> 
   );
 }
 
-export async function resetDefaultNavCategories(): Promise<NavCategoryItem[]> {
+export async function resetDefaultNavCategories(imageUrlMap?: Record<string, string>): Promise<NavCategoryItem[]> {
   await prisma.navCategory.deleteMany();
-  await seedDefaultCategoryTree();
+  await seedDefaultCategoryTree(imageUrlMap);
 
   return getNavCategories(false);
 }

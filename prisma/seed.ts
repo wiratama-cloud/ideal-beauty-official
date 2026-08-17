@@ -1,9 +1,28 @@
 import { prisma } from '../src/lib/prisma';
 import { seedDefaultCategoryTree } from '../src/lib/services/nav-category';
 import { seedDefaultSizeCharts } from '../src/lib/services/size-chart';
+import { syncSeedImagesToFirebase, isFirebaseStorageConfigured } from '../src/lib/services/firebase-storage';
 
 export async function main() {
   console.log('Seeding Ideal Beauty Official database with dummy data...');
+
+  // Sync seed assets to Firebase Cloud Storage if configured
+  let imageMap: Record<string, string> = {};
+  if (isFirebaseStorageConfigured()) {
+    try {
+      console.log('Syncing seed images to Firebase Cloud Storage...');
+      imageMap = await syncSeedImagesToFirebase();
+      console.log(`Synced ${Object.keys(imageMap).length} seed images to Firebase Cloud Storage`);
+    } catch (error) {
+      console.warn('Failed to sync seed images to Firebase Storage, falling back to local paths:', error);
+    }
+  } else {
+    console.log('Firebase Cloud Storage is not configured; using local image paths');
+  }
+
+  const resolveImageUrl = (path: string): string => {
+    return imageMap[path] || path;
+  };
 
   // 1. Primary Admin Account & Access Control Seeding
   const primaryAdminEmail = process.env.ADMIN_EMAIL || 'admin@idealbeautyofficial.com';
@@ -845,20 +864,21 @@ export async function main() {
   const createdProducts = [];
   for (const productInfo of productsData) {
     const { variants, ...prod } = productInfo;
+    const resolvedImages = prod.images.map((img) => resolveImageUrl(img));
     const createdProduct = await prisma.product.upsert({
       where: { slug: prod.slug },
       update: {
         name: prod.name,
         description: prod.description,
         category: prod.category,
-        images: prod.images,
+        images: resolvedImages,
       },
       create: {
         name: prod.name,
         slug: prod.slug,
         description: prod.description,
         category: prod.category,
-        images: prod.images,
+        images: resolvedImages,
       },
     });
 
@@ -1260,7 +1280,7 @@ export async function main() {
             linkUrl: '/products',
             subtitle: 'Rent Luxury Wear',
             categoryTab: '/products?type=RENTAL',
-            imageUrl: '/images/hero/hero-banner.jpg',
+            imageUrl: resolveImageUrl('/images/hero/hero-banner.jpg'),
             displayOrder: 1,
           },
         ],
@@ -1354,28 +1374,28 @@ export async function main() {
           {
             title: 'Atelier Ideal',
             subtitle: 'Parisian High Fashion',
-            imageUrl: '/images/sections/brand-atelier.jpg',
+            imageUrl: resolveImageUrl('/images/sections/brand-atelier.jpg'),
             linkUrl: '/products?search=Atelier',
             displayOrder: 1,
           },
           {
             title: 'Royal Velvet',
             subtitle: 'Heritage Kaftans & Robes',
-            imageUrl: '/images/sections/brand-kaftan.jpg',
+            imageUrl: resolveImageUrl('/images/sections/brand-kaftan.jpg'),
             linkUrl: '/products?category=Haute%20Couture',
             displayOrder: 2,
           },
           {
             title: 'Maison Silk',
             subtitle: 'Handwoven Bridal Lehengas',
-            imageUrl: '/images/sections/brand-silk.jpg',
+            imageUrl: resolveImageUrl('/images/sections/brand-silk.jpg'),
             linkUrl: '/products?category=Bridal%20Wear',
             displayOrder: 3,
           },
           {
             title: 'Imperial Groom',
             subtitle: 'Bespoke Menswear & Sherwanis',
-            imageUrl: '/images/sections/brand-groom.jpg',
+            imageUrl: resolveImageUrl('/images/sections/brand-groom.jpg'),
             linkUrl: '/products?category=Men',
             displayOrder: 4,
           },
@@ -1436,7 +1456,7 @@ export async function main() {
   console.log('Created landing page configurable sections');
 
   // 8. Seed Default Navigation Categories
-  await seedDefaultCategoryTree();
+  await seedDefaultCategoryTree(imageMap);
   console.log('Created default navigation categories');
 
   // 9. Seed Vouchers

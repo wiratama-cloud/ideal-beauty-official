@@ -6,6 +6,7 @@ import {
   getNavCategoryTree,
   getCategoryAndDescendantNames,
   resetDefaultNavCategories,
+  seedDefaultCategoryTree,
 } from '../src/lib/services/nav-category';
 import { getProducts } from '../src/lib/services/product';
 
@@ -187,5 +188,25 @@ describe('NavCategory Tree & Hierarchy Services', () => {
 
     expect(updated.parentId).toBe(parent.id);
     expect(updated.imageUrl).toBe('/images/item.jpg');
+  });
+
+  it('should seed default category tree with resolved imageUrlMap', async () => {
+    const mockMap: Record<string, string> = {
+      '/images/sections/brand-silk.jpg': 'https://firebasestorage.googleapis.com/v0/b/bucket/o/sections%2Fbrand-silk.jpg',
+      '/images/products/kaftan-1.jpg': 'https://firebasestorage.googleapis.com/v0/b/bucket/o/products%2Fkaftan-1.jpg',
+    };
+
+    await seedDefaultCategoryTree(mockMap);
+
+    const categories = await prisma.navCategory.findMany();
+    expect(categories.length).toBeGreaterThan(0);
+
+    const womenCategory = categories.find((c) => c.name === 'Women');
+    expect(womenCategory).toBeDefined();
+    expect(womenCategory?.imageUrl).toBe('https://firebasestorage.googleapis.com/v0/b/bucket/o/sections%2Fbrand-silk.jpg');
+
+    const kaftansCategory = categories.find((c) => c.name === 'Kaftans');
+    expect(kaftansCategory).toBeDefined();
+    expect(kaftansCategory?.imageUrl).toBe('https://firebasestorage.googleapis.com/v0/b/bucket/o/products%2Fkaftan-1.jpg');
   });
 });

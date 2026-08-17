@@ -13,6 +13,7 @@ if (isFirebaseAdminConfigured) {
       const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY!);
       app = initializeApp({
         credential: cert(serviceAccount),
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET,
       });
     } catch (error) {
       console.error('Error initializing Firebase Admin SDK:', error);

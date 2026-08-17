@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { uploadFileToFirebase } from '@/lib/services/firebase-storage';
+import { uploadFileToFirebase, isFirebaseStorageConfigured } from '@/lib/services/firebase-storage';
 
 export async function POST(request: Request) {
   try {
@@ -23,13 +23,15 @@ export async function POST(request: Request) {
     
     let fileUrl: string;
 
-    try {
-      // Try Firebase
-      fileUrl = await uploadFileToFirebase(buffer, filename, 'products', file.type);
-    } catch (error) {
-      console.warn('Firebase upload failed, falling back to local storage:', error);
-      
-      // Fallback
+    if (isFirebaseStorageConfigured()) {
+      try {
+        fileUrl = await uploadFileToFirebase(buffer, filename, 'products', file.type);
+      } catch (error) {
+        console.error('Firebase upload failed:', error);
+        return NextResponse.json({ error: 'Failed to upload image to Firebase Storage' }, { status: 500 });
+      }
+    } else {
+      // Fallback to local storage if Firebase Storage is not configured
       const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
