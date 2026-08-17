@@ -68,10 +68,16 @@ export async function toggleWishlistItem(userId: string, productId: string, vari
 }
 
 export async function getWishlistedProductIds(userId: string): Promise<string[]> {
-  const items = await prisma.wishlistItem.findMany({
-    where: { userId },
-    select: { productId: true },
-  });
+  if (!userId) return [];
+  try {
+    const items = await prisma.wishlistItem.findMany({
+      where: { userId },
+      select: { productId: true },
+    });
 
-  return items.map((item) => item.productId);
+    return items.map((item) => item.productId);
+  } catch (error) {
+    console.error('Failed to fetch wishlisted product IDs:', error);
+    return [];
+  }
 }

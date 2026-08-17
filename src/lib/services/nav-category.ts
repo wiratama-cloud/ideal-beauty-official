@@ -163,6 +163,23 @@ export const DEFAULT_CATEGORY_TREE_SPEC: CategoryTreeSpecItem[] = [
   { name: 'Rentals', href: '/products?type=RENTAL', displayOrder: 4, isActive: true },
 ];
 
+export function flattenSpecToNavCategories(spec = DEFAULT_CATEGORY_TREE_SPEC, parentId: string | null = null): NavCategoryItem[] {
+  let result: NavCategoryItem[] = [];
+  spec.forEach((item, index) => {
+    const id = parentId ? `${parentId}-${index}` : `spec-${index}`;
+    const { children, ...data } = item;
+    result.push({
+      id,
+      parentId,
+      ...data,
+    });
+    if (children && children.length > 0) {
+      result = result.concat(flattenSpecToNavCategories(children, id));
+    }
+  });
+  return result;
+}
+
 export async function seedDefaultCategoryTree(): Promise<void> {
   async function seedNode(item: CategoryTreeSpecItem, parentId?: string): Promise<void> {
     const { children, ...data } = item;
@@ -185,48 +202,53 @@ export async function seedDefaultCategoryTree(): Promise<void> {
 }
 
 export async function getNavCategories(activeOnly = true): Promise<NavCategoryItem[]> {
-  const count = await prisma.navCategory.count();
+  try {
+    const count = await prisma.navCategory.count();
 
-  if (count === 0) {
-    // Auto-seed default categories if empty
-    await seedDefaultCategoryTree();
-  }
-
-  const items = await prisma.navCategory.findMany({
-    where: activeOnly ? { isActive: true } : undefined,
-    orderBy: [
-      { displayOrder: 'asc' },
-      { createdAt: 'asc' },
-    ],
-  });
-
-  // Deduplicate categories by name
-  const uniqueItems: NavCategoryItem[] = [];
-  const seenNames = new Set<string>();
-  const duplicateIds: string[] = [];
-
-  for (const item of items) {
-    const key = `${item.parentId || 'root'}:${item.name.trim().toLowerCase()}`;
-    if (!seenNames.has(key)) {
-      seenNames.add(key);
-      uniqueItems.push(item);
-    } else {
-      duplicateIds.push(item.id);
+    if (count === 0) {
+      // Auto-seed default categories if empty
+      await seedDefaultCategoryTree();
     }
-  }
 
-  // Clean up duplicate entries from database if any exist
-  if (duplicateIds.length > 0) {
-    try {
-      await prisma.navCategory.deleteMany({
-        where: { id: { in: duplicateIds } },
-      });
-    } catch {
-      // Ignore if concurrent deletion occurs
+    const items = await prisma.navCategory.findMany({
+      where: activeOnly ? { isActive: true } : undefined,
+      orderBy: [
+        { displayOrder: 'asc' },
+        { createdAt: 'asc' },
+      ],
+    });
+
+    // Deduplicate categories by name
+    const uniqueItems: NavCategoryItem[] = [];
+    const seenNames = new Set<string>();
+    const duplicateIds: string[] = [];
+
+    for (const item of items) {
+      const key = `${item.parentId || 'root'}:${item.name.trim().toLowerCase()}`;
+      if (!seenNames.has(key)) {
+        seenNames.add(key);
+        uniqueItems.push(item);
+      } else {
+        duplicateIds.push(item.id);
+      }
     }
-  }
 
-  return uniqueItems;
+    // Clean up duplicate entries from database if any exist
+    if (duplicateIds.length > 0) {
+      try {
+        await prisma.navCategory.deleteMany({
+          where: { id: { in: duplicateIds } },
+        });
+      } catch {
+        // Ignore if concurrent deletion occurs
+      }
+    }
+
+    return uniqueItems;
+  } catch (error) {
+    console.error('Failed to fetch nav categories from database, falling back to default spec:', error);
+    return flattenSpecToNavCategories();
+  }
 }
 
 export async function getNavCategoryTree(activeOnly = true): Promise<NavCategoryItem[]> {
@@ -253,47 +275,52 @@ export async function getNavCategoryTree(activeOnly = true): Promise<NavCategory
 }
 
 export async function getCategoryAndDescendantNames(categoryIdOrName: string): Promise<string[]> {
-  const allCategories = await prisma.navCategory.findMany();
+  try {
+    const allCategories = await prisma.navCategory.findMany();
 
-  const searchTarget = categoryIdOrName.trim().toLowerCase();
+    const searchTarget = categoryIdOrName.trim().toLowerCase();
 
-  const matchedCategories = allCategories.filter(
-    (c) => c.id === categoryIdOrName || c.name.trim().toLowerCase() === searchTarget
-  );
+    const matchedCategories = allCategories.filter(
+      (c) => c.id === categoryIdOrName || c.name.trim().toLowerCase() === searchTarget
+    );
 
-  if (matchedCategories.length === 0) {
+    if (matchedCategories.length === 0) {
+      return [categoryIdOrName];
+    }
+
+    const childrenMap = new Map<string, typeof allCategories>();
+    for (const cat of allCategories) {
+      if (cat.parentId) {
+        if (!childrenMap.has(cat.parentId)) {
+          childrenMap.set(cat.parentId, []);
+        }
+        childrenMap.get(cat.parentId)!.push(cat);
+      }
+    }
+
+    const visited = new Set<string>();
+    const resultNames = new Set<string>();
+    const queue: typeof allCategories = [...matchedCategories];
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (visited.has(current.id)) {
+        continue;
+      }
+      visited.add(current.id);
+      resultNames.add(current.name);
+
+      const children = childrenMap.get(current.id);
+      if (children) {
+        queue.push(...children);
+      }
+    }
+
+    return Array.from(resultNames);
+  } catch (error) {
+    console.error('Failed to getCategoryAndDescendantNames from database:', error);
     return [categoryIdOrName];
   }
-
-  const childrenMap = new Map<string, typeof allCategories>();
-  for (const cat of allCategories) {
-    if (cat.parentId) {
-      if (!childrenMap.has(cat.parentId)) {
-        childrenMap.set(cat.parentId, []);
-      }
-      childrenMap.get(cat.parentId)!.push(cat);
-    }
-  }
-
-  const visited = new Set<string>();
-  const resultNames = new Set<string>();
-  const queue: typeof allCategories = [...matchedCategories];
-
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    if (visited.has(current.id)) {
-      continue;
-    }
-    visited.add(current.id);
-    resultNames.add(current.name);
-
-    const children = childrenMap.get(current.id);
-    if (children) {
-      queue.push(...children);
-    }
-  }
-
-  return Array.from(resultNames);
 }
 
 export async function createNavCategory(data: {

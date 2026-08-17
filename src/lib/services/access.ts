@@ -22,11 +22,16 @@ export async function isEmailAdmin(email: string | null | undefined): Promise<bo
     return true;
   }
 
-  const record = await prisma.adminAccess.findUnique({
-    where: { email: cleanEmail },
-  });
+  try {
+    const record = await prisma.adminAccess.findUnique({
+      where: { email: cleanEmail },
+    });
 
-  return !!record;
+    return !!record;
+  } catch (error) {
+    console.error('Failed to verify admin status from database:', error);
+    return false;
+  }
 }
 
 export async function getAdminAccessList() {
