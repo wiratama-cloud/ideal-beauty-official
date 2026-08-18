@@ -1,5 +1,14 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import {
+  initializeAuth,
+  getAuth,
+  browserLocalPersistence,
+  indexedDBLocalPersistence,
+  browserSessionPersistence,
+  inMemoryPersistence,
+  browserPopupRedirectResolver,
+  Auth,
+} from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, isSupported, Messaging } from 'firebase/messaging';
 
@@ -23,8 +32,30 @@ if (isFirebaseConfigured && !getApps().length) {
   app = getApp();
 }
 
-export const auth = isFirebaseConfigured ? getAuth(app!) : null;
-export const storage = isFirebaseConfigured ? getStorage(app!) : null;
+let authInstance: Auth | null = null;
+
+if (isFirebaseConfigured && app) {
+  try {
+    if (typeof window !== 'undefined') {
+      authInstance = initializeAuth(app, {
+        persistence: [
+          browserLocalPersistence,
+          indexedDBLocalPersistence,
+          browserSessionPersistence,
+          inMemoryPersistence,
+        ],
+        popupRedirectResolver: browserPopupRedirectResolver,
+      });
+    } else {
+      authInstance = getAuth(app);
+    }
+  } catch {
+    authInstance = getAuth(app);
+  }
+}
+
+export const auth = authInstance;
+export const storage = isFirebaseConfigured && app ? getStorage(app) : null;
 
 export const getMessagingInstance = async (): Promise<Messaging | null> => {
   if (!isFirebaseConfigured || typeof window === 'undefined') return null;

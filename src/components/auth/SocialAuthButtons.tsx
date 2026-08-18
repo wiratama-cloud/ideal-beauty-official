@@ -42,6 +42,7 @@ export default function SocialAuthButtons({ onSuccess, provider, label, classNam
       let oauthProvider;
       if (providerType === 'google') {
         oauthProvider = new GoogleAuthProvider();
+        oauthProvider.setCustomParameters({ prompt: 'select_account' });
       } else if (providerType === 'facebook') {
         oauthProvider = new FacebookAuthProvider();
       } else {
@@ -59,11 +60,26 @@ export default function SocialAuthButtons({ onSuccess, provider, label, classNam
         window.location.href = safeRedirectUrl;
       }
     } catch (err: any) {
-      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+      if (
+        err?.code === 'auth/popup-closed-by-user' ||
+        err?.code === 'auth/cancelled-popup-request'
+      ) {
         setLoadingProvider(null);
         return;
       }
-      setError(err.message || `Failed to sign in with ${providerType}. Please try again.`);
+
+      if (err?.code === 'auth/popup-blocked') {
+        setError('Popup was blocked by your browser. Please allow popups and try again.');
+        setLoadingProvider(null);
+        return;
+      }
+
+      const errorMessage =
+        err?.message?.includes('Database is') || err?.name === 'InvalidStateError'
+          ? 'Temporary browser storage error. Please try signing in again.'
+          : err?.message || `Failed to sign in with ${providerType}. Please try again.`;
+
+      setError(errorMessage);
       setLoadingProvider(null);
     }
   };
