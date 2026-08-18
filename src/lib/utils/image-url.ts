@@ -1,4 +1,5 @@
-import { IMAGE_RESOLUTIONS, ImageResolution } from '../services/image-processor';
+export const IMAGE_RESOLUTIONS = [256, 512, 768, 1024] as const;
+export type ImageResolution = typeof IMAGE_RESOLUTIONS[number];
 
 export const DEFAULT_PRODUCT_FALLBACK = '/images/products/default-product.jpg';
 

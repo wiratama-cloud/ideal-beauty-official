@@ -2,9 +2,10 @@ import sharp from 'sharp';
 import path from 'path';
 import { isFirebaseStorageConfigured, uploadImageVariantsToFirebase } from './firebase-storage';
 import { saveImageVariantsToLocal, StoredImageVariantsResult, ImageUrlsMap } from './local-storage';
+import { IMAGE_RESOLUTIONS, ImageResolution } from '../utils/image-url';
 
-export const IMAGE_RESOLUTIONS = [256, 512, 768, 1024] as const;
-export type ImageResolution = typeof IMAGE_RESOLUTIONS[number];
+export { IMAGE_RESOLUTIONS };
+export type { ImageResolution };
 
 export interface ProcessedVariant {
   resolution: ImageResolution;
