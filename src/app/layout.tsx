@@ -11,6 +11,15 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Ideal Beauty Official | Luxury Couture, Bridal & Rental Boutique',
   description: 'Bespoke South Asian & Indonesian haute couture, velvet kaftans, silk lehengas, and luxury rental fashion.',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Ideal Beauty',
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

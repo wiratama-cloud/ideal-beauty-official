@@ -79,6 +79,14 @@ describe('FCM Notification Prompt Component & Dismiss Logic', () => {
     expect(componentContent).toContain('if (!isLoggedIn || !isFirebaseConfigured || permission !== \'default\' || enabled || dismissed) return null;');
   });
 
+  it('includes iOS PWA installation guide modal for iPhone Safari and Chrome users', () => {
+    expect(componentContent).toContain('Add to Home Screen');
+    expect(componentContent).toContain('Safari on iPhone');
+    expect(componentContent).toContain('Chrome on iPhone');
+    expect(componentContent).toContain('isIos');
+    expect(componentContent).toContain('isStandalone');
+  });
+
   it('is rendered in storefront layout only for logged in users', () => {
     const layoutPath = path.resolve(__dirname, '../src/app/(storefront)/layout.tsx');
     const layoutContent = fs.readFileSync(layoutPath, 'utf-8');

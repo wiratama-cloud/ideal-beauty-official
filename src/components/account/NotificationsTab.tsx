@@ -14,10 +14,14 @@ import {
   CreditCard,
   Smartphone,
   Info,
+  Share,
+  PlusSquare,
+  Sparkles,
 } from 'lucide-react';
 import { getMessagingInstance, isFirebaseConfigured } from '@/lib/firebase/client';
 import { saveFcmTokenAction, deleteFcmTokenAction } from '@/app/actions/auth';
 import { FCM_PROMPT_DISMISSED_KEY } from '@/components/common/FcmNotificationPrompt';
+import { isIos, isStandalone, isNotificationSupported, getIosBrowserType } from '@/lib/utils/pwa';
 
 interface NotificationsTabProps {
   user: {
@@ -35,9 +39,44 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
     text: string;
   } | null>(null);
 
+  const [pwaState, setPwaState] = useState<{
+    isIos: boolean;
+    isStandalone: boolean;
+    isSupported: boolean;
+    browserType: 'safari' | 'chrome' | 'other';
+  }>({
+    isIos: false,
+    isStandalone: false,
+    isSupported: true,
+    browserType: 'other',
+  });
+
+  const [iosGuideTab, setIosGuideTab] = useState<'safari' | 'chrome'>('safari');
+
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setPermission(Notification.permission);
+    if (typeof window !== 'undefined') {
+      const ios = isIos();
+      const standalone = isStandalone();
+      const supported = isNotificationSupported();
+      const browser = getIosBrowserType();
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPwaState({
+        isIos: ios,
+        isStandalone: standalone,
+        isSupported: supported,
+        browserType: browser,
+      });
+
+      if (browser === 'chrome') {
+        setIosGuideTab('chrome');
+      } else {
+        setIosGuideTab('safari');
+      }
+
+      if ('Notification' in window) {
+        setPermission(Notification.permission);
+      }
     }
   }, []);
 
@@ -61,10 +100,11 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
           type: 'success',
           text: 'Push notifications have been disabled for your account.',
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : 'Failed to disable push notifications. Please try again.';
         setStatusMessage({
           type: 'error',
-          text: err.message || 'Failed to disable push notifications. Please try again.',
+          text: errorMsg,
         });
       } finally {
         setIsToggling(false);
@@ -73,7 +113,21 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
     }
 
     // Turn ON notifications
-    if (typeof window === 'undefined' || !('Notification' in window)) {
+    if (typeof window === 'undefined') {
+      setIsToggling(false);
+      return;
+    }
+
+    if (pwaState.isIos && !pwaState.isStandalone) {
+      setStatusMessage({
+        type: 'info',
+        text: 'On iOS, push notifications require adding Ideal Beauty to your Home Screen. Please follow the instructions below.',
+      });
+      setIsToggling(false);
+      return;
+    }
+
+    if (!('Notification' in window) || !isNotificationSupported()) {
       setStatusMessage({
         type: 'error',
         text: 'Push notifications are not supported in this browser.',
@@ -165,16 +219,19 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
           text: 'Notification permission request was dismissed.',
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error enabling notifications:', err);
+      const errorMsg = err instanceof Error ? err.message : 'An error occurred while enabling notifications.';
       setStatusMessage({
         type: 'error',
-        text: err.message || 'An error occurred while enabling notifications.',
+        text: errorMsg,
       });
     } finally {
       setIsToggling(false);
     }
   };
+
+  const isIosBrowserTab = pwaState.isIos && !pwaState.isStandalone;
 
   return (
     <div className="space-y-6">
@@ -241,6 +298,124 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
             <p className="font-light text-[11px] leading-relaxed text-amber-800">
               Notifications have been blocked in your browser site permissions. To receive alerts on this device, please click the lock/settings icon in your browser address bar and change notifications permission to &quot;Allow&quot;.
             </p>
+          </div>
+        )}
+
+        {/* Dedicated iOS Home Screen Installation Guide Banner for Safari and Chrome on iOS */}
+        {isIosBrowserTab && (
+          <div className="bg-linear-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white p-5 sm:p-7 border border-neutral-800 rounded-none shadow-md space-y-5">
+            <div className="flex items-start justify-between gap-3 border-b border-neutral-700/80 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span className="font-serif text-sm tracking-wide font-normal text-white">
+                    Enable Push Notifications on iPhone
+                  </span>
+                </div>
+                <p className="text-neutral-300 text-xs font-light leading-relaxed">
+                  Apple iOS requires adding Ideal Beauty to your Home Screen as a web app to deliver instant order and delivery notifications.
+                </p>
+              </div>
+            </div>
+
+            {/* iOS Browser Selection Tabs */}
+            <div className="flex items-center space-x-2 border-b border-neutral-700/60 pb-3">
+              <button
+                type="button"
+                onClick={() => setIosGuideTab('safari')}
+                className={`text-xs px-3 py-1.5 font-medium transition-all ${
+                  iosGuideTab === 'safari'
+                    ? 'bg-amber-500 text-neutral-950 font-semibold'
+                    : 'bg-neutral-800 text-neutral-300 hover:text-white hover:bg-neutral-700'
+                }`}
+              >
+                Safari on iPhone
+              </button>
+              <button
+                type="button"
+                onClick={() => setIosGuideTab('chrome')}
+                className={`text-xs px-3 py-1.5 font-medium transition-all ${
+                  iosGuideTab === 'chrome'
+                    ? 'bg-amber-500 text-neutral-950 font-semibold'
+                    : 'bg-neutral-800 text-neutral-300 hover:text-white hover:bg-neutral-700'
+                }`}
+              >
+                Chrome on iPhone
+              </button>
+            </div>
+
+            {/* Step-by-Step Instructions */}
+            {iosGuideTab === 'safari' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="bg-neutral-800/70 border border-neutral-700 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between text-amber-400 font-mono text-[11px]">
+                    <span>STEP 1</span>
+                    <Share className="w-4 h-4" />
+                  </div>
+                  <div className="text-neutral-200 font-medium">Tap the Share Button</div>
+                  <p className="text-neutral-400 text-[11px] font-light leading-relaxed">
+                    In Safari&apos;s bottom toolbar, tap the square <span className="text-white font-normal">Share</span> icon.
+                  </p>
+                </div>
+
+                <div className="bg-neutral-800/70 border border-neutral-700 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between text-amber-400 font-mono text-[11px]">
+                    <span>STEP 2</span>
+                    <PlusSquare className="w-4 h-4" />
+                  </div>
+                  <div className="text-neutral-200 font-medium">Add to Home Screen</div>
+                  <p className="text-neutral-400 text-[11px] font-light leading-relaxed">
+                    Scroll down the menu and select <span className="text-white font-normal">&quot;Add to Home Screen&quot;</span>.
+                  </p>
+                </div>
+
+                <div className="bg-neutral-800/70 border border-neutral-700 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between text-amber-400 font-mono text-[11px]">
+                    <span>STEP 3</span>
+                    <Smartphone className="w-4 h-4" />
+                  </div>
+                  <div className="text-neutral-200 font-medium">Launch &amp; Enable</div>
+                  <p className="text-neutral-400 text-[11px] font-light leading-relaxed">
+                    Open <span className="text-white font-normal">Ideal Beauty</span> from your Home Screen to activate 1-tap alerts.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="bg-neutral-800/70 border border-neutral-700 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between text-amber-400 font-mono text-[11px]">
+                    <span>STEP 1</span>
+                    <Share className="w-4 h-4" />
+                  </div>
+                  <div className="text-neutral-200 font-medium">Tap Share in Chrome</div>
+                  <p className="text-neutral-400 text-[11px] font-light leading-relaxed">
+                    Tap the <span className="text-white font-normal">Share</span> icon in Chrome&apos;s address bar or bottom menu.
+                  </p>
+                </div>
+
+                <div className="bg-neutral-800/70 border border-neutral-700 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between text-amber-400 font-mono text-[11px]">
+                    <span>STEP 2</span>
+                    <PlusSquare className="w-4 h-4" />
+                  </div>
+                  <div className="text-neutral-200 font-medium">Add to Home Screen</div>
+                  <p className="text-neutral-400 text-[11px] font-light leading-relaxed">
+                    Scroll down the sharing list and tap <span className="text-white font-normal">&quot;Add to Home Screen&quot;</span>.
+                  </p>
+                </div>
+
+                <div className="bg-neutral-800/70 border border-neutral-700 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between text-amber-400 font-mono text-[11px]">
+                    <span>STEP 3</span>
+                    <Smartphone className="w-4 h-4" />
+                  </div>
+                  <div className="text-neutral-200 font-medium">Launch &amp; Enable</div>
+                  <p className="text-neutral-400 text-[11px] font-light leading-relaxed">
+                    Open <span className="text-white font-normal">Ideal Beauty</span> from your Home Screen to turn on push notifications.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -369,21 +544,21 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
 
             <div className="border border-neutral-200 p-4 bg-white space-y-1.5">
               <div className="flex items-center space-x-2 text-neutral-800">
-                <Truck className="w-4 h-4 text-amber-600 shrink-0" />
-                <span className="font-medium text-xs">Courier &amp; Tracking</span>
+                <CreditCard className="w-4 h-4 text-amber-600 shrink-0" />
+                <span className="font-medium text-xs">Payment Verification</span>
               </div>
               <p className="text-neutral-500 text-[11px] font-light leading-relaxed">
-                Live dispatch notifications, courier tracking numbers, and delivery status.
+                Real-time updates as soon as your down payment or final settlement is verified.
               </p>
             </div>
 
             <div className="border border-neutral-200 p-4 bg-white space-y-1.5">
               <div className="flex items-center space-x-2 text-neutral-800">
-                <CreditCard className="w-4 h-4 text-amber-600 shrink-0" />
-                <span className="font-medium text-xs">Payment &amp; Invoices</span>
+                <Truck className="w-4 h-4 text-amber-600 shrink-0" />
+                <span className="font-medium text-xs">Shipping &amp; Delivery</span>
               </div>
               <p className="text-neutral-500 text-[11px] font-light leading-relaxed">
-                Down payment verification and final balance payment reminders.
+                Tracking numbers and courier dispatch notifications as your package travels.
               </p>
             </div>
           </div>
