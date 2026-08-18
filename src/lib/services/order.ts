@@ -422,7 +422,8 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
       updated.user.fcmToken,
       'Order Update',
       `Your order ${orderId} is now ${status}.`,
-      orderId
+      orderId,
+      '/account?tab=orders'
     );
   }
 

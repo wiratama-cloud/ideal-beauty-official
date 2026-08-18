@@ -16,29 +16,28 @@ describe('Size Chart Types (Weight & Height vs Body Measurement)', () => {
   let testProductId: string;
 
   beforeAll(async () => {
-    const existingProduct = await prisma.product.findFirst();
-    if (existingProduct) {
-      testProductId = existingProduct.id;
-    } else {
-      const created = await prisma.product.create({
-        data: {
-          name: 'Type Test Product',
-          slug: 'type-test-product',
-          category: 'Ready To Wear',
-          variants: {
-            create: {
-              sku: 'TYPE-TEST-001',
-              attributes: { size: 'M' },
-              priceSale: 500000,
-            },
+    const created = await prisma.product.create({
+      data: {
+        name: 'Type Test Product',
+        slug: `type-test-product-${Date.now()}`,
+        category: 'Ready To Wear',
+        variants: {
+          create: {
+            sku: `TYPE-TEST-${Date.now()}`,
+            attributes: { size: 'M' },
+            priceSale: 500000,
           },
         },
-      });
-      testProductId = created.id;
-    }
+      },
+    });
+    testProductId = created.id;
   });
 
   afterAll(async () => {
+    if (testProductId) {
+      await prisma.productVariant.deleteMany({ where: { productId: testProductId } });
+      await prisma.product.deleteMany({ where: { id: testProductId } });
+    }
     if (bodyChartId) {
       await prisma.sizeChart.deleteMany({ where: { id: bodyChartId } });
     }

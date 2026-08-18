@@ -152,43 +152,41 @@ export async function seedDefaultSizeCharts() {
     return (await prisma.sizeChart.findFirst({ where: { isDefault: true } })) || (await prisma.sizeChart.findFirst());
   }
 
-  const defaultChart = await prisma.sizeChart.create({
-    data: {
-      name: 'Standard Atelier Fit Chart',
-      type: 'BODY_MEASUREMENT',
-      category: 'General Luxury Couture',
-      description: 'Universal body measurement size chart for Ready-To-Wear dresses, lehengas, and kaftans.',
-      guideText: 'All garments are tailored to standard proportions. Select the size matching your bust measurement.',
-      isDefault: true,
-      measurements: DEFAULT_SIZE_MEASUREMENTS as any,
-    },
-  });
-
-  // Seed Weight & Height chart template
-  await prisma.sizeChart.create({
-    data: {
-      name: 'Weight & Height Fit Guide',
-      type: 'WEIGHT_HEIGHT',
-      category: 'Casual & Lounge Wear',
-      description: 'Quick size recommendation chart based on your height and weight.',
-      guideText: 'Find your size easily by matching your body weight (kg) and total height (cm).',
-      isDefault: false,
-      measurements: DEFAULT_WEIGHT_HEIGHT_MEASUREMENTS as any,
-    },
-  });
-
-  // Seed secondary template for traditional wear
-  await prisma.sizeChart.create({
-    data: {
-      name: 'Lehenga & Saree Blouse Chart',
-      type: 'BODY_MEASUREMENT',
-      category: 'Traditional & Festive',
-      description: 'Precision fitted sizing for corsets, stitched saree blouses, and flared lehenga skirts.',
-      guideText: 'For structured corset blouses, choose based on bust and upper waist measurement for optimum drape.',
-      isDefault: false,
-      measurements: DEFAULT_SIZE_MEASUREMENTS as any,
-    },
-  });
+  const [defaultChart] = await Promise.all([
+    prisma.sizeChart.create({
+      data: {
+        name: 'Standard Atelier Fit Chart',
+        type: 'BODY_MEASUREMENT',
+        category: 'General Luxury Couture',
+        description: 'Universal body measurement size chart for Ready-To-Wear dresses, lehengas, and kaftans.',
+        guideText: 'All garments are tailored to standard proportions. Select the size matching your bust measurement.',
+        isDefault: true,
+        measurements: DEFAULT_SIZE_MEASUREMENTS as any,
+      },
+    }),
+    prisma.sizeChart.create({
+      data: {
+        name: 'Weight & Height Fit Guide',
+        type: 'WEIGHT_HEIGHT',
+        category: 'Casual & Lounge Wear',
+        description: 'Quick size recommendation chart based on your height and weight.',
+        guideText: 'Find your size easily by matching your body weight (kg) and total height (cm).',
+        isDefault: false,
+        measurements: DEFAULT_WEIGHT_HEIGHT_MEASUREMENTS as any,
+      },
+    }),
+    prisma.sizeChart.create({
+      data: {
+        name: 'Lehenga & Saree Blouse Chart',
+        type: 'BODY_MEASUREMENT',
+        category: 'Traditional & Festive',
+        description: 'Precision fitted sizing for corsets, stitched saree blouses, and flared lehenga skirts.',
+        guideText: 'For structured corset blouses, choose based on bust and upper waist measurement for optimum drape.',
+        isDefault: false,
+        measurements: DEFAULT_SIZE_MEASUREMENTS as any,
+      },
+    }),
+  ]);
 
   return defaultChart;
 }

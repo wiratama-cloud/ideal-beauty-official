@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
 import { prisma } from '../src/lib/prisma';
 import {
   createNavCategory,
@@ -11,17 +11,19 @@ import {
 import { getProducts } from '../src/lib/services/product';
 
 describe('NavCategory Tree & Hierarchy Services', () => {
-  beforeEach(async () => {
-    await prisma.navCategory.deleteMany();
-    await prisma.ledgerEntry.deleteMany();
-    await prisma.payment.deleteMany();
-    await prisma.orderItem.deleteMany();
-    await prisma.order.deleteMany();
-    await prisma.cartItem.deleteMany();
-    await prisma.cart.deleteMany();
-    await prisma.wishlistItem.deleteMany();
-    await prisma.productVariant.deleteMany();
-    await prisma.product.deleteMany();
+  let createdCategoryIds: string[] = [];
+  let createdProductIds: string[] = [];
+
+  afterEach(async () => {
+    if (createdProductIds.length > 0) {
+      await prisma.productVariant.deleteMany({ where: { productId: { in: createdProductIds } } });
+      await prisma.product.deleteMany({ where: { id: { in: createdProductIds } } });
+      createdProductIds = [];
+    }
+    if (createdCategoryIds.length > 0) {
+      await prisma.navCategory.deleteMany({ where: { id: { in: createdCategoryIds } } });
+      createdCategoryIds = [];
+    }
   });
 
   afterAll(async () => {
@@ -30,38 +32,43 @@ describe('NavCategory Tree & Hierarchy Services', () => {
 
   it('should create and build a nested category tree', async () => {
     const parent = await createNavCategory({
-      name: 'Haute Couture',
-      href: '/products?category=Haute+Couture',
+      name: 'Haute Couture Tree Test',
+      href: '/products?category=Haute+Couture+Tree+Test',
       imageUrl: '/images/parent.jpg',
     });
+    createdCategoryIds.push(parent.id);
 
     const child1 = await createNavCategory({
-      name: 'Eveningwear',
-      href: '/products?category=Eveningwear',
+      name: 'Eveningwear Tree Test',
+      href: '/products?category=Eveningwear+Tree+Test',
       parentId: parent.id,
       imageUrl: '/images/child1.jpg',
     });
+    createdCategoryIds.push(child1.id);
 
     const child2 = await createNavCategory({
-      name: 'Gowns',
-      href: '/products?category=Gowns',
+      name: 'Gowns Tree Test',
+      href: '/products?category=Gowns+Tree+Test',
       parentId: parent.id,
     });
+    createdCategoryIds.push(child2.id);
 
     const grandChild = await createNavCategory({
-      name: 'Ball Gowns',
-      href: '/products?category=Ball+Gowns',
+      name: 'Ball Gowns Tree Test',
+      href: '/products?category=Ball+Gowns+Tree+Test',
       parentId: child2.id,
     });
+    createdCategoryIds.push(grandChild.id);
 
     const tree = await getNavCategoryTree(false);
 
-    expect(tree.length).toBe(1);
-    expect(tree[0].id).toBe(parent.id);
-    expect(tree[0].imageUrl).toBe('/images/parent.jpg');
-    expect(tree[0].children?.length).toBe(2);
+    const parentNode = tree.find((t) => t.id === parent.id);
+    expect(parentNode).toBeDefined();
+    expect(parentNode?.id).toBe(parent.id);
+    expect(parentNode?.imageUrl).toBe('/images/parent.jpg');
+    expect(parentNode?.children?.length).toBe(2);
 
-    const gownsNode = tree[0].children?.find((c) => c.id === child2.id);
+    const gownsNode = parentNode?.children?.find((c) => c.id === child2.id);
     expect(gownsNode).toBeDefined();
     expect(gownsNode?.children?.length).toBe(1);
     expect(gownsNode?.children?.[0].id).toBe(grandChild.id);
@@ -69,31 +76,34 @@ describe('NavCategory Tree & Hierarchy Services', () => {
 
   it('should collect category and all descendant names correctly', async () => {
     const parent = await createNavCategory({
-      name: 'Bridal Wear',
-      href: '/products?category=Bridal+Wear',
+      name: 'Bridal Wear Test',
+      href: '/products?category=Bridal+Wear+Test',
     });
+    createdCategoryIds.push(parent.id);
 
     const child = await createNavCategory({
-      name: 'Lehengas',
-      href: '/products?category=Lehengas',
+      name: 'Lehengas Test',
+      href: '/products?category=Lehengas+Test',
       parentId: parent.id,
     });
+    createdCategoryIds.push(child.id);
 
     const grandChild = await createNavCategory({
-      name: 'Silk Lehengas',
-      href: '/products?category=Silk+Lehengas',
+      name: 'Silk Lehengas Test',
+      href: '/products?category=Silk+Lehengas+Test',
       parentId: child.id,
     });
+    createdCategoryIds.push(grandChild.id);
 
     const namesByParentId = await getCategoryAndDescendantNames(parent.id);
-    expect(namesByParentId).toEqual(expect.arrayContaining(['Bridal Wear', 'Lehengas', 'Silk Lehengas']));
+    expect(namesByParentId).toEqual(expect.arrayContaining(['Bridal Wear Test', 'Lehengas Test', 'Silk Lehengas Test']));
     expect(namesByParentId.length).toBe(3);
 
-    const namesByName = await getCategoryAndDescendantNames('Bridal Wear');
-    expect(namesByName).toEqual(expect.arrayContaining(['Bridal Wear', 'Lehengas', 'Silk Lehengas']));
+    const namesByName = await getCategoryAndDescendantNames('Bridal Wear Test');
+    expect(namesByName).toEqual(expect.arrayContaining(['Bridal Wear Test', 'Lehengas Test', 'Silk Lehengas Test']));
 
-    const childNames = await getCategoryAndDescendantNames('Lehengas');
-    expect(childNames).toEqual(expect.arrayContaining(['Lehengas', 'Silk Lehengas']));
+    const childNames = await getCategoryAndDescendantNames('Lehengas Test');
+    expect(childNames).toEqual(expect.arrayContaining(['Lehengas Test', 'Silk Lehengas Test']));
     expect(childNames.length).toBe(2);
 
     const unknown = await getCategoryAndDescendantNames('NonExistent');
@@ -101,85 +111,95 @@ describe('NavCategory Tree & Hierarchy Services', () => {
   });
 
   it('should filter products including descendant category names', async () => {
+    const uniqueSuffix = Date.now().toString();
+    const parentName = `Couture-${uniqueSuffix}`;
+    const childName = `Luxury Dresses-${uniqueSuffix}`;
+    const otherName = `Menswear-${uniqueSuffix}`;
+
     const parentCat = await createNavCategory({
-      name: 'Couture',
-      href: '/products?category=Couture',
+      name: parentName,
+      href: `/products?category=${encodeURIComponent(parentName)}`,
     });
+    createdCategoryIds.push(parentCat.id);
 
     const subCat = await createNavCategory({
-      name: 'Luxury Dresses',
-      href: '/products?category=Luxury+Dresses',
+      name: childName,
+      href: `/products?category=${encodeURIComponent(childName)}`,
       parentId: parentCat.id,
     });
+    createdCategoryIds.push(subCat.id);
 
-    await prisma.product.create({
+    const p1 = await prisma.product.create({
       data: {
-        name: 'Couture Gown',
-        slug: 'couture-gown',
+        name: `Couture Gown ${uniqueSuffix}`,
+        slug: `couture-gown-${uniqueSuffix}`,
         description: 'Test Gown',
-        category: 'Couture',
+        category: parentName,
         isActive: true,
       },
     });
-
-    await prisma.product.create({
+    const p2 = await prisma.product.create({
       data: {
-        name: 'Luxury Dress 1',
-        slug: 'luxury-dress-1',
+        name: `Luxury Dress ${uniqueSuffix}`,
+        slug: `luxury-dress-${uniqueSuffix}`,
         description: 'Test Dress',
-        category: 'Luxury Dresses',
+        category: childName,
         isActive: true,
       },
     });
-
-    await prisma.product.create({
+    const p3 = await prisma.product.create({
       data: {
-        name: 'Casual Shirt',
-        slug: 'casual-shirt',
+        name: `Casual Shirt ${uniqueSuffix}`,
+        slug: `casual-shirt-${uniqueSuffix}`,
         description: 'Test Shirt',
-        category: 'Menswear',
+        category: otherName,
         isActive: true,
       },
     });
+    createdProductIds.push(p1.id, p2.id, p3.id);
 
-    const products = await getProducts({ category: 'Couture' });
+    const products = await getProducts({ category: parentName });
     expect(products.length).toBe(2);
     const productNames = products.map((p) => p.name);
-    expect(productNames).toContain('Couture Gown');
-    expect(productNames).toContain('Luxury Dress 1');
-    expect(productNames).not.toContain('Casual Shirt');
+    expect(productNames).toContain(`Couture Gown ${uniqueSuffix}`);
+    expect(productNames).toContain(`Luxury Dress ${uniqueSuffix}`);
+    expect(productNames).not.toContain(`Casual Shirt ${uniqueSuffix}`);
   });
 
   it('should handle circular category references gracefully without infinite loops', async () => {
     const catA = await createNavCategory({
-      name: 'Category A',
-      href: '/cat-a',
+      name: 'Category A Loop Test',
+      href: '/cat-a-loop',
     });
+    createdCategoryIds.push(catA.id);
 
     const catB = await createNavCategory({
-      name: 'Category B',
-      href: '/cat-b',
+      name: 'Category B Loop Test',
+      href: '/cat-b-loop',
       parentId: catA.id,
     });
+    createdCategoryIds.push(catB.id);
 
     // Create a circular link catA -> catB -> catA by updating catA's parentId to catB.id
     await updateNavCategory(catA.id, { parentId: catB.id });
 
     const names = await getCategoryAndDescendantNames(catA.id);
-    expect(names).toEqual(expect.arrayContaining(['Category A', 'Category B']));
+    expect(names).toEqual(expect.arrayContaining(['Category A Loop Test', 'Category B Loop Test']));
     expect(names.length).toBe(2);
   });
 
   it('should update parentId and imageUrl with updateNavCategory', async () => {
     const parent = await createNavCategory({
-      name: 'Parent Cat',
-      href: '/parent',
+      name: 'Parent Cat Update Test',
+      href: '/parent-update',
     });
+    createdCategoryIds.push(parent.id);
 
     const item = await createNavCategory({
-      name: 'Item Cat',
-      href: '/item',
+      name: 'Item Cat Update Test',
+      href: '/item-update',
     });
+    createdCategoryIds.push(item.id);
 
     const updated = await updateNavCategory(item.id, {
       parentId: parent.id,
@@ -201,12 +221,10 @@ describe('NavCategory Tree & Hierarchy Services', () => {
     const categories = await prisma.navCategory.findMany();
     expect(categories.length).toBeGreaterThan(0);
 
-    const womenCategory = categories.find((c) => c.name === 'Women');
-    expect(womenCategory).toBeDefined();
-    expect(womenCategory?.imageUrl).toBe('https://firebasestorage.googleapis.com/v0/b/bucket/o/sections%2Fbrand-silk.jpg');
+    const womenCategories = categories.filter((c) => c.name === 'Women');
+    expect(womenCategories.some((c) => c.imageUrl === 'https://firebasestorage.googleapis.com/v0/b/bucket/o/sections%2Fbrand-silk.jpg')).toBe(true);
 
-    const kaftansCategory = categories.find((c) => c.name === 'Kaftans');
-    expect(kaftansCategory).toBeDefined();
-    expect(kaftansCategory?.imageUrl).toBe('https://firebasestorage.googleapis.com/v0/b/bucket/o/products%2Fkaftan-1.jpg');
+    const kaftansCategories = categories.filter((c) => c.name === 'Kaftans');
+    expect(kaftansCategories.some((c) => c.imageUrl === 'https://firebasestorage.googleapis.com/v0/b/bucket/o/products%2Fkaftan-1.jpg')).toBe(true);
   });
 });

@@ -19,7 +19,7 @@ function createPrismaClient() {
 
   const pool = new pg.Pool({
     connectionString,
-    max: parseInt(process.env.DATABASE_POOL_MAX || process.env.DB_POOL_MAX || '5', 10),
+    max: parseInt(process.env.DATABASE_POOL_MAX || process.env.DB_POOL_MAX || '20', 10),
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
   });

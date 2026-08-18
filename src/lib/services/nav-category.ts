@@ -203,15 +203,11 @@ export async function seedDefaultCategoryTree(imageUrlMap?: Record<string, strin
       },
     });
     if (children && children.length > 0) {
-      for (const child of children) {
-        await seedNode(child, created.id);
-      }
+      await Promise.all(children.map((child) => seedNode(child, created.id)));
     }
   }
 
-  for (const item of DEFAULT_CATEGORY_TREE_SPEC) {
-    await seedNode(item);
-  }
+  await Promise.all(DEFAULT_CATEGORY_TREE_SPEC.map((item) => seedNode(item)));
 }
 
 export async function getNavCategories(activeOnly = true): Promise<NavCategoryItem[]> {

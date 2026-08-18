@@ -71,21 +71,95 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
   let sampleProduct: any;
   let sampleVariant: any;
 
+  const cleanupStorefrontTestData = async () => {
+    const testEmails = [
+      'test.patron@idealbeautyofficial.com',
+      'fcm.storefront.patron@idealbeautyofficial.com',
+    ];
+    const testProductSlugs = [
+      'royal-velvet-emerald-kaftan-test',
+      'instock-couture-gown-test',
+      'toggle-preorder-dress-test',
+      'pre-order-couture-dress-test',
+      'pre-order-couture-silk-dress-test',
+    ];
+    const testVoucherCodes = [
+      'ROYAL20',
+      'MINORDER10',
+      'EXPIRED50',
+      'INACTIVE10',
+      'USAGE10',
+      'ATELIER20',
+      'VIP500K',
+    ];
+
+    const users = await prisma.user.findMany({
+      where: { email: { in: testEmails } },
+      include: {
+        orders: true,
+        cart: true,
+      },
+    });
+
+    const userIds = users.map((u) => u.id);
+    const orderIds = users.flatMap((u) => u.orders.map((o) => o.id));
+    const cartIds = users.map((u) => u.cart?.id).filter(Boolean) as string[];
+
+    if (orderIds.length > 0) {
+      const payments = await prisma.payment.findMany({
+        where: { orderId: { in: orderIds } },
+        select: { id: true },
+      });
+      const paymentIds = payments.map((p) => p.id);
+      if (paymentIds.length > 0) {
+        await prisma.ledgerEntry.deleteMany({ where: { paymentId: { in: paymentIds } } });
+      }
+      await prisma.payment.deleteMany({ where: { orderId: { in: orderIds } } });
+      await prisma.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
+      await prisma.order.deleteMany({ where: { id: { in: orderIds } } });
+    }
+
+    if (cartIds.length > 0) {
+      await prisma.cartItem.deleteMany({ where: { cartId: { in: cartIds } } });
+      await prisma.cart.deleteMany({ where: { id: { in: cartIds } } });
+    }
+
+    if (userIds.length > 0) {
+      await prisma.wishlistItem.deleteMany({ where: { userId: { in: userIds } } });
+      await prisma.voucherUsage.deleteMany({ where: { userId: { in: userIds } } });
+      await prisma.address.deleteMany({ where: { userId: { in: userIds } } });
+      await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+    }
+
+    const products = await prisma.product.findMany({
+      where: { slug: { in: testProductSlugs } },
+      include: { variants: true },
+    });
+
+    const productIds = products.map((p) => p.id);
+    const variantIds = products.flatMap((p) => p.variants.map((v) => v.id));
+
+    if (variantIds.length > 0) {
+      await prisma.rentalBlock.deleteMany({ where: { variantId: { in: variantIds } } });
+      await prisma.ledgerEntry.deleteMany({ where: { variantId: { in: variantIds } } });
+      await prisma.inventoryTransaction.deleteMany({ where: { variantId: { in: variantIds } } });
+      await prisma.cartItem.deleteMany({ where: { variantId: { in: variantIds } } });
+      await prisma.orderItem.deleteMany({ where: { variantId: { in: variantIds } } });
+      await prisma.productVariant.deleteMany({ where: { id: { in: variantIds } } });
+    }
+
+    if (productIds.length > 0) {
+      await prisma.ledgerEntry.deleteMany({ where: { productId: { in: productIds } } });
+      await prisma.wishlistItem.deleteMany({ where: { productId: { in: productIds } } });
+      await prisma.product.deleteMany({ where: { id: { in: productIds } } });
+    }
+
+    await prisma.voucherUsage.deleteMany({ where: { voucher: { code: { in: testVoucherCodes } } } });
+    await prisma.voucher.deleteMany({ where: { code: { in: testVoucherCodes } } });
+  };
+
   beforeAll(async () => {
-    // Seed test data
-    await prisma.navCategory.deleteMany();
-    await prisma.voucherUsage.deleteMany();
-    await prisma.voucher.deleteMany();
-    await prisma.ledgerEntry.deleteMany();
-    await prisma.payment.deleteMany();
-    await prisma.orderItem.deleteMany();
-    await prisma.order.deleteMany();
-    await prisma.cartItem.deleteMany();
-    await prisma.cart.deleteMany();
-    await prisma.wishlistItem.deleteMany();
-    await prisma.productVariant.deleteMany();
-    await prisma.product.deleteMany();
-    await prisma.user.deleteMany();
+    await cleanupStorefrontTestData();
 
     sampleUser = await prisma.user.create({
       data: {
@@ -131,7 +205,7 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
   test('1. Catalog Search & Category Filtering', async () => {
     const products = await getProducts({ category: 'Haute Couture' });
     expect(products.length).toBeGreaterThan(0);
-    expect(products[0].name).toContain('Royal Velvet Emerald Kaftan');
+    expect(products.some((p) => p.name.includes('Royal Velvet Emerald Kaftan'))).toBe(true);
 
     const categories = await getCategories();
     expect(categories).toContain('Haute Couture');
@@ -271,7 +345,7 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
 
     const summary = await getFinancialSummary();
     expect(summary.totalExpense).toBeGreaterThan(0);
-    expect(summary.expenseByCategory['MANUFACTURING_COGS']).toBe(1500000);
+    expect(summary.expenseByCategory['MANUFACTURING_COGS']).toBeGreaterThanOrEqual(1500000);
 
     const csvContent = await generateLedgerCSV();
     expect(csvContent).toContain('Sequence,ID,Date,Type,Dr/Cr,TranCode,TranSeq,Category,Amount (IDR)');
@@ -693,6 +767,12 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
       },
       data: {
         orderId: 'order_test_id',
+        url: '/account?tab=orders',
+      },
+      webpush: {
+        fcmOptions: {
+          link: '/account?tab=orders',
+        },
       },
     });
 
@@ -927,7 +1007,6 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
   });
 
   afterAll(async () => {
-    const { main: seedDatabase } = await import('../prisma/seed');
-    await seedDatabase();
+    await cleanupStorefrontTestData();
   });
 });

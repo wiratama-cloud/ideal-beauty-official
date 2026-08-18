@@ -17,30 +17,28 @@ describe('Size Chart Template Management & Linking', () => {
   let testProductId: string;
 
   beforeAll(async () => {
-    // Ensure at least one product exists
-    const existingProduct = await prisma.product.findFirst();
-    if (existingProduct) {
-      testProductId = existingProduct.id;
-    } else {
-      const created = await prisma.product.create({
-        data: {
-          name: 'Test Chart Product',
-          slug: 'test-chart-product',
-          category: 'Ready To Wear',
-          variants: {
-            create: {
-              sku: 'TEST-CHART-001',
-              attributes: { size: 'M' },
-              priceSale: 500000,
-            },
+    const created = await prisma.product.create({
+      data: {
+        name: 'Test Chart Template Product',
+        slug: `test-chart-template-product-${Date.now()}`,
+        category: 'Ready To Wear',
+        variants: {
+          create: {
+            sku: `TEST-CHART-${Date.now()}`,
+            attributes: { size: 'M' },
+            priceSale: 500000,
           },
         },
-      });
-      testProductId = created.id;
-    }
+      },
+    });
+    testProductId = created.id;
   });
 
   afterAll(async () => {
+    if (testProductId) {
+      await prisma.productVariant.deleteMany({ where: { productId: testProductId } });
+      await prisma.product.deleteMany({ where: { id: testProductId } });
+    }
     if (testChartId) {
       await prisma.sizeChart.deleteMany({ where: { id: testChartId } });
     }

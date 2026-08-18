@@ -100,28 +100,73 @@ export async function syncSeedImagesToFirebase(): Promise<Record<string, string>
     return {};
   }
 
-  const imageMap: Record<string, string> = {};
+  const bucketName = getStorageBucketName();
+  const bucket = firebaseAdminStorage && bucketName ? firebaseAdminStorage.bucket(bucketName) : null;
 
-  async function walkDir(currentDir: string) {
-    const entries = await fs.promises.readdir(currentDir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(currentDir, entry.name);
-      if (entry.isDirectory()) {
-        await walkDir(fullPath);
-      } else if (entry.isFile()) {
-        const relFromImages = path.relative(imagesDir, fullPath);
-        const relDir = path.dirname(relFromImages);
-        const folder = relDir === '.' ? 'images' : relDir.replace(/\\/g, '/');
-        const fileName = entry.name;
-
-        const localPathKey = '/' + path.relative(publicDir, fullPath).replace(/\\/g, '/');
-        const downloadUrl = await uploadLocalFileToFirebase(fullPath, folder, fileName);
-        imageMap[localPathKey] = downloadUrl;
-      }
-    }
+  interface FileEntry {
+    fullPath: string;
+    folder: string;
+    fileName: string;
+    localPathKey: string;
   }
 
-  await walkDir(imagesDir);
+  const fileEntries: FileEntry[] = [];
+
+  async function collectFiles(currentDir: string) {
+    const entries = await fs.promises.readdir(currentDir, { withFileTypes: true });
+    await Promise.all(
+      entries.map(async (entry) => {
+        const fullPath = path.join(currentDir, entry.name);
+        if (entry.isDirectory()) {
+          await collectFiles(fullPath);
+        } else if (entry.isFile()) {
+          const relFromImages = path.relative(imagesDir, fullPath);
+          const relDir = path.dirname(relFromImages);
+          const folder = relDir === '.' ? 'images' : relDir.replace(/\\/g, '/');
+          const fileName = entry.name;
+          const localPathKey = '/' + path.relative(publicDir, fullPath).replace(/\\/g, '/');
+          fileEntries.push({ fullPath, folder, fileName, localPathKey });
+        }
+      })
+    );
+  }
+
+  await collectFiles(imagesDir);
+
+  const imageMap: Record<string, string> = {};
+
+  // Process files in parallel batches with existence checks
+  const CONCURRENCY = 20;
+  for (let i = 0; i < fileEntries.length; i += CONCURRENCY) {
+    const batch = fileEntries.slice(i, i + CONCURRENCY);
+    await Promise.all(
+      batch.map(async ({ fullPath, folder, fileName, localPathKey }) => {
+        let downloadUrl: string;
+        const cleanFolder = folder ? folder.replace(/^\/+|\/+$/g, '') : '';
+        const filePath = cleanFolder ? `${cleanFolder}/${fileName}` : fileName;
+        const file = bucket ? bucket.file(filePath) : null;
+
+        let exists = false;
+        if (file && typeof (file as any).exists === 'function') {
+          try {
+            const [fileExisted] = await file.exists();
+            exists = Boolean(fileExisted);
+          } catch {
+            exists = false;
+          }
+        }
+
+        if (exists && file) {
+          downloadUrl = await getDownloadURL(file);
+        } else {
+          downloadUrl = await uploadLocalFileToFirebase(fullPath, folder, fileName);
+        }
+
+        imageMap[localPathKey] = downloadUrl;
+      })
+    );
+  }
+
   return imageMap;
 }
 

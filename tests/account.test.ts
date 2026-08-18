@@ -154,21 +154,46 @@ describe('Account Management Services Unit & Integration Tests', () => {
 
   beforeEach(async () => {
     cookieStoreMap.clear();
-    await prisma.user.updateMany({
-      where: { email: 'ayu.lestari@example.com' },
-      data: { phone: '+6281234567890', firebaseUid: null },
-    });
-    await prisma.user.updateMany({
-      where: { firebaseUid: { not: null } },
-      data: { firebaseUid: null },
-    });
+    const specificTestEmails = [
+      'firebase.patron.new@idealbeautyofficial.com',
+      'google.patron@gmail.com',
+      'facebook.patron@fb.com',
+      'apple.patron@apple.com',
+      'another.patron@idealbeautyofficial.com',
+    ];
+    const specificTestUids = [
+      'firebase_uid_test_123',
+      'firebase_uid_phone_456',
+      'google_uid_101',
+      'facebook_uid_202',
+      'apple_uid_303',
+      'mock_firebase_phone_uid_789',
+    ];
+
+    const specificTestPhones = [
+      '+6289876543210',
+      '+6289999888877',
+      '+6289999111122',
+      '+6289999333344',
+      '+628999999999',
+      '+628999999888',
+    ];
+
     await prisma.user.deleteMany({
       where: {
         OR: [
-          { email: { contains: 'idealbeautyofficial.com' } },
-          { email: { contains: 'another.patron' } },
+          { email: { in: specificTestEmails } },
+          { firebaseUid: { in: specificTestUids } },
+          { phone: { in: specificTestPhones } },
+          { email: { startsWith: 'account.test_' } },
+          { email: { startsWith: 'login.test_' } },
         ],
       },
+    });
+
+    await prisma.user.updateMany({
+      where: { email: 'ayu.lestari@example.com' },
+      data: { phone: '+6281234567890', firebaseUid: null },
     });
 
     testUser = await prisma.user.create({

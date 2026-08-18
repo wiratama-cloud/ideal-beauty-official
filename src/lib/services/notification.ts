@@ -1,19 +1,22 @@
 import { firebaseAdminMessaging } from '@/lib/firebase/admin';
-import type { MulticastMessage } from 'firebase-admin/messaging';
+import type { Message, MulticastMessage } from 'firebase-admin/messaging';
 
 export async function sendOrderPushNotification(
   fcmToken: string,
   title: string,
   body: string,
-  orderId: string
+  orderId: string,
+  url: string = '/account?tab=orders'
 ) {
   if (!firebaseAdminMessaging) {
     console.warn('Firebase Admin Messaging not configured. Skipping notification.');
     return null;
   }
 
+  const destinationUrl = url && url.trim() ? url.trim() : '/account?tab=orders';
+
   try {
-    const message = {
+    const message: Message = {
       token: fcmToken,
       notification: {
         title,
@@ -21,6 +24,12 @@ export async function sendOrderPushNotification(
       },
       data: {
         orderId,
+        url: destinationUrl,
+      },
+      webpush: {
+        fcmOptions: {
+          link: destinationUrl,
+        },
       },
     };
 
@@ -73,6 +82,8 @@ export async function sendMulticastPushNotification(
     };
   }
 
+  const destinationUrl = url && url.trim() ? url.trim() : '/';
+
   // Firebase allows sending up to 500 tokens per multicast batch
   const CHUNK_SIZE = 500;
   let totalSuccess = 0;
@@ -88,16 +99,15 @@ export async function sendMulticastPushNotification(
           title,
           body,
         },
-      };
-
-      if (url && url.trim()) {
-        message.data = { url: url.trim() };
-        message.webpush = {
+        data: {
+          url: destinationUrl,
+        },
+        webpush: {
           fcmOptions: {
-            link: url.trim(),
+            link: destinationUrl,
           },
-        };
-      }
+        },
+      };
 
       const response =
         typeof firebaseAdminMessaging.sendEachForMulticast === 'function'

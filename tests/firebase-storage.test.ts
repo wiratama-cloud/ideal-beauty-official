@@ -96,6 +96,26 @@ describe('Firebase Storage Service', () => {
     expect(result['/images/hero/hero-banner.jpg']).toContain('hero-banner.jpg');
   });
 
+  it('syncSeedImagesToFirebase skips upload when remote files already exist', async () => {
+    mockBucket.mockImplementation((bucketName: string) => ({
+      file: (fileName: string) => ({
+        name: fileName,
+        exists: vi.fn().mockResolvedValue([true]),
+        save: mockSave,
+        delete: mockDelete,
+      }),
+    }));
+
+    const { syncSeedImagesToFirebase } = await import('@/lib/services/firebase-storage');
+    const result = await syncSeedImagesToFirebase();
+
+    expect(typeof result).toBe('object');
+    expect(result['/images/hero/hero-banner.jpg']).toBeDefined();
+    // mockSave should not have been called because all files already existed
+    expect(mockSave).not.toHaveBeenCalled();
+    expect(mockGetDownloadURL).toHaveBeenCalled();
+  });
+
   it('deleteFileFromFirebase calls bucket file delete', async () => {
     const { deleteFileFromFirebase } = await import('@/lib/services/firebase-storage');
     await deleteFileFromFirebase('test.jpg', 'products');
