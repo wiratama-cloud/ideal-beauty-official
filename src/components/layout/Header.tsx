@@ -7,6 +7,7 @@ import { Search, Heart, ShoppingBag, User, Menu, X, ChevronDown, Loader2, Sparkl
 import { useCart } from '../cart/CartContext';
 import { quickSearchProductsAction, QuickSearchItem } from '@/app/actions/product';
 import { checkIsAdminAction, getCurrentUserAction } from '@/app/actions/auth';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 export interface HeaderNavCategoryItem {
   id?: string;
@@ -385,7 +386,7 @@ export default function Header({ initialNavCategories = [], initialIsAdmin = fal
                               <div className="w-12 h-14 bg-neutral-100 rounded overflow-hidden shrink-0 border border-neutral-200/60">
                                 {item.image ? (
                                   /* eslint-disable-next-line @next/next/no-img-element */
-                                  <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                  <img src={getOptimizedImageUrl(item.image, 256)} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-[9px] text-neutral-400">No Img</div>
                                 )}
@@ -624,7 +625,7 @@ export default function Header({ initialNavCategories = [], initialIsAdmin = fal
                         <div className="col-span-4 lg:col-span-3 bg-neutral-900 text-white rounded-lg p-5 flex flex-col justify-between relative overflow-hidden group/card shadow-inner">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={cat.imageUrl}
+                            src={getOptimizedImageUrl(cat.imageUrl, 512)}
                             alt={cat.name}
                             className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover/card:scale-105 transition-transform duration-500"
                           />

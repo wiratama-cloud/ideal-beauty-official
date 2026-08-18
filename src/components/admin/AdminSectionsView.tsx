@@ -34,6 +34,7 @@ import {
 } from '@/app/actions/admin';
 import { HeroBannerData, DEFAULT_HERO_BANNER } from '@/lib/types/hero-banner';
 import AdminHeader from '@/components/admin/AdminHeader';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 type SectionType = 'NEW_ARRIVALS' | 'FEATURED_BRANDS' | 'EDITORS_PICKS' | 'CUSTOM_GRID' | 'PROMO_BANNER';
 
@@ -117,26 +118,28 @@ export default function AdminSectionsView({
   // Upload handler for image files
   const handleFileUpload = async (
     file: File,
-    setUrlCallback: (url: string) => void
+    setUrlCallback: (url: string) => void,
+    folder: string = 'hero'
   ) => {
     setIsUploadingImage(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('folder', folder);
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
       const data = await res.json();
-      if (data.url) {
+      if (res.ok && data.url) {
         setUrlCallback(data.url);
         showNotification('Image uploaded successfully');
       } else {
         alert(data.error || 'Failed to upload image');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to upload image:', err);
-      alert('Error uploading image file');
+      alert(err.message || 'Error uploading image file');
     } finally {
       setIsUploadingImage(false);
     }
@@ -490,7 +493,7 @@ export default function AdminSectionsView({
             <div className="relative overflow-hidden rounded-xs border border-neutral-200 min-h-[200px] sm:min-h-[240px] flex items-center justify-center bg-neutral-900 p-6 text-center shadow-inner">
               <div
                 className="absolute inset-0 bg-cover bg-center opacity-50 scale-105"
-                style={{ backgroundImage: `url(${heroBanner.imageUrl || '/images/hero/hero-banner.jpg'})` }}
+                style={{ backgroundImage: `url(${getOptimizedImageUrl(heroBanner.imageUrl, 1024, '/images/hero/hero-banner.jpg')})` }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30" />
 
@@ -624,7 +627,7 @@ export default function AdminSectionsView({
                     {heroBanner.imageUrl && (
                       <div className="relative w-32 h-20 bg-neutral-100 overflow-hidden rounded-xs border border-neutral-200 shrink-0">
                         <img
-                          src={heroBanner.imageUrl}
+                          src={getOptimizedImageUrl(heroBanner.imageUrl, 1024, '/images/hero/hero-banner.jpg')}
                           alt="Background Preview"
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -1097,7 +1100,7 @@ export default function AdminSectionsView({
                                   <>
                                     <div className="relative w-12 aspect-[3/4] bg-neutral-100 rounded-xs overflow-hidden shrink-0 border border-neutral-200">
                                       <Image
-                                        src={p.images?.[0] || '/images/products/default-product.jpg'}
+                                        src={getOptimizedImageUrl(p.images?.[0], 256)}
                                         alt={p.name}
                                         fill
                                         className="object-cover"
@@ -1205,7 +1208,7 @@ export default function AdminSectionsView({
                               <div className="flex items-start space-x-3">
                                 <div className="relative w-16 aspect-[3/4] bg-neutral-100 shrink-0 rounded-xs overflow-hidden border border-neutral-200">
                                   <Image
-                                    src={displayImage}
+                                    src={getOptimizedImageUrl(displayImage, 256)}
                                     alt={item.title || 'Item image'}
                                     fill
                                     className="object-cover"

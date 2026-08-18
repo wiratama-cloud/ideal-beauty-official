@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { HeroBannerData, DEFAULT_HERO_BANNER } from '@/lib/types/hero-banner';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface HeroBannerProps {
   data?: HeroBannerData | null;
@@ -13,10 +14,11 @@ export default function HeroBanner({ data }: HeroBannerProps) {
     return null;
   }
 
-  const bgImage =
+  const rawImage =
     banner.imageUrl && banner.imageUrl.trim().length > 0
       ? banner.imageUrl
       : DEFAULT_HERO_BANNER.imageUrl;
+  const bgImage = getOptimizedImageUrl(rawImage, 1024, '/images/hero/hero-banner.jpg');
 
   return (
     <section className="relative bg-neutral-950 text-white min-h-[60vh] sm:min-h-[75vh] flex items-center justify-center overflow-hidden">

@@ -19,6 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import BatchPaymentModal from './BatchPaymentModal';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface OrdersListClientProps {
   orders: any[];
@@ -241,7 +242,7 @@ export default function OrdersListClient({ orders }: OrdersListClientProps) {
           {filteredOrders.map((order) => {
             const firstItem = order.items?.[0];
             const product = firstItem?.variant?.product;
-            const image = product?.images?.[0] || '/images/products/default-product.jpg';
+            const image = getOptimizedImageUrl(product?.images?.[0], 256);
             const remainingBalance = getRemainingBalance(order);
             const isSelected = selectedOrderIds.includes(order.id);
 

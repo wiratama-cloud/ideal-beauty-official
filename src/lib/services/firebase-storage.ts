@@ -1,7 +1,10 @@
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { firebaseAdminStorage } from '../firebase/admin';
 import { getDownloadURL } from 'firebase-admin/storage';
+import { ImageProcessingResult, getBaseFileNameWithoutExt } from './image-processor';
+import { ImageUrlsMap, StoredImageVariantsResult } from './local-storage';
 
 function getStorageBucketName(): string | undefined {
   return process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET;
@@ -134,4 +137,104 @@ export async function deleteFileFromFirebase(fileName: string, folder: string = 
   const file = bucket.file(filePath);
 
   await file.delete();
+}
+
+/**
+ * Uploads original image buffer and all generated variants to Firebase Storage.
+ */
+export async function uploadImageVariantsToFirebase(
+  processingResult: ImageProcessingResult,
+  folder: string = 'uploads',
+  metadata?: Record<string, any>
+): Promise<StoredImageVariantsResult> {
+  if (!isFirebaseStorageConfigured()) {
+    throw new Error('Firebase Storage not configured');
+  }
+
+  const downloadToken = crypto.randomUUID();
+  const sharedMetadata = {
+    ...metadata,
+    metadata: {
+      firebaseStorageDownloadTokens: downloadToken,
+      ...(metadata?.metadata || {}),
+    },
+  };
+
+  // Upload original file
+  const originalUrl = await uploadFileToFirebase(
+    processingResult.originalBuffer,
+    processingResult.originalFileName,
+    folder,
+    processingResult.originalContentType,
+    sharedMetadata
+  );
+
+  const urls: ImageUrlsMap = {
+    original: originalUrl,
+    '256': '',
+    '512': '',
+    '768': '',
+    '1024': '',
+  };
+
+  // Upload variants in parallel
+  await Promise.all(
+    processingResult.variants.map(async (variant) => {
+      const variantUrl = await uploadFileToFirebase(
+        variant.buffer,
+        variant.fileName,
+        folder,
+        variant.contentType,
+        sharedMetadata
+      );
+      urls[String(variant.resolution)] = variantUrl;
+    })
+  );
+
+  const defaultUrl = urls['1024'] || originalUrl;
+
+  return {
+    url: defaultUrl,
+    urls,
+  };
+}
+
+/**
+ * Deletes all image variants and original file for a given filename or path in Firebase Storage.
+ */
+export async function deleteImageVariantsFromFirebase(
+  fileNameOrPath: string,
+  folder: string = 'uploads'
+): Promise<void> {
+  if (!isFirebaseStorageConfigured()) {
+    throw new Error('Firebase Storage not configured');
+  }
+
+  const fileName = path.basename(fileNameOrPath);
+  const baseName = getBaseFileNameWithoutExt(fileName);
+  const ext = path.extname(fileName);
+
+  const filesToDelete = [
+    fileName,
+    `${baseName}-256w.webp`,
+    `${baseName}-512w.webp`,
+    `${baseName}-768w.webp`,
+    `${baseName}-1024w.webp`,
+  ];
+
+  if (ext) {
+    filesToDelete.push(`${baseName}${ext}`);
+  }
+
+  const uniqueFiles = Array.from(new Set(filesToDelete));
+
+  await Promise.allSettled(
+    uniqueFiles.map(async (file) => {
+      try {
+        await deleteFileFromFirebase(file, folder);
+      } catch {
+        // Ignore file not found or deletion failure for individual variants
+      }
+    })
+  );
 }

@@ -8,6 +8,7 @@ import { toggleWishlistAction } from '@/app/actions/wishlist';
 import RentalAvailabilityCalendar from './RentalAvailabilityCalendar';
 import SizeChartModal from './SizeChartModal';
 import { getPreOrderDays, formatEstimatedArrival } from '@/lib/utils/preorder';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface ProductDetailViewProps {
   product: {
@@ -134,7 +135,7 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
         <div className="space-y-4">
           <div className="relative aspect-[3/4] w-full bg-neutral-100 overflow-hidden">
             <Image
-              src={selectedImage}
+              src={getOptimizedImageUrl(selectedImage, 1024)}
               alt={product.name}
               fill
               priority
@@ -157,7 +158,7 @@ export default function ProductDetailView({ product, isWishlistedInitial = false
                   }`}
                 >
                   <Image
-                    src={img}
+                    src={getOptimizedImageUrl(img, 256)}
                     alt={`Thumbnail ${idx}`}
                     fill
                     className="object-cover"

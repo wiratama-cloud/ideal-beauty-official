@@ -26,6 +26,7 @@ import {
   FolderOpen,
   ChevronsDown,
   ChevronsUp,
+  Upload,
 } from 'lucide-react';
 import {
   createNavCategoryAction,
@@ -159,6 +160,7 @@ export default function AdminCollectionView({
   const [formIsActive, setFormIsActive] = useState(true);
   const [formParentId, setFormParentId] = useState<string>('');
   const [formImageUrl, setFormImageUrl] = useState<string>('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -265,6 +267,31 @@ export default function AdminCollectionView({
       } else {
         setFormHref(`/products?category=${encodeURIComponent(name.trim())}`);
       }
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'collections');
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setFormImageUrl(data.url);
+        setMessage({ type: 'success', text: 'Image uploaded successfully.' });
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to upload image.' });
+      }
+    } catch (err: any) {
+      console.error('Failed to upload image:', err);
+      setMessage({ type: 'error', text: err.message || 'Error uploading image file.' });
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -592,6 +619,23 @@ export default function AdminCollectionView({
                       placeholder="/images/products/default-product.jpg"
                       className="w-full bg-white border border-neutral-200 rounded-xs px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-400 shadow-2xs"
                     />
+                    <label className="bg-neutral-900 hover:bg-neutral-800 text-white px-3 py-2 text-xs rounded-xs cursor-pointer flex items-center gap-1.5 shrink-0 transition-colors shadow-2xs">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-medium">{isUploadingImage ? '...' : 'Upload'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={isUploadingImage}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileUpload(file);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </label>
                     {formImageUrl.trim() && (
                       <div className="w-9 h-9 relative rounded-xs border border-neutral-200 overflow-hidden flex-shrink-0 bg-neutral-100">
                         {/* eslint-disable-next-line @next/next/no-img-element */}

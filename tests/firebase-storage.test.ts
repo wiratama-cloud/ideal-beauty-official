@@ -103,4 +103,77 @@ describe('Firebase Storage Service', () => {
     expect(mockBucket).toHaveBeenCalledWith('test-bucket.appspot.com');
     expect(mockDelete).toHaveBeenCalled();
   });
+
+  it('uploadImageVariantsToFirebase uploads original and all 4 variants', async () => {
+    const { uploadImageVariantsToFirebase } = await import('@/lib/services/firebase-storage');
+    const dummyProcessingResult = {
+      originalFileName: 'hero-banner.jpg',
+      originalBuffer: Buffer.from('original data'),
+      originalContentType: 'image/jpeg',
+      metadata: { originalWidth: 1200, originalHeight: 800, format: 'jpeg' },
+      variants: [
+        {
+          resolution: 256 as const,
+          width: 256,
+          height: 171,
+          buffer: Buffer.from('v256'),
+          contentType: 'image/webp' as const,
+          fileName: 'hero-banner-256w.webp',
+        },
+        {
+          resolution: 512 as const,
+          width: 512,
+          height: 341,
+          buffer: Buffer.from('v512'),
+          contentType: 'image/webp' as const,
+          fileName: 'hero-banner-512w.webp',
+        },
+        {
+          resolution: 768 as const,
+          width: 768,
+          height: 512,
+          buffer: Buffer.from('v768'),
+          contentType: 'image/webp' as const,
+          fileName: 'hero-banner-768w.webp',
+        },
+        {
+          resolution: 1024 as const,
+          width: 1024,
+          height: 683,
+          buffer: Buffer.from('v1024'),
+          contentType: 'image/webp' as const,
+          fileName: 'hero-banner-1024w.webp',
+        },
+      ],
+    };
+
+    const result = await uploadImageVariantsToFirebase(dummyProcessingResult, 'hero');
+
+    expect(result.url).toContain('hero%2Fhero-banner-1024w.webp');
+    expect(result.urls.original).toContain('hero%2Fhero-banner.jpg');
+    expect(result.urls['256']).toContain('hero%2Fhero-banner-256w.webp');
+    expect(result.urls['512']).toContain('hero%2Fhero-banner-512w.webp');
+    expect(result.urls['768']).toContain('hero%2Fhero-banner-768w.webp');
+    expect(result.urls['1024']).toContain('hero%2Fhero-banner-1024w.webp');
+
+    // 1 original + 4 variants = 5 saves
+    expect(mockSave).toHaveBeenCalledTimes(5);
+
+    // Verify all 5 saves share the exact same firebaseStorageDownloadTokens
+    const savedTokens: string[] = [];
+    for (const call of mockSave.mock.calls) {
+      savedTokens.push(call[1]?.metadata?.metadata?.firebaseStorageDownloadTokens);
+    }
+    expect(savedTokens).toHaveLength(5);
+    expect(savedTokens[0]).toBeDefined();
+    expect(typeof savedTokens[0]).toBe('string');
+    expect(new Set(savedTokens).size).toBe(1);
+  });
+
+  it('deleteImageVariantsFromFirebase attempts deletion of all variants and original', async () => {
+    const { deleteImageVariantsFromFirebase } = await import('@/lib/services/firebase-storage');
+    await deleteImageVariantsFromFirebase('products/kaftan-1024w.webp', 'products');
+
+    expect(mockDelete).toHaveBeenCalled();
+  });
 });

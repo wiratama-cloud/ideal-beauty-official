@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/cart/CartContext';
 import { toggleWishlistAction } from '@/app/actions/wishlist';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 import {
   Heart,
   ShoppingBag,
@@ -95,7 +96,7 @@ export default function WishlistClientView({ initialItems }: WishlistClientViewP
         imgs = [product.images];
       }
     }
-    return imgs[0] || '/images/products/default-product.jpg';
+    return getOptimizedImageUrl(imgs[0], 512);
   };
 
   const formatIDR = (amount: number) => {

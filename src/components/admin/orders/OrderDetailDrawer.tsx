@@ -23,6 +23,7 @@ import {
   calculateCompletedPayments,
   calculateRemainingBalance,
 } from './types';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface OrderDetailDrawerProps {
   order: OrderSerialized | null;
@@ -254,7 +255,7 @@ export default function OrderDetailDrawer({
             <div className="divide-y divide-neutral-100 space-y-3">
               {order.items?.map((item) => {
                 const product = item.variant?.product;
-                const image = product?.images?.[0] || '/images/products/default-product.jpg';
+                const image = getOptimizedImageUrl(product?.images?.[0], 256);
                 const overdue = isItemOverdue(item);
 
                 return (

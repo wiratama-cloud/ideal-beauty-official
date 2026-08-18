@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface FeaturedBrandsSectionProps {
   section: {
@@ -37,9 +38,11 @@ export default function FeaturedBrandsSection({ section }: FeaturedBrandsSection
         {/* Brand Grid Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {section.items.map((item) => {
-            const image =
-              item.imageUrl ||
-              '/images/sections/brand-atelier.jpg';
+            const image = getOptimizedImageUrl(
+              item.imageUrl,
+              512,
+              '/images/sections/brand-atelier.jpg'
+            );
             const link = item.linkUrl || section.viewAllUrl || '/products';
 
             return (

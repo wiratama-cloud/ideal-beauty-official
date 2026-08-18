@@ -18,6 +18,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { adjustInventoryStockAction } from '@/app/actions/admin';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface ProductVariant {
   id: string;
@@ -340,9 +341,7 @@ export default function AdminInventoryView({ products: initialProducts }: AdminI
       ) : (
         <div className="space-y-8">
           {filteredProducts.map((product) => {
-            const mainImage =
-              product.images?.[0] ||
-              '/images/products/default-product.jpg';
+            const mainImage = getOptimizedImageUrl(product.images?.[0], 256);
 
             return (
               <div key={product.id} className="bg-white border border-neutral-100 p-6 sm:p-8 space-y-6 shadow-sm">

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Heart } from 'lucide-react';
 import { toggleWishlistAction } from '@/app/actions/wishlist';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface ProductCardProps {
   product: {
@@ -53,8 +54,8 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
     ? minCompareAtPrice - minSalePrice
     : 0;
 
-  const mainImage = product.images[0] || '/images/products/default-product.jpg';
-  const hoverImage = product.images[1] || mainImage;
+  const mainImage = getOptimizedImageUrl(product.images[0], 512);
+  const hoverImage = product.images[1] ? getOptimizedImageUrl(product.images[1], 512) : mainImage;
   const hasHoverImage = product.images.length > 1;
 
   const [mainImgSrc, setMainImgSrc] = useState(mainImage);

@@ -21,6 +21,7 @@ import {
   getOverdueDays,
   calculateRemainingBalance,
 } from './types';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface OrderTableProps {
   orders: OrderSerialized[];
@@ -160,7 +161,7 @@ export default function OrderTable({
             <div className="divide-y divide-neutral-100 space-y-4">
               {order.items?.map((item) => {
                 const product = item.variant?.product;
-                const image = product?.images?.[0] || '/images/products/default-product.jpg';
+                const image = getOptimizedImageUrl(product?.images?.[0], 256);
                 const overdue = isItemOverdue(item);
 
                 return (

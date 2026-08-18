@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight, ChevronDown, Sparkles, X, Layers, Search } from 'lucide-react';
 import type { NavCategoryItem } from '@/lib/types/nav-category';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 export interface CategoryTreeSidebarProps {
   categoriesTree?: NavCategoryItem[];
@@ -93,24 +94,25 @@ export function filterCategoryTree(
 
 function getCategoryImage(item: NavCategoryItem | string): string {
   if (typeof item !== 'string' && item.imageUrl && item.imageUrl.trim().length > 0) {
-    return item.imageUrl;
+    return getOptimizedImageUrl(item.imageUrl, 256);
   }
   const name = (typeof item === 'string' ? item : item.name).toLowerCase();
-  if (name.includes('lehenga')) return '/images/products/lehenga-1.jpg';
-  if (name.includes('sharara')) return '/images/products/sharara-1.jpg';
-  if (name.includes('gown') || name.includes('maxi') || name.includes('bridal')) return '/images/products/anarkali-1.jpg';
-  if (name.includes('kaftan')) return '/images/products/kaftan-1.jpg';
-  if (name.includes('saree')) return '/images/products/saree-1.jpg';
-  if (name.includes('eveningwear') || name.includes('cape') || name.includes('couture')) return '/images/products/cape-1.jpg';
-  if (name.includes('anarkali')) return '/images/products/anarkali-1.jpg';
-  if (name.includes('kurta')) return '/images/products/kaftan-2.jpg';
-  if (name.includes('suit') || name.includes('lawn') || name.includes('unstitched') || name.includes('3 piece') || name.includes('2 piece')) return '/images/products/saree-2.jpg';
-  if (name.includes('sherwani') || name.includes('prince') || name.includes('groom')) return '/images/products/sherwani-1.jpg';
-  if (name.includes('veil') || name.includes('dupatta') || name.includes('clutch') || name.includes('bag')) return '/images/products/veil-1.jpg';
-  if (name.includes('footwear') || name.includes('khussa') || name.includes('heel') || name.includes('flat')) return '/images/sections/brand-atelier.jpg';
-  if (name.includes('women')) return '/images/sections/brand-silk.jpg';
-  if (name.includes('men')) return '/images/sections/brand-groom.jpg';
-  return '/images/products/default-product.jpg';
+  let fallbackPath = '/images/products/default-product.jpg';
+  if (name.includes('lehenga')) fallbackPath = '/images/products/lehenga-1.jpg';
+  else if (name.includes('sharara')) fallbackPath = '/images/products/sharara-1.jpg';
+  else if (name.includes('gown') || name.includes('maxi') || name.includes('bridal')) fallbackPath = '/images/products/anarkali-1.jpg';
+  else if (name.includes('kaftan')) fallbackPath = '/images/products/kaftan-1.jpg';
+  else if (name.includes('saree')) fallbackPath = '/images/products/saree-1.jpg';
+  else if (name.includes('eveningwear') || name.includes('cape') || name.includes('couture')) fallbackPath = '/images/products/cape-1.jpg';
+  else if (name.includes('anarkali')) fallbackPath = '/images/products/anarkali-1.jpg';
+  else if (name.includes('kurta')) fallbackPath = '/images/products/kaftan-2.jpg';
+  else if (name.includes('suit') || name.includes('lawn') || name.includes('unstitched') || name.includes('3 piece') || name.includes('2 piece')) fallbackPath = '/images/products/saree-2.jpg';
+  else if (name.includes('sherwani') || name.includes('prince') || name.includes('groom')) fallbackPath = '/images/products/sherwani-1.jpg';
+  else if (name.includes('veil') || name.includes('dupatta') || name.includes('clutch') || name.includes('bag')) fallbackPath = '/images/products/veil-1.jpg';
+  else if (name.includes('footwear') || name.includes('khussa') || name.includes('heel') || name.includes('flat')) fallbackPath = '/images/sections/brand-atelier.jpg';
+  else if (name.includes('women')) fallbackPath = '/images/sections/brand-silk.jpg';
+  else if (name.includes('men')) fallbackPath = '/images/sections/brand-groom.jpg';
+  return getOptimizedImageUrl(fallbackPath, 256);
 }
 
 export default function CategoryTreeSidebar({

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { X, Trash2, ShoppingBag, Calendar, Clock } from 'lucide-react';
 import { useCart } from './CartContext';
 import { getPreOrderDays, formatEstimatedArrival } from '@/lib/utils/preorder';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 export default function CartDrawer() {
   const { cart, subtotal, isCartOpen, closeCartDrawer, updateQuantity, removeItem } = useCart();
@@ -65,7 +66,7 @@ export default function CartDrawer() {
                 const unitPrice =
                   item.type === 'RENTAL' ? Number(item.variant?.priceRent || 0) : Number(item.variant?.priceSale || 0);
 
-                const image = product?.images?.[0] || '/images/products/default-product.jpg';
+                const image = getOptimizedImageUrl(product?.images?.[0], 256);
 
                 return (
                   <div key={item.id} className="pt-4 first:pt-0 flex space-x-4">

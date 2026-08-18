@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { ProductSerialized } from './types';
 import ProductVariantMatrix from './ProductVariantMatrix';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface ProductTableProps {
   products: ProductSerialized[];
@@ -140,7 +141,7 @@ export default function ProductTable({
                       <div className="flex items-center gap-3">
                         <div className="relative w-10 h-12 bg-neutral-100 rounded-xs overflow-hidden flex-shrink-0 border border-neutral-200">
                           <Image
-                            src={product.images[0] || '/images/products/default-product.jpg'}
+                            src={getOptimizedImageUrl(product.images[0], 256)}
                             alt={product.name}
                             fill
                             className="object-cover"

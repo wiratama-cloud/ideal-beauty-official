@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Truck, CheckCircle2, Clock, Calendar, ArrowLeft, ShieldCheck, QrCode } from 'lucide-react';
 import { createFinalPaymentAction } from '@/app/actions/checkout';
 import QRISModal from '@/components/checkout/QRISModal';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface OrderDetailViewProps {
   order: any;
@@ -125,9 +126,7 @@ export default function OrderDetailView({ order }: OrderDetailViewProps) {
           {order.items.map((item: any) => {
             const product = item.variant?.product;
             const attrs = item.variant?.attributes;
-            const image =
-              product?.images?.[0] ||
-              '/images/products/default-product.jpg';
+            const image = getOptimizedImageUrl(product?.images?.[0], 256);
 
             return (
               <div key={item.id} className="pt-4 first:pt-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

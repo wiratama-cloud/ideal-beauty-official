@@ -21,6 +21,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { ProductSerialized } from './types';
 import { CreateProductInput, VariantInput } from '@/app/actions/admin';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
 interface SizeChartOption {
   id: string;
@@ -196,19 +197,23 @@ export default function ProductDrawerEditor({
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('folder', 'products');
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
 
-      if (!res.ok) throw new Error('Failed to upload image');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to upload image');
+      }
       const data = await res.json();
       if (data.url) {
         setFormImages((prev) => [...prev, data.url]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Image upload failed:', err);
-      alert('Failed to upload image. Please try again.');
+      alert(err.message || 'Failed to upload image. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -618,10 +623,11 @@ export default function ProductDrawerEditor({
                     >
                       <div className="relative w-full h-32 bg-neutral-100 rounded-xs overflow-hidden mb-2">
                         <Image
-                          src={imgUrl}
+                          src={getOptimizedImageUrl(imgUrl, 768)}
                           alt={`Product media ${index}`}
                           fill
                           className="object-cover"
+                          unoptimized
                         />
                         {index === 0 && (
                           <span className="absolute top-1.5 left-1.5 bg-neutral-900 text-white text-[10px] font-semibold px-2 py-0.5 rounded-xs">
