@@ -43,7 +43,10 @@ export interface UserAccountData {
   _count: {
     orders: number;
     wishlist: number;
+    vouchers?: number;
   };
+  vouchersCount?: number;
+  availableVouchersCount?: number;
 }
 
 interface AccountViewProps {
@@ -77,6 +80,7 @@ export default function AccountView({ account }: AccountViewProps) {
       <AccountNavigationHeader
         ordersCount={account._count.orders}
         wishlistCount={account._count.wishlist}
+        vouchersCount={account._count.vouchers ?? account.vouchersCount ?? 0}
         patronName={account.name || 'Valued Patron'}
         patronEmail={account.email || account.phone || undefined}
       />

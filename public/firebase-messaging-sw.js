@@ -31,7 +31,8 @@ messaging.onBackgroundMessage((payload) => {
     const destinationUrl = payload.data.url || payload.data.link || '/';
     const notificationOptions = {
       body: payload.data.body || '',
-      icon: payload.data.icon || '/logo.png',
+      icon: payload.data.icon || '/icon.png',
+      badge: payload.data.badge || '/icon.png',
       data: {
         url: destinationUrl,
         ...payload.data,

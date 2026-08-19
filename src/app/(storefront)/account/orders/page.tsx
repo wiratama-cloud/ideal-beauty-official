@@ -28,6 +28,7 @@ export default async function OrderHistoryPage() {
       <AccountNavigationHeader
         ordersCount={orders.length}
         wishlistCount={accountData?._count?.wishlist ?? 0}
+        vouchersCount={accountData?._count?.vouchers ?? accountData?.vouchersCount ?? 0}
         patronName={accountData?.name ?? undefined}
         patronEmail={accountData?.email ?? undefined}
       />

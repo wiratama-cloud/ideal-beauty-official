@@ -15,6 +15,11 @@ import {
   UpdatePasswordInput,
   AddressInput,
 } from '@/lib/services/account';
+import {
+  getUserVouchers,
+  getUserVoucherHistory,
+  checkVoucher,
+} from '@/lib/services/voucher';
 
 export async function getUserAccountAction() {
   try {
@@ -153,4 +158,38 @@ export async function saveFcmTokenAction(token: string) {
   } catch (err: any) {
     return { success: false, error: err.message || 'Failed to save notification token' };
   }
+}
+
+export async function getUserVouchersAction() {
+  try {
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User session not found' };
+    }
+    const vouchers = await getUserVouchers(userId);
+    const history = await getUserVoucherHistory(userId);
+    return {
+      success: true,
+      data: {
+        vouchers,
+        history,
+      },
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to fetch vouchers' };
+  }
+}
+
+export async function checkVoucherAction(code: string) {
+  try {
+    const userId = await getSessionUserId();
+    const result = await checkVoucher(code, userId);
+    return { success: true, data: result };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to check voucher' };
+  }
+}
+
+export async function claimOrCheckVoucherAction(code: string) {
+  return checkVoucherAction(code);
 }

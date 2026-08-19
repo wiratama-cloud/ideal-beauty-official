@@ -107,3 +107,77 @@ export async function updateUserPassword(
     data: { passwordHash },
   });
 }
+
+export async function pruneOrphanGuestUsers(daysOld: number = 7): Promise<{ count: number; prunedUserIds: string[] }> {
+  const cutoffDate = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
+
+  // Find all guest users created before cutoffDate that have no orders, no payments, and no active carts with items
+  const candidates = await prisma.user.findMany({
+    where: {
+      createdAt: { lte: cutoffDate },
+      AND: [
+        {
+          OR: [
+            { name: 'Guest Customer' },
+            { email: { startsWith: 'guest_' } },
+          ],
+        },
+        {
+          OR: [
+            { cart: null },
+            { cart: { items: { none: {} } } },
+          ],
+        },
+      ],
+      orders: { none: {} },
+      voucherUsages: { none: {} },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (candidates.length === 0) {
+    return { count: 0, prunedUserIds: [] };
+  }
+
+  const candidateIds = candidates.map((u) => u.id);
+
+  // Delete wishlists, addresses, empty carts for these candidates first
+  await prisma.cartItem.deleteMany({
+    where: {
+      cart: {
+        userId: { in: candidateIds },
+      },
+    },
+  });
+
+  await prisma.cart.deleteMany({
+    where: {
+      userId: { in: candidateIds },
+    },
+  });
+
+  await prisma.wishlistItem.deleteMany({
+    where: {
+      userId: { in: candidateIds },
+    },
+  });
+
+  await prisma.address.deleteMany({
+    where: {
+      userId: { in: candidateIds },
+    },
+  });
+
+  const deleteResult = await prisma.user.deleteMany({
+    where: {
+      id: { in: candidateIds },
+    },
+  });
+
+  return {
+    count: deleteResult.count,
+    prunedUserIds: candidateIds,
+  };
+}

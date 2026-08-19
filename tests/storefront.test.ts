@@ -770,6 +770,10 @@ describe('Ideal Beauty Official E-Commerce Integration Test Suite', () => {
         url: '/account?tab=orders',
       },
       webpush: {
+        notification: {
+          icon: '/icon.png',
+          badge: '/icon.png',
+        },
         fcmOptions: {
           link: '/account?tab=orders',
         },

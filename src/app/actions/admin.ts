@@ -48,6 +48,7 @@ import {
   CreateSizeChartInput,
 } from '@/lib/services/size-chart';
 import { sendMulticastPushNotification } from '@/lib/services/notification';
+import { pruneOrphanGuestUsers } from '@/lib/services/user';
 
 export async function logExpenseAction(data: CreateExpenseInput) {
   await requireAdminAccess();
@@ -885,6 +886,10 @@ export async function deleteVoucherAction(id: string) {
 export async function getCustomersAction() {
   await requireAdminAccess();
   return prisma.user.findMany({
+    where: {
+      name: { not: 'Guest Customer' },
+      email: { not: { startsWith: 'guest_' } },
+    },
     select: {
       id: true,
       name: true,
@@ -1123,6 +1128,10 @@ export async function linkProductsToSizeChartAction(sizeChartId: string | null, 
 export async function getAdminNotificationRecipientsAction() {
   await requireAdminAccess();
   const users = await prisma.user.findMany({
+    where: {
+      name: { not: 'Guest Customer' },
+      email: { not: { startsWith: 'guest_' } },
+    },
     select: {
       id: true,
       name: true,
@@ -1174,6 +1183,8 @@ export async function sendAdminPushNotificationAction(data: SendAdminPushNotific
         fcmToken: {
           not: null,
         },
+        name: { not: 'Guest Customer' },
+        email: { not: { startsWith: 'guest_' } },
       },
       select: {
         id: true,
@@ -1243,4 +1254,21 @@ export async function sendAdminPushNotificationAction(data: SendAdminPushNotific
     targetedUserCount,
     eligibleTokensCount: tokens.length,
   };
+}
+
+export async function pruneGuestUsersAction(daysOld: number = 7) {
+  const adminUser = await requireAdminAccess();
+  const result = await pruneOrphanGuestUsers(daysOld);
+  await recordAuditLog({
+    action: 'PRUNE_GUEST_USERS',
+    entity: 'USER',
+    entityId: 'SYSTEM',
+    details: {
+      daysOld,
+      prunedCount: result.count,
+      prunedUserIds: result.prunedUserIds,
+      executedBy: adminUser.email,
+    },
+  });
+  return { success: true, count: result.count, prunedUserIds: result.prunedUserIds };
 }

@@ -45,6 +45,10 @@ describe('Push Notification Service - sendOrderPushNotification', () => {
         url: '/account?tab=orders',
       },
       webpush: {
+        notification: {
+          icon: '/icon.png',
+          badge: '/icon.png',
+        },
         fcmOptions: {
           link: '/account?tab=orders',
         },
@@ -78,6 +82,10 @@ describe('Push Notification Service - sendOrderPushNotification', () => {
         url: '/account/tracking?id=ORD-100',
       },
       webpush: {
+        notification: {
+          icon: '/icon.png',
+          badge: '/icon.png',
+        },
         fcmOptions: {
           link: '/account/tracking?id=ORD-100',
         },
@@ -141,6 +149,10 @@ describe('Push Notification Service - sendMulticastPushNotification', () => {
         url: '/products?category=gowns',
       },
       webpush: {
+        notification: {
+          icon: '/icon.png',
+          badge: '/icon.png',
+        },
         fcmOptions: {
           link: '/products?category=gowns',
         },
@@ -176,6 +188,10 @@ describe('Push Notification Service - sendMulticastPushNotification', () => {
         url: '/',
       },
       webpush: {
+        notification: {
+          icon: '/icon.png',
+          badge: '/icon.png',
+        },
         fcmOptions: {
           link: '/',
         },

@@ -67,7 +67,7 @@ export async function toggleWishlistItem(userId: string, productId: string, vari
   }
 }
 
-export async function getWishlistedProductIds(userId: string): Promise<string[]> {
+export async function getWishlistedProductIds(userId?: string | null): Promise<string[]> {
   if (!userId) return [];
   try {
     const items = await prisma.wishlistItem.findMany({

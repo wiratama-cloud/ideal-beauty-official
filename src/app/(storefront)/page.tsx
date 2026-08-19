@@ -6,14 +6,14 @@ import LandingSectionsRenderer from '@/components/home/LandingSectionsRenderer';
 import { getProducts } from '@/lib/services/product';
 import { getWishlistedProductIds } from '@/lib/services/wishlist';
 import { getLandingSections, getHeroBannerData } from '@/lib/services/section';
-import { getSessionUserId } from '@/lib/session';
+import { getLoggedInUserId } from '@/lib/session';
 
 export default async function HomePage() {
   const [products, sections, heroBanner, userId] = await Promise.all([
     getProducts(),
     getLandingSections(true),
     getHeroBannerData(),
-    getSessionUserId(),
+    getLoggedInUserId(),
   ]);
 
   const wishlistedIds = await getWishlistedProductIds(userId);

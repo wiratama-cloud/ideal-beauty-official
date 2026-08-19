@@ -52,7 +52,8 @@ describe('Firebase Messaging Service Worker Simulated Logic', () => {
         const destinationUrl = payload.data.url || payload.data.link || '/';
         const notificationOptions = {
           body: payload.data.body || '',
-          icon: payload.data.icon || '/logo.png',
+          icon: payload.data.icon || '/icon.png',
+          badge: payload.data.badge || '/icon.png',
           data: {
             url: destinationUrl,
             ...payload.data,
@@ -116,7 +117,8 @@ describe('Firebase Messaging Service Worker Simulated Logic', () => {
     expect(showNotificationMock).toHaveBeenCalledTimes(1);
     expect(showNotificationMock).toHaveBeenCalledWith('Exclusive Offer', {
       body: 'Rent modern couture dresses with 30% off',
-      icon: '/logo.png',
+      icon: '/icon.png',
+      badge: '/icon.png',
       data: {
         url: '/products',
         title: 'Exclusive Offer',

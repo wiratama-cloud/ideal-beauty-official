@@ -3,11 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, Package, Heart, Sparkles } from 'lucide-react';
+import { User, Package, Heart, Sparkles, Ticket } from 'lucide-react';
 
 export interface AccountNavigationHeaderProps {
   ordersCount?: number;
   wishlistCount?: number;
+  vouchersCount?: number;
   patronName?: string;
   patronEmail?: string;
 }
@@ -15,6 +16,7 @@ export interface AccountNavigationHeaderProps {
 export default function AccountNavigationHeader({
   ordersCount,
   wishlistCount,
+  vouchersCount,
   patronName,
   patronEmail,
 }: AccountNavigationHeaderProps) {
@@ -23,6 +25,7 @@ export default function AccountNavigationHeader({
   const isOverview = pathname === '/account';
   const isOrders = pathname.startsWith('/account/orders');
   const isWishlist = pathname.startsWith('/account/wishlist');
+  const isVouchers = pathname.startsWith('/account/vouchers');
 
   const navItems = [
     {
@@ -45,6 +48,13 @@ export default function AccountNavigationHeader({
       active: isWishlist,
       icon: Heart,
       badge: typeof wishlistCount === 'number' ? wishlistCount : null,
+    },
+    {
+      label: 'My Vouchers',
+      href: '/account/vouchers',
+      active: isVouchers,
+      icon: Ticket,
+      badge: typeof vouchersCount === 'number' ? vouchersCount : null,
     },
   ];
 

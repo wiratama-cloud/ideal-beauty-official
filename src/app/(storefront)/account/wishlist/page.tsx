@@ -28,6 +28,7 @@ export default async function WishlistPage() {
       <AccountNavigationHeader
         ordersCount={accountData?._count?.orders ?? 0}
         wishlistCount={wishlistItems.length}
+        vouchersCount={accountData?._count?.vouchers ?? accountData?.vouchersCount ?? 0}
         patronName={accountData?.name ?? undefined}
         patronEmail={accountData?.email ?? undefined}
       />

@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import { getProducts } from '@/lib/services/product';
 import { getNavCategoryTree } from '@/lib/services/nav-category';
 import { getWishlistedProductIds } from '@/lib/services/wishlist';
-import { getSessionUserId } from '@/lib/session';
+import { getLoggedInUserId } from '@/lib/session';
 import CategoryTreeSidebar from '@/components/product/CategoryTreeSidebar';
 import TopFilterBar from '@/components/product/TopFilterBar';
 import ProductGrid from '@/components/product/ProductGrid';
@@ -32,7 +32,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       query: resolvedParams.query,
     }),
     getNavCategoryTree(),
-    getSessionUserId(),
+    getLoggedInUserId(),
   ]);
 
   const wishlistedIds = await getWishlistedProductIds(userId);

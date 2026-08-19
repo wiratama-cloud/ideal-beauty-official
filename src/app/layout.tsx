@@ -17,8 +17,8 @@ export const metadata: Metadata = {
     title: 'Ideal Beauty',
   },
   icons: {
-    icon: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: '/icon.png',
+    apple: '/icon.png',
   },
 };
 

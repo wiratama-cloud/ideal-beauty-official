@@ -19,6 +19,11 @@ import {
   ShieldCheck,
   CheckSquare,
   Square,
+  Tag,
+  ShoppingBag,
+  Ticket,
+  Zap,
+  X,
 } from 'lucide-react';
 import {
   sendAdminPushNotificationAction,
@@ -35,8 +40,39 @@ export interface NotificationRecipient {
   createdAt: Date | string;
 }
 
+export interface ProductItem {
+  id: string;
+  name: string;
+  category: string | null;
+  slug: string;
+  images: string[];
+}
+
+export interface VoucherItem {
+  id: string;
+  code: string;
+  description: string | null;
+  discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  discountValue: number;
+  minPurchase: number | null;
+  maxDiscount: number | null;
+  startDate: string | null;
+  endDate: string | null;
+  usageLimit: number | null;
+  usageCount: number;
+  isActive: boolean;
+  targetType: 'EVENT' | 'CUSTOMER';
+  user?: {
+    id: string;
+    name: string;
+    email: string | null;
+  } | null;
+}
+
 interface AdminNotificationsViewProps {
   initialRecipients: NotificationRecipient[];
+  products?: ProductItem[];
+  vouchers?: VoucherItem[];
 }
 
 const TEMPLATES = [
@@ -58,10 +94,18 @@ const TEMPLATES = [
     body: 'Enjoy exclusive rental discounts on your next booking with Ideal Beauty Atelier. View your vouchers now!',
     url: '/account/vouchers',
   },
+  {
+    label: '👗 Fitting Reservation',
+    title: '👗 Private Fitting Atelier Invitation',
+    body: 'Private fitting appointments are now open for this weekend. Reserve your personalized styling session.',
+    url: '/products',
+  },
 ];
 
 export default function AdminNotificationsView({
   initialRecipients,
+  products = [],
+  vouchers = [],
 }: AdminNotificationsViewProps) {
   const [recipients, setRecipients] = useState<NotificationRecipient[]>(initialRecipients);
   const [targetType, setTargetType] = useState<'ALL' | 'SELECTED'>('ALL');
@@ -78,6 +122,14 @@ export default function AdminNotificationsView({
     message: string;
     details?: unknown;
   } | null>(null);
+
+  // Preset Tabs & Selector State
+  const [presetTab, setPresetTab] = useState<'PRODUCT' | 'VOUCHER' | 'TEMPLATES'>('PRODUCT');
+  const [productSearch, setProductSearch] = useState('');
+  const [voucherSearch, setVoucherSearch] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
+  const [selectedVoucher, setSelectedVoucher] = useState<VoucherItem | null>(null);
+  const [customPromoInput, setCustomPromoInput] = useState('');
 
   // Statistics
   const totalUsers = recipients.length;
@@ -112,6 +164,30 @@ export default function AdminNotificationsView({
     const selectedSet = new Set(selectedUserIds);
     return recipients.filter((r) => selectedSet.has(r.id) && r.hasFcmToken).length;
   }, [recipients, selectedUserIds]);
+
+  // Filtered products for selector
+  const filteredProducts = useMemo(() => {
+    const q = productSearch.toLowerCase().trim();
+    if (!q) return products;
+    return products.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        p.slug.toLowerCase().includes(q)
+    );
+  }, [products, productSearch]);
+
+  // Filtered active vouchers for selector
+  const filteredVouchers = useMemo(() => {
+    const activeVouchers = vouchers.filter((v) => v.isActive);
+    const q = voucherSearch.toLowerCase().trim();
+    if (!q) return activeVouchers;
+    return activeVouchers.filter(
+      (v) =>
+        v.code.toLowerCase().includes(q) ||
+        (v.description && v.description.toLowerCase().includes(q))
+    );
+  }, [vouchers, voucherSearch]);
 
   const handleRefreshRecipients = async () => {
     setIsRefreshing(true);
@@ -148,9 +224,61 @@ export default function AdminNotificationsView({
   };
 
   const handleApplyTemplate = (tpl: (typeof TEMPLATES)[0]) => {
+    setSelectedProduct(null);
+    setSelectedVoucher(null);
     setTitle(tpl.title);
     setBody(tpl.body);
     setUrl(tpl.url);
+    setStatusResult(null);
+  };
+
+  const handleSelectProduct = (prod: ProductItem) => {
+    setSelectedProduct(prod);
+    setSelectedVoucher(null);
+    setTitle(`✨ Featured Couture: ${prod.name}`);
+    setBody(
+      `Discover our ${prod.name} from the Atelier collection. Tap to explore fitting & rental options.`
+    );
+    setUrl(`/products/${prod.slug}`);
+    setStatusResult(null);
+  };
+
+  const handleSelectVoucher = (v: VoucherItem) => {
+    setSelectedVoucher(v);
+    setSelectedProduct(null);
+    const discountText =
+      v.discountType === 'PERCENTAGE'
+        ? `${v.discountValue}%`
+        : `IDR ${Number(v.discountValue).toLocaleString('id-ID')}`;
+
+    setTitle(`🎟️ Exclusive Voucher: ${v.code}`);
+    setBody(
+      `Use code ${v.code} to enjoy ${discountText} off your next order! Tap to claim your voucher.`
+    );
+    setUrl('/account/vouchers');
+    setStatusResult(null);
+  };
+
+  const handleApplyCustomPromo = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const clean = customPromoInput.trim().toUpperCase();
+    if (!clean) return;
+    setSelectedVoucher(null);
+    setSelectedProduct(null);
+    setTitle(`🎟️ Exclusive Voucher: ${clean}`);
+    setBody(
+      `Use promo code ${clean} to enjoy special savings on your next luxury booking. Tap to view your vouchers!`
+    );
+    setUrl('/account/vouchers');
+    setStatusResult(null);
+  };
+
+  const handleClearForm = () => {
+    setTitle('');
+    setBody('');
+    setUrl('');
+    setSelectedProduct(null);
+    setSelectedVoucher(null);
     setStatusResult(null);
   };
 
@@ -233,7 +361,8 @@ export default function AdminNotificationsView({
       }
     } catch (error: unknown) {
       console.error('Failed to send push notification:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred while sending notification.';
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unexpected error occurred while sending notification.';
       setStatusResult({
         type: 'error',
         message: errorMessage,
@@ -360,6 +489,77 @@ export default function AdminNotificationsView({
                   Draft and dispatch real-time push alerts directly to customer mobile & desktop browsers.
                 </p>
               </div>
+
+              {/* Active Selection Banner if Product or Voucher is selected */}
+              {(selectedProduct || selectedVoucher) && (
+                <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xs flex items-center justify-between">
+                  <div className="flex items-center space-x-3 min-w-0">
+                    {selectedProduct && (
+                      <>
+                        <div className="w-9 h-9 rounded-xs bg-neutral-200 overflow-hidden shrink-0 border border-amber-200">
+                          {selectedProduct.images?.[0] ? (
+                            <img
+                              src={selectedProduct.images[0]}
+                              alt={selectedProduct.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <ShoppingBag className="w-4 h-4 m-2.5 text-neutral-400" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-[9px] font-mono uppercase bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-xs font-semibold">
+                              Product Spotlight
+                            </span>
+                            <span className="text-[10px] text-neutral-500 font-mono">
+                              {selectedProduct.category}
+                            </span>
+                          </div>
+                          <p className="text-xs font-medium text-neutral-900 truncate">
+                            {selectedProduct.name}
+                          </p>
+                        </div>
+                      </>
+                    )}
+
+                    {selectedVoucher && (
+                      <>
+                        <div className="w-9 h-9 rounded-xs bg-amber-100 text-amber-900 flex items-center justify-center shrink-0 border border-amber-300">
+                          <Ticket className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-[9px] font-mono uppercase bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-xs font-semibold">
+                              Promo Voucher
+                            </span>
+                            <span className="text-[10px] text-amber-800 font-mono font-medium">
+                              {selectedVoucher.discountType === 'PERCENTAGE'
+                                ? `${selectedVoucher.discountValue}% OFF`
+                                : `IDR ${Number(selectedVoucher.discountValue).toLocaleString('id-ID')} OFF`}
+                            </span>
+                          </div>
+                          <p className="text-xs font-mono font-bold text-neutral-900 truncate">
+                            {selectedVoucher.code}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProduct(null);
+                      setSelectedVoucher(null);
+                    }}
+                    className="p-1 text-neutral-400 hover:text-neutral-700 rounded-xs"
+                    title="Remove Preset Link"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
 
               {/* Audience Target Selector */}
               <div className="space-y-3">
@@ -596,7 +796,7 @@ export default function AdminNotificationsView({
                   </div>
                   <input
                     type="text"
-                    placeholder="e.g. /products or /account/orders"
+                    placeholder="e.g. /products or /account/vouchers"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-neutral-900 placeholder:text-neutral-400 text-xs focus:bg-white focus:outline-none focus:border-neutral-900 rounded-xs font-mono"
@@ -621,12 +821,7 @@ export default function AdminNotificationsView({
                 <div className="flex items-center space-x-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      setTitle('');
-                      setBody('');
-                      setUrl('');
-                      setStatusResult(null);
-                    }}
+                    onClick={handleClearForm}
                     className="px-4 py-2 border border-neutral-300 text-neutral-700 text-xs uppercase tracking-wider font-mono hover:bg-neutral-100 rounded-xs transition-colors"
                   >
                     Reset
@@ -654,7 +849,7 @@ export default function AdminNotificationsView({
             </form>
           </div>
 
-          {/* Right Column: Live Mockup Preview & Quick Presets (5 cols) */}
+          {/* Right Column: Live Mockup Preview & Presets / Selectors (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
             {/* Live Push Notification Preview Card */}
             <div className="bg-white border border-neutral-200 p-6 rounded-xs space-y-4 shadow-2xs">
@@ -681,9 +876,11 @@ export default function AdminNotificationsView({
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3.5 rounded-xl space-y-2 shadow-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <div className="w-5 h-5 rounded-md bg-amber-500 text-black flex items-center justify-center font-serif text-[10px] font-bold">
-                        IB
-                      </div>
+                      <img
+                        src="/icon.png"
+                        alt="Ideal Beauty"
+                        className="w-5 h-5 rounded-md object-contain bg-neutral-900 shrink-0 shadow-xs"
+                      />
                       <span className="text-[11px] font-medium tracking-wide uppercase font-mono text-neutral-200">
                         Ideal Beauty
                       </span>
@@ -713,31 +910,250 @@ export default function AdminNotificationsView({
               </p>
             </div>
 
-            {/* Quick Presets / Templates */}
-            <div className="bg-white border border-neutral-200 p-6 rounded-xs space-y-3 shadow-2xs">
-              <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-700 font-medium">
-                Quick Message Presets
-              </h3>
-              <div className="space-y-2">
-                {TEMPLATES.map((tpl, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => handleApplyTemplate(tpl)}
-                    className="w-full text-left p-3 border border-neutral-200 hover:border-amber-400 hover:bg-amber-50/40 rounded-xs transition-colors space-y-1 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-neutral-900 text-xs group-hover:text-amber-900">
-                        {tpl.label}
-                      </span>
-                      <span className="text-[10px] font-mono text-neutral-400 group-hover:text-amber-700">
-                        Apply
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-neutral-500 font-light line-clamp-1">{tpl.body}</p>
-                  </button>
-                ))}
+            {/* Campaign Presets & Interactive Selectors */}
+            <div className="bg-white border border-neutral-200 p-6 rounded-xs space-y-4 shadow-2xs">
+              <div className="border-b border-neutral-100 pb-3">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-700 font-medium flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>Campaign Presets & Selectors</span>
+                </h3>
+                <p className="text-[11px] text-neutral-500 mt-1">
+                  Pick a catalog product, active voucher, or quick template to auto-populate the broadcast.
+                </p>
               </div>
+
+              {/* Preset Category Tabs */}
+              <div className="grid grid-cols-3 gap-1 bg-neutral-100 p-1 rounded-xs">
+                <button
+                  type="button"
+                  onClick={() => setPresetTab('PRODUCT')}
+                  className={`py-1.5 text-center font-mono text-[10px] uppercase tracking-wider rounded-xs transition-all flex items-center justify-center space-x-1 ${
+                    presetTab === 'PRODUCT'
+                      ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                      : 'text-neutral-600 hover:text-neutral-900'
+                  }`}
+                >
+                  <ShoppingBag className="w-3 h-3 text-amber-600" />
+                  <span>Product</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPresetTab('VOUCHER')}
+                  className={`py-1.5 text-center font-mono text-[10px] uppercase tracking-wider rounded-xs transition-all flex items-center justify-center space-x-1 ${
+                    presetTab === 'VOUCHER'
+                      ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                      : 'text-neutral-600 hover:text-neutral-900'
+                  }`}
+                >
+                  <Ticket className="w-3 h-3 text-amber-600" />
+                  <span>Promo Code</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPresetTab('TEMPLATES')}
+                  className={`py-1.5 text-center font-mono text-[10px] uppercase tracking-wider rounded-xs transition-all flex items-center justify-center space-x-1 ${
+                    presetTab === 'TEMPLATES'
+                      ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                      : 'text-neutral-600 hover:text-neutral-900'
+                  }`}
+                >
+                  <Zap className="w-3 h-3 text-amber-600" />
+                  <span>Templates</span>
+                </button>
+              </div>
+
+              {/* Tab 1: Product Spotlight Selector */}
+              {presetTab === 'PRODUCT' && (
+                <div className="space-y-3 pt-1">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    <input
+                      type="text"
+                      placeholder="Search catalog by product name or category..."
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 bg-neutral-50 border border-neutral-200 text-neutral-900 placeholder:text-neutral-400 text-xs focus:bg-white focus:outline-none focus:border-neutral-900 rounded-xs"
+                    />
+                  </div>
+
+                  <div className="max-h-64 overflow-y-auto space-y-2 pr-1 divide-y divide-neutral-100 scrollbar-thin scrollbar-thumb-neutral-300">
+                    {filteredProducts.length === 0 ? (
+                      <div className="p-4 text-center text-neutral-400 font-light text-xs">
+                        No products match your search query.
+                      </div>
+                    ) : (
+                      filteredProducts.map((prod) => {
+                        const isChosen = selectedProduct?.id === prod.id;
+                        return (
+                          <div
+                            key={prod.id}
+                            onClick={() => handleSelectProduct(prod)}
+                            className={`p-2.5 pt-3 rounded-xs border cursor-pointer transition-all flex items-center justify-between ${
+                              isChosen
+                                ? 'border-amber-400 bg-amber-50/70 ring-1 ring-amber-400'
+                                : 'border-neutral-200 hover:border-neutral-300 bg-white hover:bg-neutral-50'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3 min-w-0">
+                              <div className="w-10 h-10 rounded-xs bg-neutral-100 overflow-hidden shrink-0 border border-neutral-200">
+                                {prod.images?.[0] ? (
+                                  <img
+                                    src={prod.images[0]}
+                                    alt={prod.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <ShoppingBag className="w-4 h-4 m-3 text-neutral-400" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-[9px] font-mono text-neutral-500 uppercase tracking-wider block">
+                                  {prod.category}
+                                </span>
+                                <p className="text-xs font-medium text-neutral-900 truncate">
+                                  {prod.name}
+                                </p>
+                                <p className="text-[10px] text-neutral-400 font-mono truncate">
+                                  /products/{prod.slug}
+                                </p>
+                              </div>
+                            </div>
+                            <span
+                              className={`shrink-0 ml-2 px-2 py-1 text-[9px] font-mono uppercase tracking-wider rounded-xs font-medium ${
+                                isChosen
+                                  ? 'bg-amber-600 text-white'
+                                  : 'bg-neutral-100 text-neutral-700 group-hover:bg-neutral-200'
+                              }`}
+                            >
+                              {isChosen ? 'Applied' : 'Select'}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 2: Promo Code & Voucher Selector */}
+              {presetTab === 'VOUCHER' && (
+                <div className="space-y-3 pt-1">
+                  {/* Custom Promo Code Quick Injector */}
+                  <form onSubmit={handleApplyCustomPromo} className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                      <input
+                        type="text"
+                        placeholder="Or enter custom code (e.g. VIP50)"
+                        value={customPromoInput}
+                        onChange={(e) => setCustomPromoInput(e.target.value.toUpperCase())}
+                        className="w-full pl-8 pr-3 py-1.5 bg-neutral-50 border border-neutral-200 text-neutral-900 placeholder:text-neutral-400 text-xs uppercase font-mono focus:bg-white focus:outline-none focus:border-neutral-900 rounded-xs"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={!customPromoInput.trim()}
+                      className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-mono text-[10px] uppercase tracking-wider rounded-xs transition-colors disabled:opacity-40"
+                    >
+                      Apply
+                    </button>
+                  </form>
+
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    <input
+                      type="text"
+                      placeholder="Search active vouchers by code or description..."
+                      value={voucherSearch}
+                      onChange={(e) => setVoucherSearch(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 bg-neutral-50 border border-neutral-200 text-neutral-900 placeholder:text-neutral-400 text-xs focus:bg-white focus:outline-none focus:border-neutral-900 rounded-xs"
+                    />
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1 divide-y divide-neutral-100 scrollbar-thin scrollbar-thumb-neutral-300">
+                    {filteredVouchers.length === 0 ? (
+                      <div className="p-4 text-center text-neutral-400 font-light text-xs">
+                        No active vouchers found. Create one in the Vouchers manager or type a custom code above.
+                      </div>
+                    ) : (
+                      filteredVouchers.map((v) => {
+                        const isChosen = selectedVoucher?.id === v.id;
+                        const discountDisplay =
+                          v.discountType === 'PERCENTAGE'
+                            ? `${v.discountValue}% OFF`
+                            : `IDR ${Number(v.discountValue).toLocaleString('id-ID')} OFF`;
+                        return (
+                          <div
+                            key={v.id}
+                            onClick={() => handleSelectVoucher(v)}
+                            className={`p-2.5 pt-3 rounded-xs border cursor-pointer transition-all flex items-center justify-between ${
+                              isChosen
+                                ? 'border-amber-400 bg-amber-50/70 ring-1 ring-amber-400'
+                                : 'border-neutral-200 hover:border-neutral-300 bg-white hover:bg-neutral-50'
+                            }`}
+                          >
+                            <div className="min-w-0 space-y-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-mono font-bold text-xs text-neutral-900 tracking-wider">
+                                  {v.code}
+                                </span>
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-xs text-[9px] font-mono font-semibold bg-amber-100 text-amber-900 border border-amber-200">
+                                  {discountDisplay}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-neutral-500 font-light truncate">
+                                {v.description ||
+                                  (v.minPurchase
+                                    ? `Min spend IDR ${Number(v.minPurchase).toLocaleString('id-ID')}`
+                                    : 'No minimum spend')}
+                              </p>
+                              <div className="flex items-center space-x-2 text-[9px] font-mono text-neutral-400">
+                                <span>{v.targetType === 'CUSTOMER' ? 'VIP Exclusive' : 'Storewide Event'}</span>
+                                {v.endDate && (
+                                  <span>• Exp: {new Date(v.endDate).toLocaleDateString()}</span>
+                                )}
+                              </div>
+                            </div>
+                            <span
+                              className={`shrink-0 ml-2 px-2 py-1 text-[9px] font-mono uppercase tracking-wider rounded-xs font-medium ${
+                                isChosen
+                                  ? 'bg-amber-600 text-white'
+                                  : 'bg-neutral-100 text-neutral-700 group-hover:bg-neutral-200'
+                              }`}
+                            >
+                              {isChosen ? 'Applied' : 'Select'}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 3: Standard Templates */}
+              {presetTab === 'TEMPLATES' && (
+                <div className="space-y-2 pt-1">
+                  {TEMPLATES.map((tpl, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => handleApplyTemplate(tpl)}
+                      className="w-full text-left p-3 border border-neutral-200 hover:border-amber-400 hover:bg-amber-50/40 rounded-xs transition-colors space-y-1 group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-neutral-900 text-xs group-hover:text-amber-900">
+                          {tpl.label}
+                        </span>
+                        <span className="text-[10px] font-mono text-neutral-400 group-hover:text-amber-700">
+                          Apply
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-500 font-light line-clamp-1">{tpl.body}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Technical Information & Guidelines */}
@@ -749,6 +1165,7 @@ export default function AdminNotificationsView({
               <ul className="text-[11px] text-neutral-600 space-y-1 font-light list-disc list-inside">
                 <li>Notifications are delivered instantly via Firebase Cloud Messaging (FCM).</li>
                 <li>Only users who accepted the browser prompt will receive alerts.</li>
+                <li>Brand logo & badge are automatically served via official <code className="font-mono text-neutral-900">/icon.png</code>.</li>
                 <li>Keep titles under 50 characters for clean rendering on all lock screens.</li>
                 <li>All broadcast events are logged for security compliance.</li>
               </ul>

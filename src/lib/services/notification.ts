@@ -27,6 +27,10 @@ export async function sendOrderPushNotification(
         url: destinationUrl,
       },
       webpush: {
+        notification: {
+          icon: '/icon.png',
+          badge: '/icon.png',
+        },
         fcmOptions: {
           link: destinationUrl,
         },
@@ -103,6 +107,10 @@ export async function sendMulticastPushNotification(
           url: destinationUrl,
         },
         webpush: {
+          notification: {
+            icon: '/icon.png',
+            badge: '/icon.png',
+          },
           fcmOptions: {
             link: destinationUrl,
           },

@@ -212,5 +212,54 @@ describe('Admin Push Notifications System', () => {
       expect(result.eligibleTokensCount).toBe(0);
       expect(result.totalRecipients).toBe(0);
     });
+
+    it('should support Product Spotlight preset broadcast payload and link', async () => {
+      const productSlug = 'velvet-evening-gown';
+      const result = await sendAdminPushNotificationAction({
+        title: '✨ Featured Couture: Velvet Evening Gown',
+        body: 'Discover our Velvet Evening Gown from the Atelier collection. Tap to explore fitting & rental options.',
+        url: `/products/${productSlug}`,
+        targetType: 'ALL',
+      });
+
+      expect(result).toBeDefined();
+      expect(result.eligibleTokensCount).toBeGreaterThanOrEqual(1);
+
+      const auditLog = await (prisma as unknown as { auditLog: { findFirst: (query: unknown) => Promise<AuditLogRecord | null> } }).auditLog.findFirst({
+        where: {
+          action: 'SEND_PUSH_NOTIFICATION',
+          entity: 'NOTIFICATION',
+          entityId: 'ALL',
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      expect(auditLog?.details.title).toContain('Velvet Evening Gown');
+      expect(auditLog?.details.url).toBe('/products/velvet-evening-gown');
+    });
+
+    it('should support Promo Code preset broadcast payload and link', async () => {
+      const result = await sendAdminPushNotificationAction({
+        title: '🎟️ Exclusive Voucher: ATELIERVIP',
+        body: 'Use code ATELIERVIP to enjoy 25% off your next order! Tap to claim your voucher.',
+        url: '/account/vouchers',
+        targetType: 'ALL',
+      });
+
+      expect(result).toBeDefined();
+      expect(result.eligibleTokensCount).toBeGreaterThanOrEqual(1);
+
+      const auditLog = await (prisma as unknown as { auditLog: { findFirst: (query: unknown) => Promise<AuditLogRecord | null> } }).auditLog.findFirst({
+        where: {
+          action: 'SEND_PUSH_NOTIFICATION',
+          entity: 'NOTIFICATION',
+          entityId: 'ALL',
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      expect(auditLog?.details.title).toContain('ATELIERVIP');
+      expect(auditLog?.details.url).toBe('/account/vouchers');
+    });
   });
 });
