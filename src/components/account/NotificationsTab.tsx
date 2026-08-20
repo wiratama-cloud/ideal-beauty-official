@@ -21,7 +21,6 @@ import {
   Tablet,
   Globe,
   Trash2,
-  Send,
   RefreshCw,
   ShieldCheck,
 } from 'lucide-react';
@@ -32,7 +31,6 @@ import {
   getUserDevicesAction,
   revokeDeviceAction,
   revokeAllOtherDevicesAction,
-  sendTestPushNotificationAction,
 } from '@/app/actions/auth';
 import { FCM_PROMPT_DISMISSED_KEY } from '@/components/common/FcmNotificationPrompt';
 import { isIos, isStandalone, isNotificationSupported, getIosBrowserType } from '@/lib/utils/pwa';
@@ -63,9 +61,9 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
   const [isToggling, setIsToggling] = useState(false);
   const [devices, setDevices] = useState<UserDeviceItem[]>([]);
   const [isLoadingDevices, setIsLoadingDevices] = useState<boolean>(true);
+  const [isAddingCurrentDevice, setIsAddingCurrentDevice] = useState<boolean>(false);
   const [revokingDeviceId, setRevokingDeviceId] = useState<string | null>(null);
   const [isRevokingAllOther, setIsRevokingAllOther] = useState<boolean>(false);
-  const [isSendingTest, setIsSendingTest] = useState<boolean>(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{
     type: 'success' | 'error' | 'info';
@@ -100,6 +98,10 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
       setIsLoadingDevices(false);
     }
   }, []);
+
+  const isCurrentDeviceAdded = Boolean(
+    currentToken && devices.some((device) => device.token === currentToken)
+  );
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -162,44 +164,12 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
     }
   }, [fetchDevices]);
 
-  const handleToggle = async (turnOn: boolean) => {
-    setIsToggling(true);
+  const handleAddCurrentDevice = async () => {
+    setIsAddingCurrentDevice(true);
     setStatusMessage(null);
 
-    if (!turnOn) {
-      // Turn OFF notifications
-      try {
-        await deleteFcmTokenAction();
-        setCurrentToken(null);
-        await fetchDevices();
-        setIsEnabled(false);
-        try {
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(FCM_PROMPT_DISMISSED_KEY, 'true');
-          }
-        } catch {
-          // Ignore localStorage errors
-        }
-        setStatusMessage({
-          type: 'success',
-          text: 'Push notifications have been disabled for your account.',
-        });
-      } catch (err: unknown) {
-        const errorMsg =
-          err instanceof Error ? err.message : 'Failed to disable push notifications. Please try again.';
-        setStatusMessage({
-          type: 'error',
-          text: errorMsg,
-        });
-      } finally {
-        setIsToggling(false);
-      }
-      return;
-    }
-
-    // Turn ON notifications
     if (typeof window === 'undefined') {
-      setIsToggling(false);
+      setIsAddingCurrentDevice(false);
       return;
     }
 
@@ -208,7 +178,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
         type: 'info',
         text: 'On iOS, push notifications require adding Ideal Beauty to your Home Screen. Please follow the instructions below.',
       });
-      setIsToggling(false);
+      setIsAddingCurrentDevice(false);
       return;
     }
 
@@ -217,7 +187,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
         type: 'error',
         text: 'Push notifications are not supported in this browser.',
       });
-      setIsToggling(false);
+      setIsAddingCurrentDevice(false);
       return;
     }
 
@@ -227,7 +197,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
         type: 'error',
         text: 'Push notifications are blocked in your browser settings. Please allow notifications for Ideal Beauty Official in your browser preferences to enable them.',
       });
-      setIsToggling(false);
+      setIsAddingCurrentDevice(false);
       return;
     }
 
@@ -236,7 +206,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
         type: 'info',
         text: 'Push notification service is not configured in this environment.',
       });
-      setIsToggling(false);
+      setIsAddingCurrentDevice(false);
       return;
     }
 
@@ -247,7 +217,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
           type: 'error',
           text: 'Push messaging instance could not be initialized.',
         });
-        setIsToggling(false);
+        setIsAddingCurrentDevice(false);
         return;
       }
 
@@ -288,7 +258,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
           }
           setStatusMessage({
             type: 'success',
-            text: 'Push notifications have been successfully registered for this device.',
+            text: 'This device has been successfully registered for real-time notifications.',
           });
         } else {
           setStatusMessage({
@@ -308,9 +278,53 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
         });
       }
     } catch (err: unknown) {
-      console.error('Error enabling notifications:', err);
+      console.error('Error adding current device:', err);
       const errorMsg =
-        err instanceof Error ? err.message : 'An error occurred while enabling notifications.';
+        err instanceof Error ? err.message : 'An error occurred while registering this device.';
+      setStatusMessage({
+        type: 'error',
+        text: errorMsg,
+      });
+    } finally {
+      setIsAddingCurrentDevice(false);
+    }
+  };
+
+  const handleToggle = async (turnOn: boolean) => {
+    if (turnOn) {
+      await handleAddCurrentDevice();
+      return;
+    }
+
+    setIsToggling(true);
+    setStatusMessage(null);
+
+    // Turn OFF notifications on this device
+    try {
+      if (currentToken) {
+        const currentDevice = devices.find((d) => d.token === currentToken);
+        if (currentDevice) {
+          await revokeDeviceAction(currentDevice.id);
+        }
+      }
+      await deleteFcmTokenAction();
+      setCurrentToken(null);
+      await fetchDevices();
+      setIsEnabled(false);
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(FCM_PROMPT_DISMISSED_KEY, 'true');
+        }
+      } catch {
+        // Ignore localStorage errors
+      }
+      setStatusMessage({
+        type: 'success',
+        text: 'Push notifications have been disabled for your account.',
+      });
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error ? err.message : 'Failed to disable push notifications. Please try again.';
       setStatusMessage({
         type: 'error',
         text: errorMsg,
@@ -364,36 +378,6 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
     }
   };
 
-  const handleSendTestNotification = async () => {
-    setIsSendingTest(true);
-    setStatusMessage(null);
-    try {
-      const res = await sendTestPushNotificationAction();
-      if (res && res.successCount > 0) {
-        setStatusMessage({
-          type: 'success',
-          text: `Test notification sent successfully to ${res.successCount} registered device${
-            res.successCount > 1 ? 's' : ''
-          }!`,
-        });
-      } else {
-        setStatusMessage({
-          type: 'info',
-          text: 'Test notification was dispatched. Check your device for incoming push alerts.',
-        });
-      }
-    } catch (err: unknown) {
-      const errorMsg =
-        err instanceof Error ? err.message : 'Failed to send test notification. Please try again.';
-      setStatusMessage({
-        type: 'error',
-        text: errorMsg,
-      });
-    } finally {
-      setIsSendingTest(false);
-    }
-  };
-
   const isIosBrowserTab = pwaState.isIos && !pwaState.isStandalone;
 
   const renderDeviceIcon = (deviceType: string) => {
@@ -410,14 +394,14 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Notifications Overview Header */}
-      <div className="bg-white border border-neutral-100 p-6 sm:p-8 space-y-6">
-        <div className="border-b border-neutral-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white border border-neutral-100 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+        <div className="border-b border-neutral-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h2 className="font-serif text-xl font-normal text-neutral-900 flex items-center gap-2">
+            <h2 className="font-serif text-lg sm:text-xl font-normal text-neutral-900 flex items-center gap-2">
               <span>Notification Preferences</span>
-              <BellRing className="w-4 h-4 text-amber-600" />
+              <BellRing className="w-4 h-4 text-amber-600 shrink-0" />
             </h2>
             <p className="text-neutral-500 font-light text-xs mt-1 max-w-xl">
               Control push notifications and multi-device synchronization for orders, fitting confirmations, and exclusive atelier updates.
@@ -425,13 +409,13 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
           </div>
           <div>
             {isEnabled ? (
-              <span className="bg-emerald-50 text-emerald-800 text-[10px] font-mono px-3 py-1.5 uppercase tracking-widest border border-emerald-200 flex items-center space-x-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="bg-emerald-50 text-emerald-800 text-[10px] font-mono px-3 py-1.5 uppercase tracking-widest border border-emerald-200 flex items-center space-x-1.5 self-start sm:self-auto shrink-0">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>{devices.length > 0 ? `${devices.length} Devices Active` : 'Notifications Active'}</span>
               </span>
             ) : (
-              <span className="bg-neutral-100 text-neutral-600 text-[10px] font-mono px-3 py-1.5 uppercase tracking-widest border border-neutral-200 flex items-center space-x-1.5">
-                <BellOff className="w-3.5 h-3.5 text-neutral-500" />
+              <span className="bg-neutral-100 text-neutral-600 text-[10px] font-mono px-3 py-1.5 uppercase tracking-widest border border-neutral-200 flex items-center space-x-1.5 self-start sm:self-auto shrink-0">
+                <BellOff className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
                 <span>Notifications Disabled</span>
               </span>
             )}
@@ -441,7 +425,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
         {/* Status Feedback Toast */}
         {statusMessage && (
           <div
-            className={`p-4 text-xs flex items-start space-x-3 transition-all ${
+            className={`p-3.5 sm:p-4 text-xs flex items-start space-x-3 transition-all ${
               statusMessage.type === 'success'
                 ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
                 : statusMessage.type === 'error'
@@ -466,9 +450,9 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
 
         {/* Browser Permission Denied Alert Banner */}
         {permission === 'denied' && (
-          <div className="bg-amber-50/80 border border-amber-200 p-4 text-xs space-y-2 text-amber-900">
+          <div className="bg-amber-50/80 border border-amber-200 p-3.5 sm:p-4 text-xs space-y-2 text-amber-900">
             <div className="flex items-center space-x-2 font-medium">
-              <AlertCircle className="w-4 h-4 text-amber-600" />
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
               <span>Browser Notifications Blocked</span>
             </div>
             <p className="font-light text-[11px] leading-relaxed text-amber-800">
@@ -479,7 +463,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
 
         {/* Dedicated iOS Home Screen Installation Guide Banner for Safari and Chrome on iOS */}
         {isIosBrowserTab && (
-          <div className="bg-linear-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white p-5 sm:p-7 border border-neutral-800 rounded-none shadow-md space-y-5">
+          <div className="bg-linear-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white p-4 sm:p-7 border border-neutral-800 rounded-none shadow-md space-y-4 sm:space-y-5">
             <div className="flex items-start justify-between gap-3 border-b border-neutral-700/80 pb-4">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
@@ -595,65 +579,59 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
           </div>
         )}
 
-        {/* Main Notification Toggle Setting Card */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs uppercase tracking-wider text-neutral-700 font-medium">
-              Push Notification Status
-            </h3>
-            {isEnabled && (
-              <button
-                type="button"
-                onClick={handleSendTestNotification}
-                disabled={isSendingTest}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-[10px] font-mono uppercase tracking-wider border border-neutral-200 rounded-xs transition-colors disabled:opacity-50"
-              >
-                {isSendingTest ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Send className="w-3 h-3 text-neutral-600" />
-                )}
-                <span>Send Test Push</span>
-              </button>
-            )}
-          </div>
+        {/* Main Notification Status & Control Card */}
+        <div className="space-y-3 sm:space-y-4">
+          <h3 className="text-xs uppercase tracking-wider text-neutral-700 font-medium">
+            Push Notification Status
+          </h3>
 
-          <div className="bg-neutral-50/70 p-5 sm:p-6 border border-neutral-200 space-y-4">
+          <div className="bg-neutral-50/70 p-4 sm:p-6 border border-neutral-200 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start space-x-3.5">
                 <div className="bg-white p-2.5 rounded-full border border-neutral-200 shrink-0 shadow-xs">
-                  <Smartphone className="w-5 h-5 text-neutral-700" />
+                  {isCurrentDeviceAdded ? (
+                    <BellRing className="w-5 h-5 text-amber-600" />
+                  ) : (
+                    <Bell className="w-5 h-5 text-neutral-600" />
+                  )}
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
                     <span className="text-xs font-medium text-neutral-900">
-                      Multi-Device Push Alerts
+                      Notifications on this Device
                     </span>
-                    {isEnabled && (
-                      <span className="text-[9px] bg-emerald-100 text-emerald-800 font-mono px-2 py-0.5 uppercase tracking-wider">
-                        Active
+                    {isCurrentDeviceAdded ? (
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 font-mono px-2 py-0.5 uppercase tracking-wider font-semibold border border-emerald-300">
+                        Active on this Device
+                      </span>
+                    ) : devices.length > 0 ? (
+                      <span className="text-[9px] bg-amber-100 text-amber-900 font-mono px-2 py-0.5 uppercase tracking-wider font-semibold border border-amber-300">
+                        Active on {devices.length} other device{devices.length > 1 ? 's' : ''}
+                      </span>
+                    ) : (
+                      <span className="text-[9px] bg-neutral-200 text-neutral-700 font-mono px-2 py-0.5 uppercase tracking-wider font-semibold">
+                        Disabled
                       </span>
                     )}
                   </div>
                   <p className="text-neutral-500 text-[11px] font-light max-w-lg leading-relaxed">
-                    Receive instant push notifications across all your active mobile phones, tablets, and desktop computers when your orders are confirmed and shipped.
+                    {isCurrentDeviceAdded
+                      ? 'This device is actively registered to receive real-time push notifications for orders, shipping updates, and atelier alerts.'
+                      : 'Enable notifications on this device to receive immediate alerts when your orders are confirmed, dispatched, or delivered.'}
                   </p>
                 </div>
               </div>
 
-              {/* Accessible Toggle Switch */}
-              <div className="flex items-center space-x-3 self-end sm:self-center shrink-0">
-                <span className="text-neutral-500 font-mono text-[10px] uppercase tracking-wider">
-                  {isEnabled ? 'Enabled' : 'Disabled'}
-                </span>
+              {/* Action Button / Switch */}
+              <div className="flex items-center space-x-3 self-stretch sm:self-center shrink-0">
                 <button
                   type="button"
                   role="switch"
                   aria-checked={isEnabled}
                   aria-label="Toggle push notifications"
-                  disabled={isToggling}
+                  disabled={isToggling || isAddingCurrentDevice}
                   onClick={() => handleToggle(!isEnabled)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden disabled:opacity-50 ${
+                  className={`hidden sm:inline-flex relative h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden disabled:opacity-50 ${
                     isEnabled ? 'bg-amber-600' : 'bg-neutral-300'
                   }`}
                 >
@@ -664,23 +642,13 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
                     }`}
                   />
                 </button>
-              </div>
-            </div>
 
-            {/* Quick Action Buttons for explicit click */}
-            <div className="pt-2 border-t border-neutral-200/60 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center space-x-1.5 text-neutral-400 text-[11px]">
-                <Info className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                <span>You can turn notifications on or off on this device at any time.</span>
-              </div>
-
-              <div>
-                {isEnabled ? (
+                {isCurrentDeviceAdded ? (
                   <button
                     type="button"
                     onClick={() => handleToggle(false)}
-                    disabled={isToggling}
-                    className="border border-rose-200 text-rose-700 hover:bg-rose-50 text-[10px] uppercase tracking-[0.15em] px-4 py-2 font-medium transition-colors flex items-center space-x-1.5 disabled:opacity-50"
+                    disabled={isToggling || isAddingCurrentDevice}
+                    className="w-full sm:w-auto border border-rose-200 text-rose-700 hover:bg-rose-50 text-[10px] uppercase tracking-[0.15em] px-4 py-2.5 font-medium transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50"
                   >
                     {isToggling ? (
                       <>
@@ -698,10 +666,10 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
                   <button
                     type="button"
                     onClick={() => handleToggle(true)}
-                    disabled={isToggling}
-                    className="bg-neutral-900 hover:bg-neutral-800 text-white text-[10px] uppercase tracking-[0.15em] px-4 py-2 font-medium transition-colors flex items-center space-x-1.5 disabled:opacity-50 shadow-xs"
+                    disabled={isToggling || isAddingCurrentDevice}
+                    className="w-full sm:w-auto bg-neutral-900 hover:bg-neutral-800 text-white text-[10px] uppercase tracking-[0.15em] px-4 py-2.5 font-medium transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50 shadow-xs"
                   >
-                    {isToggling ? (
+                    {isToggling || isAddingCurrentDevice ? (
                       <>
                         <Loader2 className="w-3 h-3 animate-spin text-white" />
                         <span>Enabling...</span>
@@ -721,7 +689,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
 
         {/* Connected Devices & Endpoints List */}
         <div className="space-y-4 pt-2">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center space-x-2">
                 <h3 className="text-xs uppercase tracking-wider text-neutral-700 font-medium">
@@ -736,15 +704,16 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
               </p>
             </div>
 
-            <div className="flex items-center space-x-2 self-start sm:self-center">
+            <div className="flex flex-wrap items-center gap-2 self-stretch sm:self-auto justify-end">
               <button
                 type="button"
                 onClick={fetchDevices}
                 disabled={isLoadingDevices}
-                className="p-1.5 text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 rounded-xs transition-colors border border-neutral-200"
+                className="p-1.5 text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 rounded-xs transition-colors border border-neutral-200 flex items-center space-x-1"
                 title="Refresh Device List"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoadingDevices ? 'animate-spin' : ''}`} />
+                <span className="text-[10px] font-mono sm:hidden">Refresh</span>
               </button>
 
               {devices.length > 1 && (
@@ -759,7 +728,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
                   ) : (
                     <Trash2 className="w-3 h-3 text-rose-600" />
                   )}
-                  <span>Revoke All Other Devices</span>
+                  <span>Revoke Other Devices</span>
                 </button>
               )}
             </div>
@@ -771,12 +740,34 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
               <p className="text-xs font-light">Loading registered devices...</p>
             </div>
           ) : devices.length === 0 ? (
-            <div className="p-8 border border-dashed border-neutral-300 bg-neutral-50 text-center space-y-2">
+            <div className="p-6 sm:p-8 border border-dashed border-neutral-300 bg-neutral-50 text-center space-y-3">
               <Smartphone className="w-8 h-8 text-neutral-400 mx-auto" />
-              <p className="text-xs font-medium text-neutral-800">No active devices registered</p>
-              <p className="text-[11px] text-neutral-500 font-light max-w-sm mx-auto">
-                Turn on notifications above on your phone or computer to start receiving updates on this device.
-              </p>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-neutral-800">No active devices registered</p>
+                <p className="text-[11px] text-neutral-500 font-light max-w-sm mx-auto">
+                  Turn on notifications to register this device and receive real-time atelier updates.
+                </p>
+              </div>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleToggle(true)}
+                  disabled={isAddingCurrentDevice || isToggling}
+                  className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-neutral-900 hover:bg-black text-white text-xs uppercase tracking-wider font-medium transition-colors w-full sm:w-auto shadow-xs"
+                >
+                  {isAddingCurrentDevice || isToggling ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Enabling...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-3.5 h-3.5 text-white" />
+                      <span>Turn On Notifications</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3">
@@ -788,7 +779,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
                 return (
                   <div
                     key={device.id}
-                    className={`p-4 border rounded-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                    className={`p-3.5 sm:p-4 border rounded-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 ${
                       isThisDevice
                         ? 'border-amber-400 bg-amber-50/40 ring-1 ring-amber-400/50'
                         : 'border-neutral-200 bg-white hover:border-neutral-300'
@@ -799,7 +790,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
                         {renderDeviceIcon(device.deviceType)}
                       </div>
                       <div className="space-y-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <span className="text-xs font-medium text-neutral-900">
                             {device.deviceName ||
                               `${device.os || 'Device'} (${device.browser || 'Browser'})`}
@@ -816,7 +807,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
                           </span>
                         </div>
 
-                        <p className="text-[11px] text-neutral-400 font-mono font-light">
+                        <p className="text-[10px] sm:text-[11px] text-neutral-400 font-mono font-light">
                           Last active: {lastActiveDate.toLocaleDateString()} at{' '}
                           {lastActiveDate.toLocaleTimeString([], {
                             hour: '2-digit',
@@ -831,7 +822,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
                         type="button"
                         onClick={() => handleRevokeDevice(device.id)}
                         disabled={revokingDeviceId === device.id}
-                        className="px-3 py-1.5 text-[10px] font-mono text-neutral-600 hover:text-rose-700 hover:bg-rose-50 border border-neutral-200 hover:border-rose-200 rounded-xs transition-colors flex items-center space-x-1.5 disabled:opacity-50"
+                        className="w-full sm:w-auto px-3 py-1.5 text-[10px] font-mono text-neutral-600 hover:text-rose-700 hover:bg-rose-50 border border-neutral-200 hover:border-rose-200 rounded-xs transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50"
                       >
                         {revokingDeviceId === device.id ? (
                           <Loader2 className="w-3 h-3 animate-spin text-rose-600" />
@@ -854,7 +845,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
             What alerts are included?
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="border border-neutral-200 p-4 bg-white space-y-1.5">
+            <div className="border border-neutral-200 p-3.5 sm:p-4 bg-white space-y-1.5">
               <div className="flex items-center space-x-2 text-neutral-800">
                 <Package className="w-4 h-4 text-amber-600 shrink-0" />
                 <span className="font-medium text-xs">Order Confirmations</span>
@@ -864,7 +855,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
               </p>
             </div>
 
-            <div className="border border-neutral-200 p-4 bg-white space-y-1.5">
+            <div className="border border-neutral-200 p-3.5 sm:p-4 bg-white space-y-1.5">
               <div className="flex items-center space-x-2 text-neutral-800">
                 <CreditCard className="w-4 h-4 text-amber-600 shrink-0" />
                 <span className="font-medium text-xs">Payment Verification</span>
@@ -874,7 +865,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
               </p>
             </div>
 
-            <div className="border border-neutral-200 p-4 bg-white space-y-1.5">
+            <div className="border border-neutral-200 p-3.5 sm:p-4 bg-white space-y-1.5">
               <div className="flex items-center space-x-2 text-neutral-800">
                 <Truck className="w-4 h-4 text-amber-600 shrink-0" />
                 <span className="font-medium text-xs">Shipping &amp; Delivery</span>

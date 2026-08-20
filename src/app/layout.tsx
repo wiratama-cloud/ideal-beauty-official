@@ -16,10 +16,6 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'Ideal Beauty',
   },
-  icons: {
-    icon: '/icon.png',
-    apple: '/icon.png',
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

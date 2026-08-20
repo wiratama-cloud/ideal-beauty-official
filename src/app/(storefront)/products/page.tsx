@@ -14,6 +14,9 @@ interface PageProps {
     maxPrice?: string;
     type?: 'SALE' | 'RENTAL';
     query?: string;
+    sort?: 'newest' | 'price-asc' | 'price-desc' | 'popular';
+    inStock?: string;
+    inStockOnly?: string;
   }>;
 }
 
@@ -22,6 +25,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
   const minPrice = resolvedParams.minPrice ? parseFloat(resolvedParams.minPrice) : undefined;
   const maxPrice = resolvedParams.maxPrice ? parseFloat(resolvedParams.maxPrice) : undefined;
+  const inStockOnly =
+    resolvedParams.inStock === 'true' || resolvedParams.inStockOnly === 'true' ? true : undefined;
 
   const [products, categoriesTree, userId] = await Promise.all([
     getProducts({
@@ -30,6 +35,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       maxPrice,
       type: resolvedParams.type,
       query: resolvedParams.query,
+      sort: resolvedParams.sort,
+      inStockOnly,
     }),
     getNavCategoryTree(),
     getLoggedInUserId(),
@@ -64,7 +71,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           {/* TopFilterBar + ProductGrid on right */}
           <main className="flex-1 space-y-6 min-w-0">
             <Suspense fallback={<div className="h-24 bg-white animate-pulse rounded-lg border border-neutral-200" />}>
-              <TopFilterBar totalResults={products.length} />
+              <TopFilterBar totalResults={products.length} categoriesTree={categoriesTree} />
             </Suspense>
             <ProductGrid products={products} wishlistedIds={wishlistedIds} />
           </main>

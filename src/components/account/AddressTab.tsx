@@ -82,18 +82,18 @@ export default function AddressTab({ addresses }: AddressTabProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white border border-neutral-100 p-6 sm:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 pb-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white border border-neutral-100 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-neutral-100 pb-4">
           <div>
-            <h2 className="font-serif text-xl font-normal text-neutral-900">Address Book</h2>
+            <h2 className="font-serif text-lg sm:text-xl font-normal text-neutral-900">Address Book</h2>
             <p className="text-neutral-500 font-light text-xs mt-1">
               Manage saved shipping locations for expedited atelier deliveries.
             </p>
           </div>
           <button
             onClick={handleOpenAdd}
-            className="bg-black text-white text-xs uppercase tracking-[0.15em] px-5 py-2.5 font-light hover:bg-neutral-800 transition-colors flex items-center justify-center space-x-2 self-start sm:self-auto"
+            className="bg-black text-white text-xs uppercase tracking-[0.15em] px-5 py-2.5 font-light hover:bg-neutral-800 transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Address</span>
@@ -102,7 +102,7 @@ export default function AddressTab({ addresses }: AddressTabProps) {
 
         {statusMessage && (
           <div
-            className={`p-4 text-xs font-light flex items-center space-x-2 border ${
+            className={`p-3.5 sm:p-4 text-xs font-light flex items-center space-x-2 border ${
               statusMessage.type === 'success'
                 ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                 : 'bg-red-50 text-red-800 border-red-200'
@@ -118,16 +118,16 @@ export default function AddressTab({ addresses }: AddressTabProps) {
         )}
 
         {addresses.length === 0 ? (
-          <div className="border border-dashed border-neutral-200 p-12 text-center space-y-3">
+          <div className="border border-dashed border-neutral-200 p-8 sm:p-12 text-center space-y-3">
             <MapPin className="w-10 h-10 text-neutral-300 mx-auto" />
-            <h3 className="font-serif text-lg text-neutral-800 font-normal">No Saved Addresses</h3>
+            <h3 className="font-serif text-base sm:text-lg text-neutral-800 font-normal">No Saved Addresses</h3>
             <p className="text-neutral-500 text-xs font-light max-w-md mx-auto">
               Add your home, office, or preferred boutique delivery address to streamline your future checkout process.
             </p>
             <div className="pt-2">
               <button
                 onClick={handleOpenAdd}
-                className="inline-flex items-center space-x-2 bg-neutral-900 text-white text-xs uppercase tracking-widest px-6 py-2.5 font-light hover:bg-black transition-colors"
+                className="inline-flex items-center justify-center space-x-2 bg-neutral-900 text-white text-xs uppercase tracking-widest px-6 py-2.5 font-light hover:bg-black transition-colors w-full sm:w-auto"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add First Address</span>
@@ -135,14 +135,14 @@ export default function AddressTab({ addresses }: AddressTabProps) {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {addresses.map((address) => {
               const isActionLoading = loadingAddressId === address.id;
 
               return (
                 <div
                   key={address.id}
-                  className={`bg-white border p-6 space-y-4 relative flex flex-col justify-between transition-all ${
+                  className={`bg-white border p-4 sm:p-6 space-y-4 relative flex flex-col justify-between transition-all ${
                     address.isDefault
                       ? 'border-neutral-900 shadow-sm'
                       : 'border-neutral-200 hover:border-neutral-400'
@@ -173,7 +173,7 @@ export default function AddressTab({ addresses }: AddressTabProps) {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-neutral-100 flex items-center justify-between text-[11px]">
+                  <div className="pt-4 border-t border-neutral-100 flex flex-wrap items-center justify-between gap-2 text-[11px]">
                     {!address.isDefault ? (
                       <button
                         onClick={() => address.id && handleSetDefault(address.id)}
@@ -193,7 +193,7 @@ export default function AddressTab({ addresses }: AddressTabProps) {
                       </span>
                     )}
 
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3 ml-auto">
                       <button
                         onClick={() => handleOpenEdit(address)}
                         disabled={isActionLoading}

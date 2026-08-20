@@ -1,7 +1,13 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { SearchX, Sparkles, RefreshCw } from 'lucide-react';
+import { SearchX, Sparkles, RefreshCw, LayoutGrid, Grid2X2, Columns2, Grid3X3 } from 'lucide-react';
 import ProductCard from './ProductCard';
+
+export type GridDensity = 'editorial' | 'compact';
+
+const GRID_DENSITY_STORAGE_KEY = 'ideal_beauty_grid_density';
 
 interface ProductGridProps {
   products: Array<{
@@ -18,9 +24,38 @@ interface ProductGridProps {
     }>;
   }>;
   wishlistedIds?: string[];
+  showDensitySwitcher?: boolean;
 }
 
-export default function ProductGrid({ products, wishlistedIds = [] }: ProductGridProps) {
+export default function ProductGrid({
+  products,
+  wishlistedIds = [],
+  showDensitySwitcher = true,
+}: ProductGridProps) {
+  const [density, setDensity] = useState<GridDensity>('compact');
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    try {
+      const saved = localStorage.getItem(GRID_DENSITY_STORAGE_KEY) as GridDensity | null;
+      if (saved === 'editorial' || saved === 'compact') {
+        setDensity(saved);
+      }
+    } catch {
+      // Ignore storage errors in restricted contexts
+    }
+  }, []);
+
+  const handleDensityChange = (newDensity: GridDensity) => {
+    setDensity(newDensity);
+    try {
+      localStorage.setItem(GRID_DENSITY_STORAGE_KEY, newDensity);
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
   if (products.length === 0) {
     return (
       <div className="py-16 px-6 text-center space-y-6 bg-white border border-neutral-200/80 rounded-xl shadow-xs max-w-2xl mx-auto my-6">
@@ -71,15 +106,66 @@ export default function ProductGrid({ products, wishlistedIds = [] }: ProductGri
     );
   }
 
+  const isEditorial = isMounted && density === 'editorial';
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-      {products.map((product) => (
-        <ProductCard
-          key={product.id}
-          product={product}
-          isWishlistedInitial={wishlistedIds.includes(product.id)}
-        />
-      ))}
+    <div className="space-y-4">
+      {/* Density Switcher Bar */}
+      {showDensitySwitcher && (
+        <div className="flex items-center justify-between px-1">
+          <div className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-light">
+            Displaying {products.length} {products.length === 1 ? 'Design' : 'Designs'}
+          </div>
+
+          <div className="hidden sm:flex items-center space-x-1 bg-neutral-100/80 p-1 rounded-lg border border-neutral-200/60">
+            <button
+              type="button"
+              onClick={() => handleDensityChange('editorial')}
+              className={`p-1.5 rounded-md text-xs transition-all flex items-center space-x-1 ${
+                isEditorial
+                  ? 'bg-white text-neutral-900 shadow-2xs font-medium'
+                  : 'text-neutral-500 hover:text-neutral-800'
+              }`}
+              title="Editorial 2-Column View"
+              aria-label="Editorial 2-Column View"
+            >
+              <Columns2 className="w-3.5 h-3.5" />
+              <span className="text-[10px] uppercase font-mono tracking-wider">Editorial</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDensityChange('compact')}
+              className={`p-1.5 rounded-md text-xs transition-all flex items-center space-x-1 ${
+                !isEditorial
+                  ? 'bg-white text-neutral-900 shadow-2xs font-medium'
+                  : 'text-neutral-500 hover:text-neutral-800'
+              }`}
+              title="Compact Multi-Column Grid"
+              aria-label="Compact Multi-Column Grid"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span className="text-[10px] uppercase font-mono tracking-wider">Compact</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Grid container */}
+      <div
+        className={
+          isEditorial
+            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 sm:gap-8 transition-all duration-300'
+            : 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 transition-all duration-300'
+        }
+      >
+        {products.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            isWishlistedInitial={wishlistedIds.includes(product.id)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

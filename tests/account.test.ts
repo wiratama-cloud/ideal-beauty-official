@@ -29,6 +29,10 @@ import {
   deleteFcmTokenAction,
   sendEmailVerificationAction,
   verifyEmailOtpAction,
+  getUserDevicesAction,
+  revokeDeviceAction,
+  revokeAllOtherDevicesAction,
+  registerDeviceTokenAction,
 } from '../src/app/actions/auth';
 import {
   deleteFcmTokenAction as accountDeleteFcmTokenAction,
@@ -602,5 +606,63 @@ describe('Account Management Services Unit & Integration Tests', () => {
 
     const wishlistAfter = await getUserWishlist(testUser.id);
     expect(wishlistAfter.find((w) => w.productId === product.id)).toBeUndefined();
+  });
+
+  test('Registered Devices Management (Add Current Device, Get Devices, Revoke Device, Revoke All Other)', async () => {
+    await setLoggedInUserId(testUser.id);
+
+    // 1. Add current device
+    const device1 = await registerDeviceTokenAction({
+      token: 'token_mobile_iphone_1',
+      deviceName: 'iPhone 15 Pro (Safari)',
+      deviceType: 'MOBILE',
+      browser: 'Safari',
+      os: 'iOS',
+    });
+    expect(device1.token).toBe('token_mobile_iphone_1');
+    expect(device1.deviceName).toBe('iPhone 15 Pro (Safari)');
+
+    // 2. Add second device (e.g. iPad or Desktop)
+    const device2 = await registerDeviceTokenAction({
+      token: 'token_desktop_mac_2',
+      deviceName: 'MacBook Pro (Chrome)',
+      deviceType: 'DESKTOP',
+      browser: 'Chrome',
+      os: 'macOS',
+    });
+    expect(device2.token).toBe('token_desktop_mac_2');
+
+    // 3. Retrieve user devices
+    const userDevices = await getUserDevicesAction();
+    expect(userDevices.length).toBe(2);
+    expect(userDevices.some((d) => d.token === 'token_mobile_iphone_1')).toBe(true);
+    expect(userDevices.some((d) => d.token === 'token_desktop_mac_2')).toBe(true);
+
+    // 4. Revoke single device
+    const revokeRes = await revokeDeviceAction(device2.id);
+    expect(revokeRes.success).toBe(true);
+
+    const devicesAfterRevoke = await getUserDevicesAction();
+    expect(devicesAfterRevoke.length).toBe(1);
+    expect(devicesAfterRevoke[0].id).toBe(device1.id);
+
+    // 5. Add another device and test revokeAllOtherDevicesAction
+    await registerDeviceTokenAction({
+      token: 'token_tablet_ipad_3',
+      deviceName: 'iPad Pro (Safari)',
+      deviceType: 'TABLET',
+      browser: 'Safari',
+      os: 'iOS',
+    });
+
+    const devicesBeforeRevokeOther = await getUserDevicesAction();
+    expect(devicesBeforeRevokeOther.length).toBe(2);
+
+    const revokeAllRes = await revokeAllOtherDevicesAction('token_mobile_iphone_1');
+    expect(revokeAllRes.success).toBe(true);
+
+    const remainingDevices = await getUserDevicesAction();
+    expect(remainingDevices.length).toBe(1);
+    expect(remainingDevices[0].token).toBe('token_mobile_iphone_1');
   });
 });

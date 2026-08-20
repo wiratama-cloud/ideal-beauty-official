@@ -320,35 +320,35 @@ export default function VouchersListClient({
       </section>
 
       {/* Main Tabs Navigation */}
-      <div className="bg-white border border-neutral-200/80 p-6 sm:p-8 space-y-6 shadow-xs">
+      <div className="bg-white border border-neutral-200/80 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 pb-0">
-          <div className="flex items-center space-x-2 sm:space-x-4 overflow-x-auto scrollbar-none pb-0">
+          <div className="flex items-center space-x-1 sm:space-x-4 overflow-x-auto scrollbar-none pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
             <button
               onClick={() => setActiveTab('available')}
-              className={`flex items-center space-x-2 px-4 py-3 text-xs uppercase tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
                 activeTab === 'available'
                   ? 'border-amber-600 text-neutral-900 font-medium'
                   : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
               }`}
             >
               <Ticket
-                className={`w-4 h-4 ${
+                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${
                   activeTab === 'available' ? 'text-amber-600' : 'text-neutral-400'
                 }`}
               />
-              <span>Available Vouchers ({availableVouchers.length})</span>
+              <span>Available ({availableVouchers.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('used_expired')}
-              className={`flex items-center space-x-2 px-4 py-3 text-xs uppercase tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
                 activeTab === 'used_expired'
                   ? 'border-amber-600 text-neutral-900 font-medium'
                   : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
               }`}
             >
               <Clock
-                className={`w-4 h-4 ${
+                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${
                   activeTab === 'used_expired' ? 'text-amber-600' : 'text-neutral-400'
                 }`}
               />
@@ -357,18 +357,18 @@ export default function VouchersListClient({
 
             <button
               onClick={() => setActiveTab('history')}
-              className={`flex items-center space-x-2 px-4 py-3 text-xs uppercase tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
                 activeTab === 'history'
                   ? 'border-amber-600 text-neutral-900 font-medium'
                   : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
               }`}
             >
               <History
-                className={`w-4 h-4 ${
+                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${
                   activeTab === 'history' ? 'text-amber-600' : 'text-neutral-400'
                 }`}
               />
-              <span>Redemption History ({initialHistory.length})</span>
+              <span>History ({initialHistory.length})</span>
             </button>
           </div>
         </div>

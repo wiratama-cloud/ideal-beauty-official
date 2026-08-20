@@ -85,18 +85,18 @@ export default function AccountView({ account }: AccountViewProps) {
         patronEmail={account.email || account.phone || undefined}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Administrator Quick Portal Banner */}
         {isAdmin && (
-          <div className="bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 border border-amber-500/40 text-white p-6 rounded-lg shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 border border-amber-500/40 text-white p-4 sm:p-6 rounded-lg shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
                 <Shield className="w-4 h-4 text-amber-400" />
-                <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-amber-300 font-semibold">
+                <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.25em] text-amber-300 font-semibold">
                   ADMINISTRATOR PRIVILEGES
                 </span>
               </div>
-              <h3 className="font-serif text-lg text-white font-light">
+              <h3 className="font-serif text-base sm:text-lg text-white font-light">
                 System Administrator Access Granted
               </h3>
               <p className="text-xs text-neutral-300 font-light max-w-2xl">
@@ -105,7 +105,7 @@ export default function AccountView({ account }: AccountViewProps) {
             </div>
             <Link
               href="/admin/dashboard"
-              className="inline-flex items-center space-x-2 bg-amber-600 hover:bg-amber-500 text-white px-5 py-2.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors shrink-0 shadow-xs"
+              className="inline-flex items-center justify-center space-x-2 bg-amber-600 hover:bg-amber-500 text-white px-4 sm:px-5 py-2.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors shrink-0 shadow-xs w-full sm:w-auto"
             >
               <span>Go to Admin Portal</span>
               <ChevronRight className="w-4 h-4" />
@@ -114,31 +114,31 @@ export default function AccountView({ account }: AccountViewProps) {
         )}
 
         {/* Patron Banner & Verification Badges */}
-        <div className="bg-white border border-neutral-200/80 p-6 sm:p-8 space-y-6 shadow-xs">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-2">
+        <div className="bg-white border border-neutral-200/80 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
+            <div className="space-y-1.5 sm:space-y-2">
               <div className="flex items-center space-x-2">
-                <Crown className="w-4 h-4 text-amber-600" />
-                <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-amber-900/80">
+                <Crown className="w-4 h-4 text-amber-600 shrink-0" />
+                <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.25em] sm:tracking-[0.3em] text-amber-900/80">
                   PATRON PROFILE OVERVIEW
                 </span>
               </div>
-              <h2 className="font-serif text-2xl sm:text-3xl font-light text-neutral-900 tracking-wide">
+              <h2 className="font-serif text-xl sm:text-2xl lg:text-3xl font-light text-neutral-900 tracking-wide">
                 {account.name || 'Valued Patron'}
               </h2>
-              <p className="text-neutral-500 font-mono text-[11px] tracking-wider">
+              <p className="text-neutral-500 font-mono text-[10px] sm:text-[11px] tracking-wider">
                 Member since {new Date(account.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </p>
             </div>
 
             {/* Verification & Contact Badges */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
                 onClick={handleSignOut}
                 disabled={signingOut}
-                className="border border-rose-200 text-rose-800 hover:bg-rose-50 text-[10px] uppercase tracking-[0.15em] px-4 py-2 font-light transition-colors flex items-center space-x-1.5 disabled:opacity-50 ml-auto sm:ml-0"
+                className="w-full sm:w-auto border border-rose-200 text-rose-800 hover:bg-rose-50 text-[10px] uppercase tracking-[0.15em] px-4 py-2.5 sm:py-2 font-light transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50"
               >
-                <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                <LogOut className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                 <span>{signingOut ? 'Signing Out...' : 'Sign Out'}</span>
               </button>
             </div>
@@ -146,55 +146,57 @@ export default function AccountView({ account }: AccountViewProps) {
         </div>
 
         {/* Clean, Intuitive Horizontal Account Settings Tabs & Content */}
-        <div className="bg-white border border-neutral-200/80 p-6 sm:p-8 space-y-6 shadow-xs">
+        <div className="bg-white border border-neutral-200/80 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 shadow-xs">
           {/* Horizontal Sub-Tabs Bar */}
           <div className="border-b border-neutral-200 pb-0">
-            <div className="flex items-center space-x-2 sm:space-x-4 overflow-x-auto scrollbar-none pb-0">
+            <div className="flex items-center space-x-1 sm:space-x-4 overflow-x-auto scrollbar-none pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`flex items-center space-x-2 px-4 py-3 text-xs uppercase tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
                   activeTab === 'profile'
                     ? 'border-amber-600 text-neutral-900 font-medium'
                     : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
                 }`}
               >
-                <User className={`w-4 h-4 ${activeTab === 'profile' ? 'text-amber-600' : 'text-neutral-400'}`} />
-                <span>Profile Details</span>
+                <User className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'profile' ? 'text-amber-600' : 'text-neutral-400'}`} />
+                <span className="hidden xs:inline sm:inline">Profile Details</span>
+                <span className="xs:hidden">Profile</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('security')}
-                className={`flex items-center space-x-2 px-4 py-3 text-xs uppercase tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
                   activeTab === 'security'
                     ? 'border-amber-600 text-neutral-900 font-medium'
                     : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
                 }`}
               >
-                <Shield className={`w-4 h-4 ${activeTab === 'security' ? 'text-amber-600' : 'text-neutral-400'}`} />
-                <span>Sign In & Security</span>
+                <Shield className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'security' ? 'text-amber-600' : 'text-neutral-400'}`} />
+                <span className="hidden xs:inline sm:inline">Sign In & Security</span>
+                <span className="xs:hidden">Security</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('addresses')}
-                className={`flex items-center space-x-2 px-4 py-3 text-xs uppercase tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
                   activeTab === 'addresses'
                     ? 'border-amber-600 text-neutral-900 font-medium'
                     : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
                 }`}
               >
-                <MapPin className={`w-4 h-4 ${activeTab === 'addresses' ? 'text-amber-600' : 'text-neutral-400'}`} />
+                <MapPin className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'addresses' ? 'text-amber-600' : 'text-neutral-400'}`} />
                 <span>Address Book ({account.addresses.length})</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('notifications')}
-                className={`flex items-center space-x-2 px-4 py-3 text-xs uppercase tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
                   activeTab === 'notifications'
                     ? 'border-amber-600 text-neutral-900 font-medium'
                     : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
                 }`}
               >
-                <Bell className={`w-4 h-4 ${activeTab === 'notifications' ? 'text-amber-600' : 'text-neutral-400'}`} />
+                <Bell className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'notifications' ? 'text-amber-600' : 'text-neutral-400'}`} />
                 <span>Notifications</span>
               </button>
             </div>

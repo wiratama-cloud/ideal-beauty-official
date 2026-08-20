@@ -23,7 +23,7 @@ describe('PWA Manifest & Apple Metadata Configuration', () => {
     expect(config.icons?.length).toBeGreaterThan(0);
   });
 
-  it('declares appleWebApp and icon metadata in src/app/layout.tsx', () => {
+  it('declares appleWebApp metadata in src/app/layout.tsx and provides App Router icon assets', () => {
     const layoutPath = path.resolve(__dirname, '../src/app/layout.tsx');
     const layoutContent = fs.readFileSync(layoutPath, 'utf-8');
 
@@ -31,7 +31,14 @@ describe('PWA Manifest & Apple Metadata Configuration', () => {
     expect(layoutContent).toContain('capable: true');
     expect(layoutContent).toContain("statusBarStyle: 'default'");
     expect(layoutContent).toContain("title: 'Ideal Beauty'");
-    expect(layoutContent).toContain('icons:');
+
+    // App router static metadata icon assets
+    expect(
+      fs.existsSync(path.resolve(__dirname, '../src/app/icon.svg')) ||
+      fs.existsSync(path.resolve(__dirname, '../src/app/icon.png'))
+    ).toBe(true);
+    expect(fs.existsSync(path.resolve(__dirname, '../src/app/apple-icon.png'))).toBe(true);
+    expect(fs.existsSync(path.resolve(__dirname, '../src/app/favicon.ico'))).toBe(true);
   });
 });
 

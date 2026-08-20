@@ -147,10 +147,10 @@ export default function ProfileTab({ user }: ProfileTabProps) {
   };
 
   return (
-    <div className="bg-white border border-neutral-100 p-6 sm:p-8 space-y-6">
+    <div className="bg-white border border-neutral-100 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
       <div className="border-b border-neutral-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="font-serif text-xl font-normal text-neutral-900">Personal Details</h2>
+          <h2 className="font-serif text-lg sm:text-xl font-normal text-neutral-900">Personal Details</h2>
           <p className="text-neutral-500 font-light text-xs mt-1">
             Manage your personal contact information and patron details.
           </p>
@@ -221,13 +221,13 @@ export default function ProfileTab({ user }: ProfileTabProps) {
               type="button"
               onClick={handleSendEmailCode}
               disabled={isSendingEmailCode}
-              className="bg-neutral-800 text-white text-xs px-4 py-2 hover:bg-black transition-colors disabled:opacity-50 flex items-center justify-center space-x-1.5"
+              className="bg-neutral-800 text-white text-xs px-4 py-2 hover:bg-black transition-colors disabled:opacity-50 flex items-center justify-center space-x-1.5 w-full sm:w-auto shrink-0"
             >
               {isSendingEmailCode ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
               <span>Send Verification Code</span>
             </button>
 
-            <form onSubmit={handleConfirmEmailCode} className="flex items-center space-x-2 flex-1">
+            <form onSubmit={handleConfirmEmailCode} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1">
               <input
                 type="text"
                 value={emailCode}
@@ -240,7 +240,7 @@ export default function ProfileTab({ user }: ProfileTabProps) {
               <button
                 type="submit"
                 disabled={isConfirmingEmailCode || !emailCode.trim()}
-                className="bg-black text-white text-xs px-4 py-2 hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center space-x-1"
+                className="bg-black text-white text-xs px-4 py-2 hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center justify-center space-x-1 w-full sm:w-auto shrink-0"
               >
                 {isConfirmingEmailCode ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                 <span>Confirm</span>
@@ -267,7 +267,7 @@ export default function ProfileTab({ user }: ProfileTabProps) {
 
       {statusMessage && (
         <div
-          className={`p-4 text-xs font-light flex items-center space-x-2 border ${
+          className={`p-3.5 sm:p-4 text-xs font-light flex items-center space-x-2 border ${
             statusMessage.type === 'success'
               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
               : 'bg-red-50 text-red-800 border-red-200'
@@ -282,9 +282,9 @@ export default function ProfileTab({ user }: ProfileTabProps) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
+      <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="space-y-1.5 sm:space-y-2">
             <label htmlFor="name" className="block text-[11px] uppercase tracking-wider text-neutral-600 font-medium">
               Full Name
             </label>
@@ -297,13 +297,13 @@ export default function ProfileTab({ user }: ProfileTabProps) {
                 onChange={handleChange}
                 required
                 placeholder="Patron Name"
-                className="w-full border border-neutral-200 pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-black font-light bg-white text-neutral-900"
+                className="w-full border border-neutral-200 pl-9 pr-3 py-2.5 sm:py-2 text-xs focus:outline-none focus:border-black font-light bg-white text-neutral-900"
               />
-              <User className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+              <User className="w-4 h-4 text-neutral-400 absolute left-3 top-3 sm:top-2.5" />
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <label htmlFor="email" className="block text-[11px] uppercase tracking-wider text-neutral-600 font-medium">
               Email Address
             </label>
@@ -316,13 +316,13 @@ export default function ProfileTab({ user }: ProfileTabProps) {
                 onChange={handleChange}
                 required
                 placeholder="patron@example.com"
-                className="w-full border border-neutral-200 pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-black font-light bg-white text-neutral-900"
+                className="w-full border border-neutral-200 pl-9 pr-3 py-2.5 sm:py-2 text-xs focus:outline-none focus:border-black font-light bg-white text-neutral-900"
               />
-              <Mail className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+              <Mail className="w-4 h-4 text-neutral-400 absolute left-3 top-3 sm:top-2.5" />
             </div>
           </div>
 
-          <div className="space-y-2 md:col-span-2">
+          <div className="space-y-1.5 sm:space-y-2 md:col-span-2">
             <label htmlFor="phone" className="block text-[11px] uppercase tracking-wider text-neutral-600 font-medium">
               Phone Number
             </label>
@@ -336,14 +336,14 @@ export default function ProfileTab({ user }: ProfileTabProps) {
                   disabled
                   readOnly
                   placeholder="+62 812-3456-7890"
-                  className="w-full border border-neutral-200 pl-9 pr-3 py-2 text-xs font-light bg-neutral-100 text-neutral-500 cursor-not-allowed"
+                  className="w-full border border-neutral-200 pl-9 pr-3 py-2.5 sm:py-2 text-xs font-light bg-neutral-100 text-neutral-500 cursor-not-allowed"
                 />
-                <Phone className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <Phone className="w-4 h-4 text-neutral-400 absolute left-3 top-3 sm:top-2.5" />
               </div>
               <button
                 type="button"
                 onClick={() => setIsChangePhoneModalOpen(true)}
-                className="px-4 py-2 bg-neutral-900 text-white text-xs font-medium hover:bg-black transition-colors shrink-0 flex items-center justify-center space-x-1"
+                className="px-4 py-2.5 sm:py-2 bg-neutral-900 text-white text-xs font-medium hover:bg-black transition-colors shrink-0 flex items-center justify-center space-x-1 w-full sm:w-auto"
               >
                 <span>Change Phone Number</span>
               </button>
@@ -355,7 +355,7 @@ export default function ProfileTab({ user }: ProfileTabProps) {
           <button
             type="submit"
             disabled={isLoading}
-            className="bg-black text-white text-xs uppercase tracking-[0.2em] px-8 py-3 font-light hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center space-x-2"
+            className="w-full sm:w-auto justify-center bg-black text-white text-xs uppercase tracking-[0.2em] px-8 py-3 font-light hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center space-x-2"
           >
             {isLoading ? (
               <>
@@ -371,8 +371,8 @@ export default function ProfileTab({ user }: ProfileTabProps) {
 
       {/* Change & Verify Phone Number Dialog Modal */}
       {isChangePhoneModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white border border-neutral-200 max-w-md w-full p-6 sm:p-8 space-y-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white border border-neutral-200 max-w-md w-full p-5 sm:p-8 space-y-5 sm:space-y-6 shadow-xl relative max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
             <button
               type="button"
               onClick={() => setIsChangePhoneModalOpen(false)}
@@ -383,7 +383,7 @@ export default function ProfileTab({ user }: ProfileTabProps) {
             </button>
 
             <div className="border-b border-neutral-100 pb-4">
-              <h2 className="font-serif text-xl font-normal text-neutral-900">
+              <h2 className="font-serif text-lg sm:text-xl font-normal text-neutral-900">
                 Change & Verify Phone Number
               </h2>
               <p className="text-neutral-500 font-light text-xs mt-1">

@@ -31,6 +31,33 @@ describe('Storefront Patron Vouchers & Account Integration', () => {
   ];
 
   beforeAll(async () => {
+    // Cleanup prior test run state if any
+    const existingUsers = await prisma.user.findMany({
+      where: {
+        email: { in: ['patron.voucher.test@idealbeautyofficial.com', 'other.patron.test@idealbeautyofficial.com'] },
+      },
+      select: { id: true },
+    });
+    const userIds = existingUsers.map((u) => u.id);
+
+    if (userIds.length > 0) {
+      await prisma.voucherUsage.deleteMany({
+        where: {
+          OR: [{ userId: { in: userIds } }, { voucher: { code: { in: testCodes } } }],
+        },
+      });
+      await prisma.order.deleteMany({
+        where: { userId: { in: userIds } },
+      });
+      await prisma.user.deleteMany({
+        where: { id: { in: userIds } },
+      });
+    }
+
+    await prisma.voucher.deleteMany({
+      where: { code: { in: testCodes } },
+    });
+
     // Create test patron user
     patronUser = await prisma.user.create({
       data: {

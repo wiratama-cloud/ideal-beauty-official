@@ -133,8 +133,8 @@ export default function AddressModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white border border-neutral-200 max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm">
+      <div className="bg-white border border-neutral-200 max-w-lg w-full p-5 sm:p-8 space-y-5 sm:space-y-6 shadow-xl relative max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-neutral-400 hover:text-black transition-colors"
@@ -144,7 +144,7 @@ export default function AddressModal({
         </button>
 
         <div className="border-b border-neutral-100 pb-4">
-          <h2 className="font-serif text-xl font-normal text-neutral-900">
+          <h2 className="font-serif text-lg sm:text-xl font-normal text-neutral-900">
             {addressToEdit ? 'Edit Shipping Address' : 'Add New Address'}
           </h2>
           <p className="text-neutral-500 font-light text-xs mt-1">
@@ -160,7 +160,7 @@ export default function AddressModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs font-light">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
             <div className="space-y-1.5 sm:col-span-2">
               <label htmlFor="label" className="block text-[11px] uppercase tracking-wider text-neutral-600 font-medium">
                 Address Label (e.g., Home, Office)
@@ -173,9 +173,9 @@ export default function AddressModal({
                   value={formData.label || ''}
                   onChange={handleChange}
                   placeholder="Home, Office, Villa"
-                  className="w-full border border-neutral-200 pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
+                  className="w-full border border-neutral-200 pl-9 pr-3 py-2.5 sm:py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
                 />
-                <Tag className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <Tag className="w-4 h-4 text-neutral-400 absolute left-3 top-3 sm:top-2.5" />
               </div>
             </div>
 
@@ -192,9 +192,9 @@ export default function AddressModal({
                   onChange={handleChange}
                   required
                   placeholder="Full Name"
-                  className="w-full border border-neutral-200 pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
+                  className="w-full border border-neutral-200 pl-9 pr-3 py-2.5 sm:py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
                 />
-                <User className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <User className="w-4 h-4 text-neutral-400 absolute left-3 top-3 sm:top-2.5" />
               </div>
             </div>
 
@@ -211,9 +211,9 @@ export default function AddressModal({
                   onChange={handleChange}
                   required
                   placeholder="+62 812-3456-7890"
-                  className="w-full border border-neutral-200 pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
+                  className="w-full border border-neutral-200 pl-9 pr-3 py-2.5 sm:py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
                 />
-                <Phone className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <Phone className="w-4 h-4 text-neutral-400 absolute left-3 top-3 sm:top-2.5" />
               </div>
             </div>
 
@@ -230,9 +230,9 @@ export default function AddressModal({
                   onChange={handleChange}
                   required
                   placeholder="Street name, building, apartment/suite number"
-                  className="w-full border border-neutral-200 pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
+                  className="w-full border border-neutral-200 pl-9 pr-3 py-2.5 sm:py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
                 />
-                <MapPin className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <MapPin className="w-4 h-4 text-neutral-400 absolute left-3 top-3 sm:top-2.5" />
               </div>
             </div>
 
@@ -248,7 +248,7 @@ export default function AddressModal({
                 onChange={handleChange}
                 required
                 placeholder="South Jakarta"
-                className="w-full border border-neutral-200 px-3 py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
+                className="w-full border border-neutral-200 px-3 py-2.5 sm:py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
               />
             </div>
 
@@ -264,7 +264,7 @@ export default function AddressModal({
                 onChange={handleChange}
                 required
                 placeholder="DKI Jakarta"
-                className="w-full border border-neutral-200 px-3 py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
+                className="w-full border border-neutral-200 px-3 py-2.5 sm:py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
               />
             </div>
 
@@ -280,7 +280,7 @@ export default function AddressModal({
                 onChange={handleChange}
                 required
                 placeholder="12190"
-                className="w-full border border-neutral-200 px-3 py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
+                className="w-full border border-neutral-200 px-3 py-2.5 sm:py-2 text-xs focus:outline-none focus:border-black font-light text-neutral-900"
               />
             </div>
 
@@ -300,18 +300,18 @@ export default function AddressModal({
             </div>
           </div>
 
-          <div className="pt-6 border-t border-neutral-100 flex justify-end space-x-3">
+          <div className="pt-4 sm:pt-6 border-t border-neutral-100 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="border border-neutral-300 text-neutral-700 text-xs uppercase tracking-widest px-5 py-2.5 hover:bg-neutral-50 transition-colors"
+              className="border border-neutral-300 text-neutral-700 text-xs uppercase tracking-widest px-5 py-2.5 hover:bg-neutral-50 transition-colors w-full sm:w-auto text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-black text-white text-xs uppercase tracking-[0.2em] px-6 py-2.5 font-light hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center space-x-2"
+              className="bg-black text-white text-xs uppercase tracking-[0.2em] px-6 py-2.5 font-light hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 w-full sm:w-auto"
             >
               {isLoading ? (
                 <>
