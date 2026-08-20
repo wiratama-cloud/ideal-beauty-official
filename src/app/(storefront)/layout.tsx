@@ -7,6 +7,7 @@ import { getLoggedInUserId } from '@/lib/session';
 import { isEmailAdmin } from '@/lib/services/access';
 import { prisma } from '@/lib/prisma';
 import FcmNotificationPrompt from '@/components/common/FcmNotificationPrompt';
+import PullToRefresh from '@/components/common/PullToRefresh';
 
 export default async function StorefrontLayout({ children }: { children: React.ReactNode }) {
   const [navCategories, userId] = await Promise.all([
@@ -35,7 +36,7 @@ export default async function StorefrontLayout({ children }: { children: React.R
   }
 
   return (
-    <>
+    <PullToRefresh>
       <Suspense fallback={<div className="h-20 border-b border-neutral-100 bg-white" />}>
         <Header initialNavCategories={navCategories} initialIsAdmin={isAdmin} initialUser={currentUser} />
       </Suspense>
@@ -43,6 +44,6 @@ export default async function StorefrontLayout({ children }: { children: React.R
       <Footer />
       <CartDrawer />
       <FcmNotificationPrompt isLoggedIn={!!userId} />
-    </>
+    </PullToRefresh>
   );
 }

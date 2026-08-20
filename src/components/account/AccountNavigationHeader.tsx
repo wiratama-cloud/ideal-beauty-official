@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { User, Package, Heart, Sparkles, Ticket } from 'lucide-react';
+
+export const ACCOUNT_NAV_SCROLL_KEY = 'ideal_account_nav_scroll_left';
 
 export interface AccountNavigationHeaderProps {
   ordersCount?: number;
@@ -21,11 +23,49 @@ export default function AccountNavigationHeader({
   patronEmail,
 }: AccountNavigationHeaderProps) {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement | null>(null);
 
   const isOverview = pathname === '/account';
   const isOrders = pathname.startsWith('/account/orders');
   const isWishlist = pathname.startsWith('/account/wishlist');
   const isVouchers = pathname.startsWith('/account/vouchers');
+
+  // Auto-center active tab on mount and route (pathname) changes
+  useEffect(() => {
+    const container = navRef.current;
+    if (!container) return;
+
+    // Use requestAnimationFrame to ensure DOM layout has rendered
+    const frameId = requestAnimationFrame(() => {
+      const activeEl = container.querySelector<HTMLElement>('[data-active="true"]');
+      if (activeEl) {
+        const containerWidth = container.clientWidth;
+        const scrollWidth = container.scrollWidth;
+        if (scrollWidth > containerWidth) {
+          const activeLeft = activeEl.offsetLeft;
+          const activeWidth = activeEl.offsetWidth;
+          const targetScrollLeft = activeLeft - containerWidth / 2 + activeWidth / 2;
+          container.scrollTo({
+            left: Math.max(0, targetScrollLeft),
+            behavior: 'smooth',
+          });
+        }
+      }
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [pathname]);
+
+  // Persist scroll position to sessionStorage for fast back/forward navigation
+  const handleScroll = useCallback(() => {
+    if (navRef.current && typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(ACCOUNT_NAV_SCROLL_KEY, String(navRef.current.scrollLeft));
+      } catch {
+        // Safe fail for restricted storage contexts
+      }
+    }
+  }, []);
 
   const navItems = [
     {
@@ -90,15 +130,21 @@ export default function AccountNavigationHeader({
           </div>
         </div>
 
-        {/* Cohesive Navigation Header Tabs */}
-        <nav className="flex items-center space-x-4 sm:space-x-8 mt-2 sm:mt-4 overflow-x-auto scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
+        {/* Cohesive Navigation Header Tabs with Smooth Touch Momentum Scrolling */}
+        <nav
+          ref={navRef}
+          onScroll={handleScroll}
+          className="flex items-center space-x-4 sm:space-x-8 mt-2 sm:mt-4 overflow-x-auto scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0 overscroll-x-contain touch-pan-x scroll-smooth"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group relative flex items-center space-x-1.5 sm:space-x-2.5 pb-3 sm:pb-4 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.2em] transition-all whitespace-nowrap ${
+                data-active={item.active ? 'true' : undefined}
+                className={`group relative flex items-center space-x-1.5 sm:space-x-2.5 pb-3 sm:pb-4 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.2em] transition-all whitespace-nowrap shrink-0 ${
                   item.active
                     ? 'text-neutral-900 font-medium'
                     : 'text-neutral-500 hover:text-neutral-900 font-light'

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -31,6 +31,32 @@ export default function OrdersListClient({ orders }: OrdersListClientProps) {
   const [activeFilter, setActiveFilter] = useState<StatusFilter>('ALL');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const filterNavRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-center active filter tab on mobile when clicked/changed
+  useEffect(() => {
+    const container = filterNavRef.current;
+    if (!container) return;
+
+    const frameId = requestAnimationFrame(() => {
+      const activeBtn = container.querySelector<HTMLElement>('[data-active="true"]');
+      if (activeBtn) {
+        const containerWidth = container.clientWidth;
+        const scrollWidth = container.scrollWidth;
+        if (scrollWidth > containerWidth) {
+          const activeLeft = activeBtn.offsetLeft;
+          const activeWidth = activeBtn.offsetWidth;
+          const targetScrollLeft = activeLeft - containerWidth / 2 + activeWidth / 2;
+          container.scrollTo({
+            left: Math.max(0, targetScrollLeft),
+            behavior: 'smooth',
+          });
+        }
+      }
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [activeFilter]);
 
   const formatIDR = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -158,7 +184,11 @@ export default function OrdersListClient({ orders }: OrdersListClientProps) {
       {/* Status Filter Tabs & Action Toolbar */}
       <div className="bg-white border border-neutral-200/80 p-3.5 sm:p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
         {/* Filter Tabs */}
-        <div className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none -mx-1 px-1">
+        <div
+          ref={filterNavRef}
+          className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none -mx-1 px-1 overscroll-x-contain touch-pan-x scroll-smooth"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           <span className="text-neutral-400 text-xs flex items-center space-x-1 mr-1 sm:mr-2 flex-shrink-0">
             <Filter className="w-3.5 h-3.5 text-amber-600" />
             <span className="uppercase text-[9px] sm:text-[10px] tracking-widest font-mono">Filter:</span>
@@ -176,7 +206,8 @@ export default function OrdersListClient({ orders }: OrdersListClientProps) {
               <button
                 key={tab.key}
                 onClick={() => setActiveFilter(tab.key as StatusFilter)}
-                className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs uppercase tracking-[0.12em] sm:tracking-[0.15em] transition-all whitespace-nowrap flex items-center space-x-1.5 border ${
+                data-active={isActive ? 'true' : undefined}
+                className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs uppercase tracking-[0.12em] sm:tracking-[0.15em] transition-all whitespace-nowrap flex items-center space-x-1.5 border shrink-0 ${
                   isActive
                     ? 'border-neutral-900 bg-neutral-900 text-white font-medium shadow-xs'
                     : 'border-neutral-200 bg-neutral-50/50 text-neutral-600 hover:border-neutral-400 hover:bg-white'

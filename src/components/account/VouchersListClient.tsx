@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Ticket,
@@ -88,6 +88,32 @@ export default function VouchersListClient({
 }: VouchersListClientProps) {
   const [activeTab, setActiveTab] = useState<'available' | 'used_expired' | 'history'>('available');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const voucherTabNavRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-center active voucher tab on mobile when clicked/changed
+  useEffect(() => {
+    const container = voucherTabNavRef.current;
+    if (!container) return;
+
+    const frameId = requestAnimationFrame(() => {
+      const activeBtn = container.querySelector<HTMLElement>('[data-active="true"]');
+      if (activeBtn) {
+        const containerWidth = container.clientWidth;
+        const scrollWidth = container.scrollWidth;
+        if (scrollWidth > containerWidth) {
+          const activeLeft = activeBtn.offsetLeft;
+          const activeWidth = activeBtn.offsetWidth;
+          const targetScrollLeft = activeLeft - containerWidth / 2 + activeWidth / 2;
+          container.scrollTo({
+            left: Math.max(0, targetScrollLeft),
+            behavior: 'smooth',
+          });
+        }
+      }
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [activeTab]);
 
   // Voucher Checker state
   const [checkCodeInput, setCheckCodeInput] = useState('');
@@ -322,10 +348,15 @@ export default function VouchersListClient({
       {/* Main Tabs Navigation */}
       <div className="bg-white border border-neutral-200/80 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 pb-0">
-          <div className="flex items-center space-x-1 sm:space-x-4 overflow-x-auto scrollbar-none pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div
+            ref={voucherTabNavRef}
+            className="flex items-center space-x-1 sm:space-x-4 overflow-x-auto scrollbar-none pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 overscroll-x-contain touch-pan-x scroll-smooth"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
             <button
               onClick={() => setActiveTab('available')}
-              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+              data-active={activeTab === 'available' ? 'true' : undefined}
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap shrink-0 ${
                 activeTab === 'available'
                   ? 'border-amber-600 text-neutral-900 font-medium'
                   : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
@@ -341,7 +372,8 @@ export default function VouchersListClient({
 
             <button
               onClick={() => setActiveTab('used_expired')}
-              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+              data-active={activeTab === 'used_expired' ? 'true' : undefined}
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap shrink-0 ${
                 activeTab === 'used_expired'
                   ? 'border-amber-600 text-neutral-900 font-medium'
                   : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
@@ -357,7 +389,8 @@ export default function VouchersListClient({
 
             <button
               onClick={() => setActiveTab('history')}
-              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+              data-active={activeTab === 'history' ? 'true' : undefined}
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap shrink-0 ${
                 activeTab === 'history'
                   ? 'border-amber-600 text-neutral-900 font-medium'
                   : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'

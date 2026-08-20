@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import AccountNavigationHeader from './AccountNavigationHeader';
 import ProfileTab from './ProfileTab';
@@ -57,12 +57,38 @@ export default function AccountView({ account }: AccountViewProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'addresses' | 'notifications'>('profile');
   const [signingOut, setSigningOut] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const subTabNavRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     checkIsAdminAction()
       .then((res) => setIsAdmin(res))
       .catch(() => {});
   }, []);
+
+  // Smoothly center active subtab on mobile when clicked/changed
+  useEffect(() => {
+    const container = subTabNavRef.current;
+    if (!container) return;
+
+    const frameId = requestAnimationFrame(() => {
+      const activeBtn = container.querySelector<HTMLElement>('[data-active="true"]');
+      if (activeBtn) {
+        const containerWidth = container.clientWidth;
+        const scrollWidth = container.scrollWidth;
+        if (scrollWidth > containerWidth) {
+          const activeLeft = activeBtn.offsetLeft;
+          const activeWidth = activeBtn.offsetWidth;
+          const targetScrollLeft = activeLeft - containerWidth / 2 + activeWidth / 2;
+          container.scrollTo({
+            left: Math.max(0, targetScrollLeft),
+            behavior: 'smooth',
+          });
+        }
+      }
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [activeTab]);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -149,10 +175,15 @@ export default function AccountView({ account }: AccountViewProps) {
         <div className="bg-white border border-neutral-200/80 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 shadow-xs">
           {/* Horizontal Sub-Tabs Bar */}
           <div className="border-b border-neutral-200 pb-0">
-            <div className="flex items-center space-x-1 sm:space-x-4 overflow-x-auto scrollbar-none pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div
+              ref={subTabNavRef}
+              className="flex items-center space-x-1 sm:space-x-4 overflow-x-auto scrollbar-none pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 overscroll-x-contain touch-pan-x scroll-smooth"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+                data-active={activeTab === 'profile' ? 'true' : undefined}
+                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap shrink-0 ${
                   activeTab === 'profile'
                     ? 'border-amber-600 text-neutral-900 font-medium'
                     : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
@@ -165,7 +196,8 @@ export default function AccountView({ account }: AccountViewProps) {
 
               <button
                 onClick={() => setActiveTab('security')}
-                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+                data-active={activeTab === 'security' ? 'true' : undefined}
+                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap shrink-0 ${
                   activeTab === 'security'
                     ? 'border-amber-600 text-neutral-900 font-medium'
                     : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
@@ -178,7 +210,8 @@ export default function AccountView({ account }: AccountViewProps) {
 
               <button
                 onClick={() => setActiveTab('addresses')}
-                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+                data-active={activeTab === 'addresses' ? 'true' : undefined}
+                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap shrink-0 ${
                   activeTab === 'addresses'
                     ? 'border-amber-600 text-neutral-900 font-medium'
                     : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
@@ -190,7 +223,8 @@ export default function AccountView({ account }: AccountViewProps) {
 
               <button
                 onClick={() => setActiveTab('notifications')}
-                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap ${
+                data-active={activeTab === 'notifications' ? 'true' : undefined}
+                className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] transition-all border-b-2 whitespace-nowrap shrink-0 ${
                   activeTab === 'notifications'
                     ? 'border-amber-600 text-neutral-900 font-medium'
                     : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
