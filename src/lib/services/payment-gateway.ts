@@ -48,8 +48,27 @@ export async function generateVirtualAccountData(orderId: string, bank: string =
   };
 }
 
-export function verifyWebhookSignature(orderId: string, statusCode: string, grossAmount: string, serverKey: string, signature: string): boolean {
-  if (!serverKey || !signature) return true; // Default pass in sandbox / mock mode
+export function verifyWebhookSignature(
+  orderId: string,
+  statusCode: string,
+  grossAmount: string,
+  serverKey: string,
+  signature: string
+): boolean {
+  const isProduction =
+    process.env.NODE_ENV === 'production' ||
+    process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true';
+
+  if (!signature || !serverKey) {
+    if (isProduction) {
+      return false;
+    }
+    const isMockAllowed =
+      process.env.NODE_ENV !== 'production' ||
+      process.env.MIDTRANS_MOCK_MODE === 'true';
+    return isMockAllowed && (!signature || !serverKey);
+  }
+
   const raw = `${orderId}${statusCode}${grossAmount}${serverKey}`;
   const computedHash = crypto.createHash('sha512').update(raw).digest('hex');
   return computedHash.toLowerCase() === signature.toLowerCase();

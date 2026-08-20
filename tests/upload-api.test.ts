@@ -1,28 +1,47 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { POST } from '@/app/api/upload/route';
 import sharp from 'sharp';
-import fs from 'fs';
-import path from 'path';
+
+const { mockFileSave, mockGetDownloadURL } = vi.hoisted(() => ({
+  mockFileSave: vi.fn().mockResolvedValue(undefined),
+  mockGetDownloadURL: vi.fn().mockImplementation(async (file: any) => {
+    return `http://127.0.0.1:9199/v0/b/test-bucket.appspot.com/o/${encodeURIComponent(file.name)}?alt=media`;
+  }),
+}));
+
+vi.mock('firebase-admin/storage', () => ({
+  getStorage: vi.fn().mockReturnValue({
+    bucket: vi.fn().mockImplementation((bucketName: string) => ({
+      name: bucketName || 'test-bucket.appspot.com',
+      file: vi.fn().mockImplementation((fileName: string) => ({
+        name: fileName,
+        bucket: { name: bucketName || 'test-bucket.appspot.com' },
+        save: mockFileSave,
+      })),
+    })),
+  }),
+  getDownloadURL: (file: any) => mockGetDownloadURL(file),
+}));
+
+vi.mock('@/lib/firebase/admin', () => ({
+  firebaseAdmin: {},
+  firebaseAdminStorage: {
+    bucket: vi.fn().mockImplementation((bucketName: string) => ({
+      name: bucketName || 'test-bucket.appspot.com',
+      file: vi.fn().mockImplementation((fileName: string) => ({
+        name: fileName,
+        bucket: { name: bucketName || 'test-bucket.appspot.com' },
+        save: mockFileSave,
+      })),
+    })),
+  },
+}));
 
 describe('Upload API Route (/api/upload)', () => {
-  const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads');
-
   beforeEach(async () => {
-    if (!fs.existsSync(uploadsDir)) {
-      await fs.promises.mkdir(uploadsDir, { recursive: true });
-    }
-  });
-
-  afterEach(async () => {
-    // Cleanup generated test files
-    if (fs.existsSync(uploadsDir)) {
-      const files = await fs.promises.readdir(uploadsDir);
-      for (const file of files) {
-        if (file.includes('test-upload')) {
-          await fs.promises.unlink(path.join(uploadsDir, file)).catch(() => {});
-        }
-      }
-    }
+    vi.clearAllMocks();
+    process.env.FIREBASE_STORAGE_EMULATOR_HOST = '127.0.0.1:9199';
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test-bucket.appspot.com';
   });
 
   it('rejects request if no file is provided', async () => {

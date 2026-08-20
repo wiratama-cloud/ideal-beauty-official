@@ -4,10 +4,15 @@ export type ImageResolution = typeof IMAGE_RESOLUTIONS[number];
 export const DEFAULT_PRODUCT_FALLBACK = '/images/products/default-product.jpg';
 
 /**
- * Checks if a given URL is a Firebase Storage URL.
+ * Checks if a given URL is a Firebase Storage or Firebase Storage Emulator URL.
  */
 function isFirebaseUrl(url: string): boolean {
-  return url.includes('firebasestorage.googleapis.com') || url.includes('storage.googleapis.com');
+  return (
+    url.includes('firebasestorage.googleapis.com') ||
+    url.includes('storage.googleapis.com') ||
+    url.includes('/v0/b/') ||
+    url.includes(':9199')
+  );
 }
 
 /**

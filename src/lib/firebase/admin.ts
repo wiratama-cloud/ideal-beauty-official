@@ -3,24 +3,45 @@ import { getAuth } from 'firebase-admin/auth';
 import { getMessaging } from 'firebase-admin/messaging';
 import { getStorage } from 'firebase-admin/storage';
 
-// Initialize only if service account exists
-const isFirebaseAdminConfigured = !!process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+const isServiceAccountConfigured = !!process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+const isEmulatorOrDev =
+  !!process.env.FIREBASE_STORAGE_EMULATOR_HOST ||
+  !!process.env.FIREBASE_AUTH_EMULATOR_HOST ||
+  !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_HOST ||
+  !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST ||
+  process.env.NODE_ENV === 'development' ||
+  process.env.NODE_ENV === 'test';
 
 let app: App | null = null;
-if (isFirebaseAdminConfigured) {
-  if (!getApps().length) {
-    try {
+if (!getApps().length) {
+  try {
+    const projectId =
+      process.env.FIREBASE_PROJECT_ID ||
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+      'ideal-beauty-official-b313d';
+    const storageBucket =
+      process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+      process.env.FIREBASE_STORAGE_BUCKET ||
+      `${projectId}.appspot.com`;
+
+    if (isServiceAccountConfigured) {
       const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY!);
       app = initializeApp({
         credential: cert(serviceAccount),
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET,
+        storageBucket,
+        projectId: serviceAccount.project_id || projectId,
       });
-    } catch (error) {
-      console.error('Error initializing Firebase Admin SDK:', error);
+    } else if (isEmulatorOrDev) {
+      app = initializeApp({
+        projectId,
+        storageBucket,
+      });
     }
-  } else {
-    app = getApps()[0];
+  } catch (error) {
+    console.error('Error initializing Firebase Admin SDK:', error);
   }
+} else {
+  app = getApps()[0];
 }
 
 export const firebaseAdmin = app;
@@ -28,13 +49,58 @@ export const firebaseAdminAuth = app ? getAuth(app) : null;
 export const firebaseAdminMessaging = app ? getMessaging(app) : null;
 export const firebaseAdminStorage = app ? getStorage(app) : null;
 
-// Helper to verify ID token
-export async function verifyIdToken(token: string) {
-  if (!firebaseAdminAuth) return null;
+// Helper to decode JWT payload safely in dev / test / emulator mode
+function decodeEmulatorOrDevToken(token: string) {
   try {
-    return await firebaseAdminAuth.verifyIdToken(token);
-  } catch (error) {
-    console.error('Error verifying Firebase ID token:', error);
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const payloadStr = Buffer.from(parts[1], 'base64url').toString('utf-8');
+    const payload = JSON.parse(payloadStr);
+    if (!payload || typeof payload !== 'object') return null;
+
+    const uid = payload.user_id || payload.sub || payload.uid;
+    if (!uid || typeof uid !== 'string') return null;
+
+    return {
+      uid,
+      sub: uid,
+      email: payload.email,
+      email_verified: !!payload.email_verified,
+      phone_number: payload.phone_number,
+      name: payload.name,
+      picture: payload.picture,
+      ...payload,
+    };
+  } catch {
     return null;
   }
+}
+
+// Helper to verify ID token
+export async function verifyIdToken(token: string) {
+  if (!token || typeof token !== 'string') return null;
+
+  if (firebaseAdminAuth) {
+    try {
+      return await firebaseAdminAuth.verifyIdToken(token);
+    } catch (error) {
+      if (isEmulatorOrDev) {
+        const decoded = decodeEmulatorOrDevToken(token);
+        if (decoded) {
+          return decoded;
+        }
+      }
+      console.error('Error verifying Firebase ID token:', error);
+      return null;
+    }
+  }
+
+  if (isEmulatorOrDev) {
+    const decoded = decodeEmulatorOrDevToken(token);
+    if (decoded) {
+      return decoded;
+    }
+  }
+
+  return null;
 }

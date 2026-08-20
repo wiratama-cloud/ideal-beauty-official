@@ -16,15 +16,27 @@ export async function POST(request: Request) {
       transaction_id,
     } = body;
 
-    const serverKey = process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-sample-key';
+    const isProduction =
+      process.env.NODE_ENV === 'production' ||
+      process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true';
 
-    if (signature_key) {
+    const isMockMode =
+      process.env.MIDTRANS_MOCK_MODE === 'true' ||
+      (!isProduction && !signature_key);
+
+    if (isProduction && !signature_key) {
+      return NextResponse.json({ error: 'Signature key is required in production' }, { status: 401 });
+    }
+
+    const serverKey = process.env.MIDTRANS_SERVER_KEY || (isProduction ? '' : 'SB-Mid-server-sample-key');
+
+    if (!isMockMode || signature_key) {
       const isValid = verifyWebhookSignature(
-        order_id,
-        status_code,
-        gross_amount,
+        order_id || '',
+        status_code || '',
+        gross_amount || '',
         serverKey,
-        signature_key
+        signature_key || ''
       );
 
       if (!isValid) {
@@ -39,8 +51,9 @@ export async function POST(request: Request) {
       transaction_status === 'COMPLETED' ||
       transaction_status === 'success'
     ) {
-      if (payment_id) {
-        await processPaymentCompletion(payment_id, transaction_id);
+      const targetPaymentId = payment_id || (body as any).custom_field1 || order_id;
+      if (targetPaymentId) {
+        await processPaymentCompletion(targetPaymentId, transaction_id);
       }
     }
 

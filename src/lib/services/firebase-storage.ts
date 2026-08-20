@@ -4,10 +4,29 @@ import path from 'path';
 import { firebaseAdminStorage } from '../firebase/admin';
 import { getDownloadURL } from 'firebase-admin/storage';
 import { ImageProcessingResult, getBaseFileNameWithoutExt } from './image-processor';
-import { ImageUrlsMap, StoredImageVariantsResult } from './local-storage';
 
-function getStorageBucketName(): string | undefined {
-  return process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET;
+export interface ImageUrlsMap {
+  '256': string;
+  '512': string;
+  '768': string;
+  '1024': string;
+  original: string;
+  [key: string]: string;
+}
+
+export interface StoredImageVariantsResult {
+  url: string;
+  urls: ImageUrlsMap;
+}
+
+export function getStorageBucketName(): string | undefined {
+  return (
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+    process.env.FIREBASE_STORAGE_BUCKET ||
+    (process.env.FIREBASE_STORAGE_EMULATOR_HOST || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_HOST
+      ? `${process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'idealbeauty-dev'}.appspot.com`
+      : undefined)
+  );
 }
 
 function getMimeType(filePath: string): string {
@@ -255,18 +274,22 @@ export async function deleteImageVariantsFromFirebase(
     throw new Error('Firebase Storage not configured');
   }
 
-  const fileName = path.basename(fileNameOrPath);
+  // Strip query parameters and decode URL components if a full URL was provided
+  const cleanPath = decodeURIComponent(fileNameOrPath.split('?')[0]);
+  const fileName = path.basename(cleanPath);
   const baseName = getBaseFileNameWithoutExt(fileName);
   const ext = path.extname(fileName);
 
   const filesToDelete = [
-    fileName,
     `${baseName}-256w.webp`,
     `${baseName}-512w.webp`,
     `${baseName}-768w.webp`,
     `${baseName}-1024w.webp`,
   ];
 
+  if (fileName) {
+    filesToDelete.push(fileName);
+  }
   if (ext) {
     filesToDelete.push(`${baseName}${ext}`);
   }

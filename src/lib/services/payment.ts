@@ -4,7 +4,7 @@ import { generateQRISData, generateVirtualAccountData } from './payment-gateway'
 
 export async function processPaymentCompletion(paymentId: string, providerTxId?: string) {
   return prisma.$transaction(async (tx) => {
-    const payment = await tx.payment.findUnique({
+    let payment = await tx.payment.findUnique({
       where: { id: paymentId },
       include: {
         order: {
@@ -15,6 +15,53 @@ export async function processPaymentCompletion(paymentId: string, providerTxId?:
         },
       },
     });
+
+    if (!payment) {
+      // 1. Try finding by providerTxId
+      payment = await tx.payment.findFirst({
+        where: { providerTxId: paymentId },
+        include: {
+          order: {
+            include: {
+              items: true,
+              payments: true,
+            },
+          },
+        },
+      });
+    }
+
+    if (!payment) {
+      // 2. Try finding earliest pending payment for the order (e.g., DOWN_PAYMENT before FINAL_BALANCE)
+      payment = await tx.payment.findFirst({
+        where: { orderId: paymentId, status: PaymentStatus.PENDING },
+        include: {
+          order: {
+            include: {
+              items: true,
+              payments: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'asc' },
+      });
+    }
+
+    if (!payment) {
+      // 3. Fallback to any payment associated with the order (for idempotency on already-completed payments)
+      payment = await tx.payment.findFirst({
+        where: { orderId: paymentId },
+        include: {
+          order: {
+            include: {
+              items: true,
+              payments: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
 
     if (!payment) {
       throw new Error(`Payment with ID ${paymentId} not found.`);
@@ -29,7 +76,7 @@ export async function processPaymentCompletion(paymentId: string, providerTxId?:
 
     // 1. Update Payment status to COMPLETED
     const updatedPayment = await tx.payment.update({
-      where: { id: paymentId },
+      where: { id: payment.id },
       data: {
         status: PaymentStatus.COMPLETED,
         providerTxId: providerTxId || payment.providerTxId || `MID-${payment.id.substring(0, 8)}`,

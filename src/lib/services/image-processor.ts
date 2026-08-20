@@ -1,11 +1,15 @@
 import sharp from 'sharp';
 import path from 'path';
-import { isFirebaseStorageConfigured, uploadImageVariantsToFirebase } from './firebase-storage';
-import { saveImageVariantsToLocal, StoredImageVariantsResult, ImageUrlsMap } from './local-storage';
+import {
+  isFirebaseStorageConfigured,
+  uploadImageVariantsToFirebase,
+  StoredImageVariantsResult,
+  ImageUrlsMap,
+} from './firebase-storage';
 import { IMAGE_RESOLUTIONS, ImageResolution } from '../utils/image-url';
 
 export { IMAGE_RESOLUTIONS };
-export type { ImageResolution };
+export type { ImageResolution, StoredImageVariantsResult, ImageUrlsMap };
 
 export interface ProcessedVariant {
   resolution: ImageResolution;
@@ -126,8 +130,7 @@ export async function processImageVariants(
 }
 
 /**
- * Helper to process and store image variants either in Firebase Storage
- * or falling back to local public/uploads directory.
+ * Helper to process and store image variants in Firebase Storage (or Firebase Storage Emulator).
  */
 export async function processAndStoreImageVariants(
   inputBuffer: Buffer,
@@ -138,15 +141,7 @@ export async function processAndStoreImageVariants(
   const processingResult = await processImageVariants(inputBuffer, fileName, contentType, options);
   const folder = options?.folder || 'products';
 
-  let storedResult: StoredImageVariantsResult;
-
-  if (isFirebaseStorageConfigured()) {
-    storedResult = await uploadImageVariantsToFirebase(processingResult, folder);
-  } else {
-    // For local storage, if folder is 'products', save to 'uploads' (or the specified folder)
-    const subDir = folder === 'products' ? 'uploads' : (folder || 'uploads');
-    storedResult = await saveImageVariantsToLocal(processingResult, subDir);
-  }
+  const storedResult = await uploadImageVariantsToFirebase(processingResult, folder);
 
   return {
     url: storedResult.url,

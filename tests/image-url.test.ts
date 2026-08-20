@@ -52,6 +52,18 @@ describe('Image URL Utility Helpers', () => {
     expect(getOptimizedImageUrl(firebaseRawUrl, 512)).toBe(
       'https://firebasestorage.googleapis.com/v0/b/bucket-name/o/products%2F1712345678-dress-512w.webp?alt=media&token=123'
     );
+
+    const emulatorUrl =
+      'http://127.0.0.1:9199/v0/b/idealbeauty-dev.appspot.com/o/products%2F1712345678-dress-1024w.webp?alt=media';
+    expect(getOptimizedImageUrl(emulatorUrl, 256)).toBe(
+      'http://127.0.0.1:9199/v0/b/idealbeauty-dev.appspot.com/o/products%2F1712345678-dress-256w.webp?alt=media'
+    );
+
+    const emulatorRawUrl =
+      'http://localhost:9199/v0/b/idealbeauty-dev.appspot.com/o/products%2F1712345678-dress.jpg?alt=media';
+    expect(getOptimizedImageUrl(emulatorRawUrl, 512)).toBe(
+      'http://localhost:9199/v0/b/idealbeauty-dev.appspot.com/o/products%2F1712345678-dress-512w.webp?alt=media'
+    );
   });
 
   it('preserves external 3rd-party URLs without alteration', () => {
