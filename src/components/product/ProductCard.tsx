@@ -23,11 +23,18 @@ interface ProductCardProps {
     }>;
   };
   isWishlistedInitial?: boolean;
+  priority?: boolean;
 }
 
-export default function ProductCard({ product, isWishlistedInitial = false }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  isWishlistedInitial = false,
+  priority = false,
+}: ProductCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(isWishlistedInitial);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Price calculation
   const salePrices = product.variants
@@ -55,11 +62,11 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
     : 0;
 
   const mainImage = getOptimizedImageUrl(product.images[0], 512);
-  const hoverImage = product.images[1] ? getOptimizedImageUrl(product.images[1], 512) : mainImage;
-  const hasHoverImage = product.images.length > 1;
+  const hoverImage = product.images[1] ? getOptimizedImageUrl(product.images[1], 512) : null;
+  const hasHoverImage = Boolean(hoverImage);
 
   const [mainImgSrc, setMainImgSrc] = useState(mainImage);
-  const [hoverImgSrc, setHoverImgSrc] = useState(hoverImage);
+  const [hoverImgSrc, setHoverImgSrc] = useState(hoverImage || mainImage);
 
   const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -84,7 +91,12 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
   };
 
   return (
-    <div className="group relative flex flex-col bg-white rounded-sm overflow-hidden border border-neutral-100/80 shadow-xs hover:shadow-md transition-all duration-300">
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onTouchStart={() => setIsHovered(true)}
+      onFocus={() => setIsHovered(true)}
+      className="group relative flex flex-col bg-white rounded-sm overflow-hidden border border-neutral-100/80 shadow-xs hover:shadow-md transition-all duration-300"
+    >
       {/* Card wrapped in Link */}
       <Link href={`/products/${product.slug}`} className="block relative w-full flex-1">
         {/* Aspect Ratio Image Container */}
@@ -94,21 +106,25 @@ export default function ProductCard({ product, isWishlistedInitial = false }: Pr
             src={mainImgSrc}
             alt={product.name}
             fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            priority={priority}
+            loading={priority ? undefined : 'lazy'}
+            sizes="(max-width: 640px) 256px, (max-width: 1024px) 384px, 512px"
+            onLoad={() => setIsLoaded(true)}
             className={`object-cover object-center transition-all duration-700 ${
-              hasHoverImage ? 'group-hover:opacity-0' : 'group-hover:scale-105'
-            }`}
+              isLoaded ? 'blur-0 scale-100' : 'blur-xs scale-105'
+            } ${hasHoverImage ? 'group-hover:opacity-0' : 'group-hover:scale-105'}`}
             unoptimized
             onError={() => setMainImgSrc('/images/products/default-product.jpg')}
           />
 
-          {/* Hover Image */}
-          {hasHoverImage && (
+          {/* Deferred Secondary / Hover Image */}
+          {hasHoverImage && isHovered && (
             <Image
               src={hoverImgSrc}
               alt={`${product.name} hover`}
               fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              loading="lazy"
+              sizes="(max-width: 640px) 256px, (max-width: 1024px) 384px, 512px"
               className="object-cover object-center transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105"
               unoptimized
               onError={() => setHoverImgSrc('/images/products/default-product.jpg')}

@@ -131,8 +131,21 @@ export default function OrderDetailView({ order }: OrderDetailViewProps) {
             return (
               <div key={item.id} className="pt-4 first:pt-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center space-x-4">
-                  <div className="relative w-16 aspect-[3/4] bg-neutral-100 flex-shrink-0">
-                    <Image src={image} alt={product?.name || ''} fill className="object-cover" unoptimized />
+                  <div className="relative w-16 aspect-[3/4] bg-neutral-100 flex-shrink-0 rounded-xs overflow-hidden">
+                    <Image
+                      src={image}
+                      alt={product?.name || ''}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                      unoptimized
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (target.src !== '/images/products/default-product.jpg') {
+                          target.src = '/images/products/default-product.jpg';
+                        }
+                      }}
+                    />
                   </div>
                   <div className="space-y-1">
                     <h3 className="font-serif text-sm text-neutral-900 font-medium">{product?.name}</h3>

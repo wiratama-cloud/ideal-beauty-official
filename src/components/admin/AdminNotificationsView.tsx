@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import AdminHeader from '@/components/admin/AdminHeader';
+import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 import {
   Bell,
   Send,
@@ -595,7 +596,7 @@ export default function AdminNotificationsView({
                         <div className="w-9 h-9 rounded-xs bg-neutral-200 overflow-hidden shrink-0 border border-amber-200">
                           {selectedProduct.images?.[0] ? (
                             <img
-                              src={selectedProduct.images[0]}
+                              src={getOptimizedImageUrl(selectedProduct.images[0], 256)}
                               alt={selectedProduct.name}
                               className="w-full h-full object-cover"
                             />
@@ -1273,7 +1274,7 @@ export default function AdminNotificationsView({
                               <div className="w-10 h-10 rounded-xs bg-neutral-100 overflow-hidden shrink-0 border border-neutral-200">
                                 {prod.images?.[0] ? (
                                   <img
-                                    src={prod.images[0]}
+                                    src={getOptimizedImageUrl(prod.images[0], 256)}
                                     alt={prod.name}
                                     className="w-full h-full object-cover"
                                   />

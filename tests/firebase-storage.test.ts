@@ -59,6 +59,7 @@ describe('Firebase Storage Service', () => {
     expect(mockSave).toHaveBeenCalledWith(buffer, {
       metadata: {
         contentType: 'image/jpeg',
+        cacheControl: 'public, max-age=31536000, immutable',
         customMeta: '123',
       },
     });
@@ -75,6 +76,7 @@ describe('Firebase Storage Service', () => {
     expect(mockSave).toHaveBeenCalledWith(expect.any(Buffer), {
       metadata: {
         contentType: 'image/jpeg',
+        cacheControl: 'public, max-age=31536000, immutable',
       },
     });
     expect(url).toContain('hero%2Fhero-banner.jpg');

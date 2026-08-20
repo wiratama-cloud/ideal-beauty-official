@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { HeroBannerData, DEFAULT_HERO_BANNER } from '@/lib/types/hero-banner';
 import { getOptimizedImageUrl } from '@/lib/utils/image-url';
 
@@ -22,14 +23,19 @@ export default function HeroBanner({ data }: HeroBannerProps) {
 
   return (
     <section className="relative bg-neutral-950 text-white min-h-[60vh] sm:min-h-[75vh] flex items-center justify-center overflow-hidden">
-      {/* High Fashion Background Overlay */}
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-50 scale-105 transition-transform duration-1000"
-        style={{
-          backgroundImage: `url(${bgImage})`,
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/30" />
+      {/* High Fashion Background with Priority Preload and Blur Placeholder */}
+      <div className="absolute inset-0 opacity-50 scale-105 transition-transform duration-1000">
+        <Image
+          src={bgImage}
+          alt={banner.title || 'Hero Banner'}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+          unoptimized
+        />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/30 pointer-events-none" />
 
       <div className="relative z-10 max-w-4xl mx-auto text-center px-4 py-14 sm:py-20 space-y-4 sm:space-y-6">
         {banner.tagline && (

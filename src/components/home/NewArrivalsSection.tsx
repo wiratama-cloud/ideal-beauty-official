@@ -75,10 +75,11 @@ export default function NewArrivalsSection({ section, wishlistedIds = [] }: NewA
       {/* Product Grid */}
       {displayProducts.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-          {displayProducts.slice(0, 8).map((product) => (
+          {displayProducts.slice(0, 8).map((product, index) => (
             <ProductCard
               key={product.id}
               product={product}
+              priority={index < 4}
               isWishlistedInitial={wishlistedIds.includes(product.id)}
             />
           ))}

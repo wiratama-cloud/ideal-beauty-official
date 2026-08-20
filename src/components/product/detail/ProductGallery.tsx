@@ -147,8 +147,8 @@ export default function ProductGallery({
           alt={`${productName} - Image ${currentIndex + 1}`}
           fill
           priority
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          className={`object-cover object-center transition-opacity duration-200 ${
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px"
+          className={`object-cover object-center transition-all duration-300 ${
             isZoomed ? 'opacity-0 md:opacity-0' : 'opacity-100'
           }`}
           unoptimized
@@ -247,7 +247,7 @@ export default function ProductGallery({
                   src={getOptimizedImageUrl(img, 256)}
                   alt={`Thumbnail ${idx + 1}`}
                   fill
-                  sizes="96px"
+                  sizes="(max-width: 640px) 80px, 96px"
                   className="object-cover"
                   unoptimized
                   onError={(e) => {
@@ -361,6 +361,12 @@ export default function ProductGallery({
                     sizes="64px"
                     className="object-cover"
                     unoptimized
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (target.src !== '/images/products/default-product.jpg') {
+                        target.src = '/images/products/default-product.jpg';
+                      }
+                    }}
                   />
                 </button>
               ))}

@@ -84,3 +84,121 @@ export function getImageSrcSet(
     .map((size) => `${getOptimizedImageUrl(url, size)} ${size}w`)
     .join(', ');
 }
+
+/**
+ * Constructs a dynamic srcSet string for arbitrary custom image widths.
+ */
+export function getDynamicSrcSet(
+  url: string | null | undefined,
+  widths: readonly number[] = [256, 512, 768, 1024],
+  fallbackUrl: string = DEFAULT_PRODUCT_FALLBACK
+): string {
+  if (!url || typeof url !== 'string' || !url.trim()) {
+    return '';
+  }
+
+  return widths
+    .map((width) => {
+      const targetRes = IMAGE_RESOLUTIONS.find((res) => res >= width) ?? 1024;
+      return `${getOptimizedImageUrl(url, targetRes, fallbackUrl)} ${width}w`;
+    })
+    .join(', ');
+}
+
+/**
+ * Returns a Low-Quality Image Placeholder (LQIP) URL using the smallest resolution.
+ */
+export function getLQIPUrl(
+  url: string | null | undefined,
+  fallbackUrl: string = DEFAULT_PRODUCT_FALLBACK
+): string {
+  return getOptimizedImageUrl(url, 256, fallbackUrl);
+}
+
+/**
+ * Static Base64-encoded SVG blur placeholder data URL.
+ * Defined as a literal constant to prevent module-initialization or runtime bundling issues in browser contexts.
+ */
+export const DEFAULT_BLUR_DATA_URL =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4IDUiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjUiIGZpbGw9IiNmM2Y0ZjYiLz48cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI1IiBmaWxsPSJyZ2JhKDIxNywxMTksNiwwLjA1KSIvPjwvc3ZnPg==';
+
+export const DEFAULT_SHIMMER_DATA_URL =
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSiaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PHJlY3Qgd2lkdGg9IjcwMCIgaGVpZ2h0PSI0NzUiIGZpbGw9IiNmNmY3ZjgiIC8+PC9zdmc+';
+
+/**
+ * Generates a base64 encoded SVG blur placeholder data URL for Next.js Image or lazy image loading.
+ */
+export function getBlurDataURL(color: string = '#f3f4f6'): string {
+  if (!color || color === '#f3f4f6') {
+    return DEFAULT_BLUR_DATA_URL;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 5"><rect width="8" height="5" fill="${color}"/><rect width="8" height="5" fill="rgba(217,119,6,0.05)"/></svg>`;
+  try {
+    if (typeof Buffer !== 'undefined') {
+      return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+    }
+    if (typeof btoa !== 'undefined') {
+      return `data:image/svg+xml;base64,${btoa(svg)}`;
+    }
+  } catch {
+    // fallback
+  }
+  return DEFAULT_BLUR_DATA_URL;
+}
+
+/**
+ * Generates an animated shimmer placeholder SVG data URL.
+ */
+export function getShimmerPlaceholder(width: number = 700, height: number = 475): string {
+  const svg = `<svg width="${width}" height="${height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="g">
+      <stop stop-color="#f6f7f8" offset="20%" />
+      <stop stop-color="#edeef1" offset="50%" />
+      <stop stop-color="#f6f7f8" offset="70%" />
+    </linearGradient>
+  </defs>
+  <rect width="${width}" height="${height}" fill="#f6f7f8" />
+  <rect id="r" width="${width}" height="${height}" fill="url(#g)" />
+  <animate xlink:href="#r" attributeName="x" from="-${width}" to="${width}" dur="1s" repeatCount="indefinite" />
+</svg>`;
+  try {
+    if (typeof Buffer !== 'undefined') {
+      return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+    }
+    if (typeof btoa !== 'undefined') {
+      return `data:image/svg+xml;base64,${btoa(svg)}`;
+    }
+  } catch {
+    // fallback
+  }
+  return DEFAULT_SHIMMER_DATA_URL;
+}
+
+/**
+ * Helper to build standard responsive props for Next.js Image or standard <img> elements.
+ */
+export function getResponsiveImageProps(
+  url: string | null | undefined,
+  options?: {
+    sizes?: string;
+    defaultSize?: ImageResolution;
+    fallbackUrl?: string;
+    widths?: readonly ImageResolution[];
+  }
+) {
+  const fallback = options?.fallbackUrl ?? DEFAULT_PRODUCT_FALLBACK;
+  const defaultSize = options?.defaultSize ?? 1024;
+  const widths = options?.widths ?? IMAGE_RESOLUTIONS;
+
+  const src = getOptimizedImageUrl(url, defaultSize, fallback);
+  const srcSet = getImageSrcSet(url, widths);
+
+  return {
+    src,
+    srcSet: srcSet || undefined,
+    sizes: options?.sizes,
+    blurDataURL: getBlurDataURL(),
+    placeholder: 'blur' as const,
+  };
+}

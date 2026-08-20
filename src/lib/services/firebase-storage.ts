@@ -79,6 +79,7 @@ export async function uploadFileToFirebase(
   await file.save(buffer, {
     metadata: {
       contentType,
+      cacheControl: 'public, max-age=31536000, immutable',
       ...metadata,
     },
   });
@@ -217,6 +218,7 @@ export async function uploadImageVariantsToFirebase(
 
   const downloadToken = crypto.randomUUID();
   const sharedMetadata = {
+    cacheControl: 'public, max-age=31536000, immutable',
     ...metadata,
     metadata: {
       firebaseStorageDownloadTokens: downloadToken,

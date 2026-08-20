@@ -24,7 +24,7 @@ interface CartContextType {
   refreshCart: () => Promise<void>;
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+export const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<any>(null);

@@ -70,8 +70,21 @@ export default function CartDrawer() {
 
                 return (
                   <div key={item.id} className="pt-4 first:pt-0 flex space-x-4">
-                    <div className="relative w-20 aspect-[3/4] bg-neutral-100 flex-shrink-0 overflow-hidden">
-                      <Image src={image} alt={product?.name || 'Item'} fill className="object-cover" unoptimized />
+                    <div className="relative w-20 aspect-[3/4] bg-neutral-100 flex-shrink-0 overflow-hidden rounded-xs">
+                      <Image
+                        src={image}
+                        alt={product?.name || 'Item'}
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                        unoptimized
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (target.src !== '/images/products/default-product.jpg') {
+                            target.src = '/images/products/default-product.jpg';
+                          }
+                        }}
+                      />
                     </div>
 
                     <div className="flex-1 space-y-1">

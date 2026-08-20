@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { getOptimizedImageUrl, getImageSrcSet, DEFAULT_PRODUCT_FALLBACK } from '@/lib/utils/image-url';
+import {
+  getOptimizedImageUrl,
+  getImageSrcSet,
+  getDynamicSrcSet,
+  getLQIPUrl,
+  getBlurDataURL,
+  getShimmerPlaceholder,
+  getResponsiveImageProps,
+  DEFAULT_PRODUCT_FALLBACK,
+  DEFAULT_BLUR_DATA_URL,
+} from '@/lib/utils/image-url';
 
 describe('Image URL Utility Helpers', () => {
   it('returns fallback URL for null, undefined, or empty inputs', () => {
@@ -90,5 +100,45 @@ describe('Image URL Utility Helpers', () => {
   it('returns empty string for srcSet when url is empty or null', () => {
     expect(getImageSrcSet(null)).toBe('');
     expect(getImageSrcSet('')).toBe('');
+  });
+
+  it('generates dynamic srcSet for arbitrary custom widths', () => {
+    const url = '/uploads/sample-dress-1024w.webp';
+    const srcSet = getDynamicSrcSet(url, [300, 600, 1000]);
+    expect(srcSet).toContain('/uploads/sample-dress-512w.webp 300w');
+    expect(srcSet).toContain('/uploads/sample-dress-768w.webp 600w');
+    expect(srcSet).toContain('/uploads/sample-dress-1024w.webp 1000w');
+
+    expect(getDynamicSrcSet(null)).toBe('');
+    expect(getDynamicSrcSet('')).toBe('');
+  });
+
+  it('generates LQIP (low-quality image placeholder) URL', () => {
+    const url = '/uploads/sample-dress-1024w.webp';
+    expect(getLQIPUrl(url)).toBe('/uploads/sample-dress-256w.webp');
+    expect(getLQIPUrl(null)).toBe(DEFAULT_PRODUCT_FALLBACK);
+  });
+
+  it('generates base64 blur and shimmer data URLs', () => {
+    const blurDataUrl = getBlurDataURL('#e5e7eb');
+    expect(blurDataUrl).toMatch(/^data:image\/svg\+xml;base64,/);
+    expect(DEFAULT_BLUR_DATA_URL).toMatch(/^data:image\/svg\+xml;base64,/);
+
+    const shimmerUrl = getShimmerPlaceholder(600, 400);
+    expect(shimmerUrl).toMatch(/^data:image\/svg\+xml;base64,/);
+  });
+
+  it('generates responsive image props object for Image components', () => {
+    const url = '/uploads/sample-dress-1024w.webp';
+    const props = getResponsiveImageProps(url, {
+      sizes: '(max-width: 768px) 100vw, 50vw',
+      defaultSize: 512,
+    });
+
+    expect(props.src).toBe('/uploads/sample-dress-512w.webp');
+    expect(props.srcSet).toContain('/uploads/sample-dress-256w.webp 256w');
+    expect(props.sizes).toBe('(max-width: 768px) 100vw, 50vw');
+    expect(props.placeholder).toBe('blur');
+    expect(props.blurDataURL).toMatch(/^data:image\/svg\+xml;base64,/);
   });
 });

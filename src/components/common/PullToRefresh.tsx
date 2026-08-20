@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, RefreshCw, ArrowDown } from 'lucide-react';
+import { CartContext } from '@/components/cart/CartContext';
 
 const PULL_THRESHOLD = 65; // Distance in px needed to trigger refresh
 const MAX_PULL = 90; // Maximum visual pull distance
@@ -15,6 +16,7 @@ export interface PullToRefreshProps {
 
 export default function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
   const router = useRouter();
+  const cartContext = useContext(CartContext);
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -36,6 +38,10 @@ export default function PullToRefresh({ onRefresh, children }: PullToRefreshProp
         router.refresh();
       }
 
+      if (cartContext?.refreshCart) {
+        await cartContext.refreshCart();
+      }
+
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('ideal:refresh'));
       }
@@ -49,7 +55,7 @@ export default function PullToRefresh({ onRefresh, children }: PullToRefreshProp
         hasTriggeredHaptic.current = false;
       }, 850);
     }
-  }, [onRefresh, router]);
+  }, [onRefresh, router, cartContext]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
