@@ -14,6 +14,7 @@ import {
 import { DeviceMetadata } from '@/lib/utils/device';
 import {
   getUserAccount,
+  getUserAddresses,
   updateUserProfile,
   updateUserPassword,
   createAddress,
@@ -41,6 +42,19 @@ export async function getUserAccountAction() {
     return { success: true, data: account };
   } catch (err: any) {
     return { success: false, error: err.message || 'Failed to fetch account data' };
+  }
+}
+
+export async function getUserAddressesAction() {
+  try {
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User session not found' };
+    }
+    const addresses = await getUserAddresses(userId);
+    return { success: true, data: addresses };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to fetch addresses' };
   }
 }
 

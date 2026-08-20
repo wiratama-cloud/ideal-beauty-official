@@ -21,7 +21,7 @@ interface AddressModalProps {
   isOpen: boolean;
   onClose: () => void;
   addressToEdit?: AddressData | null;
-  onSuccess?: () => void;
+  onSuccess?: (address?: AddressData) => void;
 }
 
 export default function AddressModal({
@@ -120,7 +120,7 @@ export default function AddressModal({
       }
 
       if (res.success) {
-        if (onSuccess) onSuccess();
+        if (onSuccess) onSuccess(res.data);
         onClose();
       } else {
         setErrorMessage(res.error || 'Failed to save address.');

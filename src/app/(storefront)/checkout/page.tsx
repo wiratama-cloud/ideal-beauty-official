@@ -1,24 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/cart/CartContext';
 import { submitCheckoutAction, validateVoucherAction } from '@/app/actions/checkout';
+import { getUserAddressesAction } from '@/app/actions/account';
+import AddressModal, { AddressData } from '@/components/account/AddressModal';
 import QRISModal from '@/components/checkout/QRISModal';
-import { CreditCard, QrCode, Building2, ShieldCheck, ArrowLeft, Tag, Check, X } from 'lucide-react';
+import {
+  CreditCard,
+  QrCode,
+  Building2,
+  ShieldCheck,
+  ArrowLeft,
+  Tag,
+  Check,
+  X,
+  MapPin,
+  Plus,
+  Edit3,
+  Loader2,
+} from 'lucide-react';
 
 export default function CheckoutPage() {
   const { cart, subtotal } = useCart();
 
-  const [address, setAddress] = useState({
-    recipientName: 'Ayu Lestari',
-    phone: '+6281234567890',
-    addressLine1: 'Jl. Senopati No. 45, Kebayoran Baru',
-    city: 'Jakarta Selatan',
-    province: 'DKI Jakarta',
-    postalCode: '12190',
-  });
+  const [addresses, setAddresses] = useState<AddressData[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [addressToEdit, setAddressToEdit] = useState<AddressData | null>(null);
 
   const [paymentType, setPaymentType] = useState<'DOWN_PAYMENT' | 'FULL_PAYMENT'>('FULL_PAYMENT');
   const [paymentMethod, setPaymentMethod] = useState<'QRIS' | 'BANK_TRANSFER' | 'CREDIT_CARD'>('QRIS');
@@ -34,6 +46,37 @@ export default function CheckoutPage() {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [voucherError, setVoucherError] = useState('');
   const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
+
+  const fetchAddresses = async (preferredId?: string) => {
+    try {
+      const res = await getUserAddressesAction();
+      if (res.success && res.data) {
+        const list = res.data;
+        setAddresses(list);
+        if (preferredId && list.some((a: any) => a.id === preferredId)) {
+          setSelectedAddressId(preferredId);
+        } else if (list.length > 0) {
+          setSelectedAddressId((current) => {
+            if (current && list.some((a: any) => a.id === current)) {
+              return current;
+            }
+            const defaultAddr = list.find((a: any) => a.isDefault);
+            return defaultAddr ? defaultAddr.id : list[0].id;
+          });
+        } else {
+          setSelectedAddressId(null);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load addresses:', err);
+    } finally {
+      setIsLoadingAddresses(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAddresses();
+  }, []);
 
   const items = cart?.items || [];
   const hasRentalItems = items.some((item: any) => item.type === 'RENTAL');
@@ -88,12 +131,26 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (items.length === 0) return;
 
+    const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
+    if (!selectedAddress) {
+      setErrorMessage('Please select or add a delivery address before completing your reservation.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage('');
 
     try {
       const res = await submitCheckoutAction({
-        shippingAddress: address,
+        shippingAddress: {
+          recipientName: selectedAddress.recipientName,
+          phone: selectedAddress.phone,
+          addressLine1: selectedAddress.addressLine1,
+          city: selectedAddress.city,
+          province: selectedAddress.province,
+          postalCode: selectedAddress.postalCode,
+        },
         paymentType: effectivePaymentType,
         paymentMethod,
         bankName,
@@ -154,71 +211,120 @@ export default function CheckoutPage() {
           <div className="lg:col-span-7 space-y-8">
             {/* Shipping Address */}
             <div className="bg-white p-6 sm:p-8 border border-neutral-100 space-y-6">
-              <h2 className="font-serif text-lg text-neutral-900 uppercase tracking-widest border-b border-neutral-100 pb-3">
-                1. Delivery & Recipient Address
-              </h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-neutral-600 mb-1">Recipient Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={address.recipientName}
-                    onChange={(e) => setAddress({ ...address, recipientName: e.target.value })}
-                    className="w-full border border-neutral-300 p-2.5 bg-white text-neutral-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-neutral-600 mb-1">Phone Number</label>
-                  <input
-                    type="text"
-                    required
-                    value={address.phone}
-                    onChange={(e) => setAddress({ ...address, phone: e.target.value })}
-                    className="w-full border border-neutral-300 p-2.5 bg-white text-neutral-900"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-neutral-600 mb-1">Street Address</label>
-                  <input
-                    type="text"
-                    required
-                    value={address.addressLine1}
-                    onChange={(e) => setAddress({ ...address, addressLine1: e.target.value })}
-                    className="w-full border border-neutral-300 p-2.5 bg-white text-neutral-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-neutral-600 mb-1">City</label>
-                  <input
-                    type="text"
-                    required
-                    value={address.city}
-                    onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                    className="w-full border border-neutral-300 p-2.5 bg-white text-neutral-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-neutral-600 mb-1">Province & Postal Code</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      required
-                      value={address.province}
-                      onChange={(e) => setAddress({ ...address, province: e.target.value })}
-                      className="w-full border border-neutral-300 p-2.5 bg-white text-neutral-900"
-                    />
-                    <input
-                      type="text"
-                      required
-                      value={address.postalCode}
-                      onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
-                      className="w-full border border-neutral-300 p-2.5 bg-white text-neutral-900"
-                    />
-                  </div>
-                </div>
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+                <h2 className="font-serif text-lg text-neutral-900 uppercase tracking-widest">
+                  1. Delivery & Recipient Address
+                </h2>
+                {addresses.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddressToEdit(null);
+                      setIsAddressModalOpen(true);
+                    }}
+                    className="inline-flex items-center space-x-1.5 text-xs text-neutral-700 hover:text-black font-medium transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add New</span>
+                  </button>
+                )}
               </div>
+
+              {isLoadingAddresses ? (
+                <div className="p-8 text-center text-neutral-400 space-y-2">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto text-neutral-600" />
+                  <p className="text-xs font-light">Loading delivery addresses...</p>
+                </div>
+              ) : addresses.length === 0 ? (
+                <div className="border border-dashed border-neutral-200 p-8 text-center space-y-3 bg-neutral-50/50">
+                  <MapPin className="w-8 h-8 text-neutral-400 mx-auto" />
+                  <div>
+                    <h3 className="font-serif text-sm text-neutral-900 font-medium">No Saved Shipping Addresses</h3>
+                    <p className="text-xs text-neutral-500 font-light mt-1">
+                      Please add a delivery address to complete your order reservation.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddressToEdit(null);
+                      setIsAddressModalOpen(true);
+                    }}
+                    className="inline-flex items-center space-x-2 bg-black text-white px-5 py-2.5 text-xs uppercase tracking-widest hover:bg-neutral-800 transition-colors mt-2"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Shipping Address</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {addresses.map((addr) => {
+                    const isSelected = selectedAddressId === addr.id;
+                    return (
+                      <div
+                        key={addr.id}
+                        onClick={() => setSelectedAddressId(addr.id || null)}
+                        className={`p-4 border text-left cursor-pointer transition-all flex flex-col justify-between relative ${
+                          isSelected
+                            ? 'border-black bg-neutral-50/60 ring-1 ring-black'
+                            : 'border-neutral-200 bg-white hover:border-neutral-300'
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span className="bg-neutral-100 text-neutral-800 text-[10px] uppercase tracking-wider px-2 py-0.5 font-medium">
+                                {addr.label || 'Home'}
+                              </span>
+                              {addr.isDefault && (
+                                <span className="bg-amber-50 text-amber-800 border border-amber-200 text-[9px] uppercase tracking-wider px-1.5 py-0.5 font-medium">
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                            <div
+                              className={`w-4 h-4 rounded-full flex items-center justify-center border transition-colors ${
+                                isSelected
+                                  ? 'bg-black border-black text-white'
+                                  : 'border-neutral-300 bg-white'
+                              }`}
+                            >
+                              {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="font-medium text-neutral-900 text-xs">{addr.recipientName}</div>
+                            <div className="text-neutral-500 text-[11px] font-mono mt-0.5">{addr.phone}</div>
+                          </div>
+
+                          <p className="text-neutral-600 text-xs leading-relaxed pt-1">
+                            {addr.addressLine1}, {addr.city}, {addr.province} {addr.postalCode}
+                          </p>
+                        </div>
+
+                        <div className="pt-3 mt-3 border-t border-neutral-100 flex items-center justify-between">
+                          <span className="text-[10px] text-neutral-400">
+                            {isSelected ? 'Selected for Delivery' : 'Click to select'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAddressToEdit(addr);
+                              setIsAddressModalOpen(true);
+                            }}
+                            className="inline-flex items-center space-x-1 text-[11px] text-neutral-600 hover:text-black font-medium transition-colors"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                            <span>Edit</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Payment Schedule (Down Payment vs Full) */}
@@ -506,6 +612,19 @@ export default function CheckoutPage() {
       {activePayment && (
         <QRISModal payment={activePayment} onClose={() => setActivePayment(null)} />
       )}
+
+      {/* Address Modal for Add/Edit */}
+      <AddressModal
+        isOpen={isAddressModalOpen}
+        onClose={() => {
+          setIsAddressModalOpen(false);
+          setAddressToEdit(null);
+        }}
+        addressToEdit={addressToEdit}
+        onSuccess={(savedAddress) => {
+          fetchAddresses(savedAddress?.id);
+        }}
+      />
     </div>
   );
 }
