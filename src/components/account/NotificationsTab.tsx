@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getToken } from 'firebase/messaging';
 import {
   Bell,
@@ -17,11 +17,38 @@ import {
   Share,
   PlusSquare,
   Sparkles,
+  Laptop,
+  Tablet,
+  Globe,
+  Trash2,
+  Send,
+  RefreshCw,
+  ShieldCheck,
 } from 'lucide-react';
 import { getMessagingInstance, isFirebaseConfigured } from '@/lib/firebase/client';
-import { saveFcmTokenAction, deleteFcmTokenAction } from '@/app/actions/auth';
+import {
+  saveFcmTokenAction,
+  deleteFcmTokenAction,
+  getUserDevicesAction,
+  revokeDeviceAction,
+  revokeAllOtherDevicesAction,
+  sendTestPushNotificationAction,
+} from '@/app/actions/auth';
 import { FCM_PROMPT_DISMISSED_KEY } from '@/components/common/FcmNotificationPrompt';
 import { isIos, isStandalone, isNotificationSupported, getIosBrowserType } from '@/lib/utils/pwa';
+import { getDeviceMetadata } from '@/lib/utils/device';
+
+interface UserDeviceItem {
+  id: string;
+  token: string;
+  deviceType: 'MOBILE' | 'TABLET' | 'DESKTOP' | 'OTHER';
+  deviceName: string | null;
+  browser: string | null;
+  os: string | null;
+  lastActiveAt: Date | string;
+  createdAt: Date | string;
+  isActive: boolean;
+}
 
 interface NotificationsTabProps {
   user: {
@@ -34,6 +61,12 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
   const [isEnabled, setIsEnabled] = useState<boolean>(Boolean(user.fcmToken));
   const [permission, setPermission] = useState<NotificationPermission | 'unknown'>('unknown');
   const [isToggling, setIsToggling] = useState(false);
+  const [devices, setDevices] = useState<UserDeviceItem[]>([]);
+  const [isLoadingDevices, setIsLoadingDevices] = useState<boolean>(true);
+  const [revokingDeviceId, setRevokingDeviceId] = useState<string | null>(null);
+  const [isRevokingAllOther, setIsRevokingAllOther] = useState<boolean>(false);
+  const [isSendingTest, setIsSendingTest] = useState<boolean>(false);
+  const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{
     type: 'success' | 'error' | 'info';
     text: string;
@@ -53,6 +86,21 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
 
   const [iosGuideTab, setIosGuideTab] = useState<'safari' | 'chrome'>('safari');
 
+  const fetchDevices = useCallback(async () => {
+    try {
+      setIsLoadingDevices(true);
+      const userDevices = await getUserDevicesAction();
+      setDevices(userDevices as unknown as UserDeviceItem[]);
+      if (userDevices && userDevices.length > 0) {
+        setIsEnabled(true);
+      }
+    } catch (err) {
+      console.error('Failed to load user devices:', err);
+    } finally {
+      setIsLoadingDevices(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const ios = isIos();
@@ -60,7 +108,6 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
       const supported = isNotificationSupported();
       const browser = getIosBrowserType();
 
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPwaState({
         isIos: ios,
         isStandalone: standalone,
@@ -77,8 +124,43 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
       if ('Notification' in window) {
         setPermission(Notification.permission);
       }
+
+      fetchDevices();
+
+      // Attempt to retrieve active client token to match "Current Device"
+      if (isFirebaseConfigured && 'Notification' in window && Notification.permission === 'granted') {
+        getMessagingInstance()
+          .then((messaging) => {
+            if (messaging) {
+              const configParams = new URLSearchParams({
+                apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+                authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+                projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+                storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+                messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+                appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
+              }).toString();
+
+              navigator.serviceWorker
+                .register(`/firebase-messaging-sw.js?${configParams}`)
+                .then((registration) => {
+                  return getToken(messaging, {
+                    vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+                    serviceWorkerRegistration: registration,
+                  });
+                })
+                .then((tok) => {
+                  if (tok) setCurrentToken(tok);
+                })
+                .catch(() => {
+                  // Silent fail for token detection
+                });
+            }
+          })
+          .catch(() => {});
+      }
     }
-  }, []);
+  }, [fetchDevices]);
 
   const handleToggle = async (turnOn: boolean) => {
     setIsToggling(true);
@@ -88,6 +170,8 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
       // Turn OFF notifications
       try {
         await deleteFcmTokenAction();
+        setCurrentToken(null);
+        await fetchDevices();
         setIsEnabled(false);
         try {
           if (typeof window !== 'undefined') {
@@ -101,7 +185,8 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
           text: 'Push notifications have been disabled for your account.',
         });
       } catch (err: unknown) {
-        const errorMsg = err instanceof Error ? err.message : 'Failed to disable push notifications. Please try again.';
+        const errorMsg =
+          err instanceof Error ? err.message : 'Failed to disable push notifications. Please try again.';
         setStatusMessage({
           type: 'error',
           text: errorMsg,
@@ -189,8 +274,11 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
         });
 
         if (token) {
-          await saveFcmTokenAction(token);
+          const metadata = getDeviceMetadata();
+          await saveFcmTokenAction(token, metadata);
+          setCurrentToken(token);
           setIsEnabled(true);
+          await fetchDevices();
           try {
             if (typeof window !== 'undefined') {
               localStorage.removeItem(FCM_PROMPT_DISMISSED_KEY);
@@ -200,7 +288,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
           }
           setStatusMessage({
             type: 'success',
-            text: 'Push notifications have been successfully enabled for this device.',
+            text: 'Push notifications have been successfully registered for this device.',
           });
         } else {
           setStatusMessage({
@@ -221,7 +309,8 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
       }
     } catch (err: unknown) {
       console.error('Error enabling notifications:', err);
-      const errorMsg = err instanceof Error ? err.message : 'An error occurred while enabling notifications.';
+      const errorMsg =
+        err instanceof Error ? err.message : 'An error occurred while enabling notifications.';
       setStatusMessage({
         type: 'error',
         text: errorMsg,
@@ -231,12 +320,99 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
     }
   };
 
+  const handleRevokeDevice = async (deviceId: string) => {
+    setRevokingDeviceId(deviceId);
+    setStatusMessage(null);
+    try {
+      await revokeDeviceAction(deviceId);
+      await fetchDevices();
+      setStatusMessage({
+        type: 'success',
+        text: 'Device has been disconnected and notification token revoked.',
+      });
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error ? err.message : 'Failed to revoke device. Please try again.';
+      setStatusMessage({
+        type: 'error',
+        text: errorMsg,
+      });
+    } finally {
+      setRevokingDeviceId(null);
+    }
+  };
+
+  const handleRevokeAllOther = async () => {
+    setIsRevokingAllOther(true);
+    setStatusMessage(null);
+    try {
+      await revokeAllOtherDevicesAction(currentToken || undefined);
+      await fetchDevices();
+      setStatusMessage({
+        type: 'success',
+        text: 'All other devices have been disconnected. Notifications remain active on this device only.',
+      });
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error ? err.message : 'Failed to revoke other devices. Please try again.';
+      setStatusMessage({
+        type: 'error',
+        text: errorMsg,
+      });
+    } finally {
+      setIsRevokingAllOther(false);
+    }
+  };
+
+  const handleSendTestNotification = async () => {
+    setIsSendingTest(true);
+    setStatusMessage(null);
+    try {
+      const res = await sendTestPushNotificationAction();
+      if (res && res.successCount > 0) {
+        setStatusMessage({
+          type: 'success',
+          text: `Test notification sent successfully to ${res.successCount} registered device${
+            res.successCount > 1 ? 's' : ''
+          }!`,
+        });
+      } else {
+        setStatusMessage({
+          type: 'info',
+          text: 'Test notification was dispatched. Check your device for incoming push alerts.',
+        });
+      }
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error ? err.message : 'Failed to send test notification. Please try again.';
+      setStatusMessage({
+        type: 'error',
+        text: errorMsg,
+      });
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
+
   const isIosBrowserTab = pwaState.isIos && !pwaState.isStandalone;
+
+  const renderDeviceIcon = (deviceType: string) => {
+    switch (deviceType) {
+      case 'MOBILE':
+        return <Smartphone className="w-5 h-5 text-neutral-700" />;
+      case 'TABLET':
+        return <Tablet className="w-5 h-5 text-neutral-700" />;
+      case 'DESKTOP':
+        return <Laptop className="w-5 h-5 text-neutral-700" />;
+      default:
+        return <Globe className="w-5 h-5 text-neutral-700" />;
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* Notifications Overview Header */}
-      <div className="bg-white border border-neutral-100 p-6 sm:p-8 space-y-4">
+      <div className="bg-white border border-neutral-100 p-6 sm:p-8 space-y-6">
         <div className="border-b border-neutral-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="font-serif text-xl font-normal text-neutral-900 flex items-center gap-2">
@@ -244,14 +420,14 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
               <BellRing className="w-4 h-4 text-amber-600" />
             </h2>
             <p className="text-neutral-500 font-light text-xs mt-1 max-w-xl">
-              Control push notifications and real-time alerts for your orders, shipments, and account activity.
+              Control push notifications and multi-device synchronization for orders, fitting confirmations, and exclusive atelier updates.
             </p>
           </div>
           <div>
             {isEnabled ? (
               <span className="bg-emerald-50 text-emerald-800 text-[10px] font-mono px-3 py-1.5 uppercase tracking-widest border border-emerald-200 flex items-center space-x-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Notifications Active</span>
+                <span>{devices.length > 0 ? `${devices.length} Devices Active` : 'Notifications Active'}</span>
               </span>
             ) : (
               <span className="bg-neutral-100 text-neutral-600 text-[10px] font-mono px-3 py-1.5 uppercase tracking-widest border border-neutral-200 flex items-center space-x-1.5">
@@ -420,10 +596,27 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
         )}
 
         {/* Main Notification Toggle Setting Card */}
-        <div className="space-y-4 pt-2">
-          <h3 className="text-xs uppercase tracking-wider text-neutral-700 font-medium">
-            Push Notification Channels
-          </h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs uppercase tracking-wider text-neutral-700 font-medium">
+              Push Notification Status
+            </h3>
+            {isEnabled && (
+              <button
+                type="button"
+                onClick={handleSendTestNotification}
+                disabled={isSendingTest}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-[10px] font-mono uppercase tracking-wider border border-neutral-200 rounded-xs transition-colors disabled:opacity-50"
+              >
+                {isSendingTest ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Send className="w-3 h-3 text-neutral-600" />
+                )}
+                <span>Send Test Push</span>
+              </button>
+            )}
+          </div>
 
           <div className="bg-neutral-50/70 p-5 sm:p-6 border border-neutral-200 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -434,7 +627,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
                     <span className="text-xs font-medium text-neutral-900">
-                      Order Status &amp; Shipping Alerts
+                      Multi-Device Push Alerts
                     </span>
                     {isEnabled && (
                       <span className="text-[9px] bg-emerald-100 text-emerald-800 font-mono px-2 py-0.5 uppercase tracking-wider">
@@ -443,7 +636,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
                     )}
                   </div>
                   <p className="text-neutral-500 text-[11px] font-light max-w-lg leading-relaxed">
-                    Receive instant push notifications on this device when your orders are confirmed, verified, dispatched, and out for delivery.
+                    Receive instant push notifications across all your active mobile phones, tablets, and desktop computers when your orders are confirmed and shipped.
                   </p>
                 </div>
               </div>
@@ -478,7 +671,7 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
             <div className="pt-2 border-t border-neutral-200/60 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center space-x-1.5 text-neutral-400 text-[11px]">
                 <Info className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                <span>You can turn notifications on or off at any time.</span>
+                <span>You can turn notifications on or off on this device at any time.</span>
               </div>
 
               <div>
@@ -526,8 +719,137 @@ export default function NotificationsTab({ user }: NotificationsTabProps) {
           </div>
         </div>
 
+        {/* Connected Devices & Endpoints List */}
+        <div className="space-y-4 pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-xs uppercase tracking-wider text-neutral-700 font-medium">
+                  Registered Devices
+                </h3>
+                <span className="px-2 py-0.5 bg-neutral-100 text-neutral-700 font-mono text-[10px] rounded-full border border-neutral-200">
+                  {devices.length} connected
+                </span>
+              </div>
+              <p className="text-neutral-400 font-light text-[11px] mt-0.5">
+                Every connected browser and PWA receiving real-time account notifications.
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-2 self-start sm:self-center">
+              <button
+                type="button"
+                onClick={fetchDevices}
+                disabled={isLoadingDevices}
+                className="p-1.5 text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 rounded-xs transition-colors border border-neutral-200"
+                title="Refresh Device List"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingDevices ? 'animate-spin' : ''}`} />
+              </button>
+
+              {devices.length > 1 && (
+                <button
+                  type="button"
+                  onClick={handleRevokeAllOther}
+                  disabled={isRevokingAllOther}
+                  className="text-[10px] font-mono text-rose-700 hover:text-rose-900 border border-rose-200 hover:bg-rose-50 px-3 py-1.5 rounded-xs transition-colors flex items-center space-x-1.5 disabled:opacity-50"
+                >
+                  {isRevokingAllOther ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-3 h-3 text-rose-600" />
+                  )}
+                  <span>Revoke All Other Devices</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {isLoadingDevices ? (
+            <div className="p-8 border border-neutral-200 bg-neutral-50 text-center text-neutral-400 flex flex-col items-center justify-center space-y-2">
+              <Loader2 className="w-5 h-5 animate-spin text-neutral-500" />
+              <p className="text-xs font-light">Loading registered devices...</p>
+            </div>
+          ) : devices.length === 0 ? (
+            <div className="p-8 border border-dashed border-neutral-300 bg-neutral-50 text-center space-y-2">
+              <Smartphone className="w-8 h-8 text-neutral-400 mx-auto" />
+              <p className="text-xs font-medium text-neutral-800">No active devices registered</p>
+              <p className="text-[11px] text-neutral-500 font-light max-w-sm mx-auto">
+                Turn on notifications above on your phone or computer to start receiving updates on this device.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              {devices.map((device) => {
+                const isThisDevice =
+                  currentToken && device.token === currentToken;
+                const lastActiveDate = new Date(device.lastActiveAt);
+
+                return (
+                  <div
+                    key={device.id}
+                    className={`p-4 border rounded-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                      isThisDevice
+                        ? 'border-amber-400 bg-amber-50/40 ring-1 ring-amber-400/50'
+                        : 'border-neutral-200 bg-white hover:border-neutral-300'
+                    }`}
+                  >
+                    <div className="flex items-start space-x-3.5 min-w-0">
+                      <div className="p-2.5 bg-neutral-100 border border-neutral-200 rounded-xs shrink-0 mt-0.5">
+                        {renderDeviceIcon(device.deviceType)}
+                      </div>
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-medium text-neutral-900">
+                            {device.deviceName ||
+                              `${device.os || 'Device'} (${device.browser || 'Browser'})`}
+                          </span>
+
+                          {isThisDevice && (
+                            <span className="px-2 py-0.5 bg-amber-100 text-amber-900 font-mono text-[9px] uppercase font-bold tracking-wider rounded-xs border border-amber-300">
+                              This Device
+                            </span>
+                          )}
+
+                          <span className="px-1.5 py-0.5 bg-neutral-100 text-neutral-600 font-mono text-[9px] rounded-xs border border-neutral-200">
+                            {device.os || 'OS'} • {device.browser || 'Browser'}
+                          </span>
+                        </div>
+
+                        <p className="text-[11px] text-neutral-400 font-mono font-light">
+                          Last active: {lastActiveDate.toLocaleDateString()} at{' '}
+                          {lastActiveDate.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end space-x-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleRevokeDevice(device.id)}
+                        disabled={revokingDeviceId === device.id}
+                        className="px-3 py-1.5 text-[10px] font-mono text-neutral-600 hover:text-rose-700 hover:bg-rose-50 border border-neutral-200 hover:border-rose-200 rounded-xs transition-colors flex items-center space-x-1.5 disabled:opacity-50"
+                      >
+                        {revokingDeviceId === device.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin text-rose-600" />
+                        ) : (
+                          <Trash2 className="w-3 h-3 text-neutral-400 group-hover:text-rose-600" />
+                        )}
+                        <span>Disconnect</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Informational Categories */}
-        <div className="pt-4 space-y-3">
+        <div className="pt-4 space-y-3 border-t border-neutral-100">
           <h4 className="text-xs uppercase tracking-wider text-neutral-700 font-medium">
             What alerts are included?
           </h4>

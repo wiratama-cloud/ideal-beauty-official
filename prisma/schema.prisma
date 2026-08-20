@@ -6,6 +6,13 @@ datasource db {
   provider = "postgresql"
 }
 
+enum DeviceType {
+  MOBILE
+  TABLET
+  DESKTOP
+  OTHER
+}
+
 enum ItemType {
   SALE
   RENTAL
@@ -114,6 +121,7 @@ model User {
   wishlist        WishlistItem[]
   vouchers        Voucher[]
   voucherUsages   VoucherUsage[]
+  devices         UserDevice[]
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -498,4 +506,25 @@ model AuditLog {
   @@index([createdAt])
   @@index([entity])
   @@index([userId])
+}
+
+model UserDevice {
+  id           String     @id @default(uuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token        String     @unique
+  deviceType   DeviceType @default(OTHER)
+  deviceName   String?
+  browser      String?
+  os           String?
+  userAgent    String?
+  ipAddress    String?
+  lastActiveAt DateTime   @default(now())
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([userId, isActive])
+  @@index([deviceType])
+  @@index([lastActiveAt])
 }

@@ -2,7 +2,7 @@ import { prisma } from '../prisma';
 import { generateQRISData, generateVirtualAccountData } from './payment-gateway';
 import { OrderStatus, PaymentType, PaymentStatus, RentalStatus, InventoryTransactionType } from '@prisma/client';
 import { validateVoucherForCart, serializeVoucher } from './voucher';
-import { sendOrderPushNotification } from './notification';
+import { sendOrderPushNotification, sendOrderPushNotificationToUser } from './notification';
 
 export interface CreateOrderInput {
   userId: string;
@@ -417,9 +417,9 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
     },
   });
 
-  if (updated.user?.fcmToken && ['PROCESSING', 'SHIPPED', 'COMPLETED'].includes(status)) {
-    await sendOrderPushNotification(
-      updated.user.fcmToken,
+  if (['PROCESSING', 'SHIPPED', 'COMPLETED'].includes(status) && updated.userId) {
+    await sendOrderPushNotificationToUser(
+      updated.userId,
       'Order Update',
       `Your order ${orderId} is now ${status}.`,
       orderId,

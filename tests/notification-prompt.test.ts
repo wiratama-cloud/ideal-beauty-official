@@ -126,7 +126,7 @@ describe('Account Page Notification Settings & NotificationsTab', () => {
 
   it('supports turning on notifications via requestPermission and saveFcmTokenAction', () => {
     expect(notificationsTabContent).toContain('Notification.requestPermission()');
-    expect(notificationsTabContent).toContain('saveFcmTokenAction(token)');
+    expect(notificationsTabContent).toContain('saveFcmTokenAction(token');
     expect(notificationsTabContent).toContain('setIsEnabled(true)');
     expect(notificationsTabContent).toContain('localStorage.removeItem(FCM_PROMPT_DISMISSED_KEY)');
   });

@@ -28,7 +28,7 @@ import {
   reorderNavCategories,
   resetDefaultNavCategories,
 } from '@/lib/services/nav-category';
-import { RentalStatus, OrderStatus, Prisma } from '@prisma/client';
+import { RentalStatus, OrderStatus, Prisma, DeviceType } from '@prisma/client';
 import { recordAuditLog, getAuditLogs } from '@/lib/services/audit';
 import { serializeProduct, serializeProductVariant } from '@/lib/utils/serialization';
 import {
@@ -1125,7 +1125,28 @@ export async function linkProductsToSizeChartAction(sizeChartId: string | null, 
 }
 
 // Push Notification Actions
-export async function getAdminNotificationRecipientsAction() {
+export interface AdminNotificationDevice {
+  id: string;
+  deviceType: DeviceType;
+  deviceName: string | null;
+  browser: string | null;
+  os: string | null;
+  lastActiveAt: Date;
+  isActive: boolean;
+}
+
+export interface AdminNotificationRecipient {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  hasFcmToken: boolean;
+  deviceCount: number;
+  devices: AdminNotificationDevice[];
+  createdAt: Date;
+}
+
+export async function getAdminNotificationRecipientsAction(): Promise<AdminNotificationRecipient[]> {
   await requireAdminAccess();
   const users = await prisma.user.findMany({
     where: {
@@ -1139,21 +1160,57 @@ export async function getAdminNotificationRecipientsAction() {
       phone: true,
       fcmToken: true,
       createdAt: true,
+      devices: {
+        where: { isActive: true },
+        select: {
+          id: true,
+          token: true,
+          deviceType: true,
+          deviceName: true,
+          browser: true,
+          os: true,
+          lastActiveAt: true,
+          isActive: true,
+        },
+        orderBy: {
+          lastActiveAt: 'desc',
+        },
+      },
     },
     orderBy: [
       { createdAt: 'desc' },
     ],
   });
 
-  return users.map((user) => ({
-    id: user.id,
-    name: user.name || 'Unnamed Customer',
-    email: user.email,
-    phone: user.phone,
-    hasFcmToken: !!(user.fcmToken && user.fcmToken.trim().length > 0),
-    createdAt: user.createdAt,
-  }));
+  return users.map((user) => {
+    const hasDevices = user.devices.length > 0;
+    const hasPrimaryToken = Boolean(user.fcmToken && user.fcmToken.trim().length > 0);
+    const hasFcmToken = hasDevices || hasPrimaryToken;
+    const deviceCount = hasDevices ? user.devices.length : (hasPrimaryToken ? 1 : 0);
+
+    return {
+      id: user.id,
+      name: user.name || 'Unnamed Customer',
+      email: user.email,
+      phone: user.phone,
+      hasFcmToken,
+      deviceCount,
+      devices: user.devices.map((d) => ({
+        id: d.id,
+        deviceType: d.deviceType,
+        deviceName: d.deviceName,
+        browser: d.browser,
+        os: d.os,
+        lastActiveAt: d.lastActiveAt,
+        isActive: d.isActive,
+      })),
+      createdAt: user.createdAt,
+    };
+  });
 }
+
+export type DevicePlatformFilter = 'ALL' | 'MOBILE_ONLY' | 'DESKTOP_ONLY';
+export type DeviceActivityFilter = 'ALL_ACTIVE' | 'LAST_ACTIVE_ONLY' | 'ACTIVE_7D' | 'ACTIVE_30D';
 
 export interface SendAdminPushNotificationInput {
   title: string;
@@ -1161,6 +1218,19 @@ export interface SendAdminPushNotificationInput {
   url?: string;
   targetType: 'ALL' | 'SELECTED';
   userIds?: string[];
+  platformFilter?: DevicePlatformFilter;
+  activityFilter?: DeviceActivityFilter;
+  // Alternate aliases for compatibility
+  devicePlatform?: 'ALL' | 'MOBILE_ONLY' | 'DESKTOP_ONLY' | 'ALL_DEVICES';
+  deviceScope?:
+    | 'ALL_ACTIVE'
+    | 'LAST_ACTIVE_ONLY'
+    | 'LAST_ACTIVE_DEVICE_ONLY'
+    | 'ACTIVE_7D'
+    | 'ACTIVE_30D'
+    | 'ALL_ACTIVE_DEVICES'
+    | 'ACTIVE_WITHIN_7_DAYS'
+    | 'ACTIVE_WITHIN_30_DAYS';
 }
 
 export async function sendAdminPushNotificationAction(data: SendAdminPushNotificationInput) {
@@ -1174,55 +1244,119 @@ export async function sendAdminPushNotificationAction(data: SendAdminPushNotific
     throw new Error('Notification message body is required.');
   }
 
-  let tokens: string[] = [];
-  let targetedUserCount = 0;
+  // Normalize platform filter
+  let platform: DevicePlatformFilter = 'ALL';
+  const rawPlatform = data.platformFilter || data.devicePlatform;
+  if (rawPlatform === 'MOBILE_ONLY') platform = 'MOBILE_ONLY';
+  else if (rawPlatform === 'DESKTOP_ONLY') platform = 'DESKTOP_ONLY';
 
-  if (data.targetType === 'ALL') {
-    const usersWithToken = await prisma.user.findMany({
-      where: {
-        fcmToken: {
-          not: null,
-        },
-        name: { not: 'Guest Customer' },
-        email: { not: { startsWith: 'guest_' } },
-      },
-      select: {
-        id: true,
-        fcmToken: true,
-      },
-    });
+  // Normalize activity filter
+  let activity: DeviceActivityFilter = 'ALL_ACTIVE';
+  const rawActivity = data.activityFilter || data.deviceScope;
+  if (rawActivity === 'LAST_ACTIVE_ONLY' || rawActivity === 'LAST_ACTIVE_DEVICE_ONLY') {
+    activity = 'LAST_ACTIVE_ONLY';
+  } else if (rawActivity === 'ACTIVE_7D' || rawActivity === 'ACTIVE_WITHIN_7_DAYS') {
+    activity = 'ACTIVE_7D';
+  } else if (rawActivity === 'ACTIVE_30D' || rawActivity === 'ACTIVE_WITHIN_30_DAYS') {
+    activity = 'ACTIVE_30D';
+  }
 
-    tokens = usersWithToken
-      .map((u) => u.fcmToken)
-      .filter((t): t is string => typeof t === 'string' && t.trim().length > 0);
-    targetedUserCount = usersWithToken.length;
-  } else if (data.targetType === 'SELECTED') {
+  let activityCutoff: Date | null = null;
+  if (activity === 'ACTIVE_7D') {
+    activityCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  } else if (activity === 'ACTIVE_30D') {
+    activityCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  }
+
+  if (data.targetType === 'SELECTED') {
     if (!data.userIds || data.userIds.length === 0) {
       throw new Error('Please select at least one recipient user.');
     }
-
-    const usersWithToken = await prisma.user.findMany({
-      where: {
-        id: {
-          in: data.userIds,
-        },
-        fcmToken: {
-          not: null,
-        },
-      },
-      select: {
-        id: true,
-        fcmToken: true,
-      },
-    });
-
-    tokens = usersWithToken
-      .map((u) => u.fcmToken)
-      .filter((t): t is string => typeof t === 'string' && t.trim().length > 0);
-    targetedUserCount = data.userIds.length;
-  } else {
+  } else if (data.targetType !== 'ALL') {
     throw new Error('Invalid target type specified.');
   }
+
+  // Query users with their active devices
+  const users = await prisma.user.findMany({
+    where: {
+      ...(data.targetType === 'ALL'
+        ? {
+            name: { not: 'Guest Customer' },
+            email: { not: { startsWith: 'guest_' } },
+          }
+        : {
+            id: { in: data.userIds },
+          }),
+    },
+    select: {
+      id: true,
+      fcmToken: true,
+      devices: {
+        where: {
+          isActive: true,
+          ...(activityCutoff ? { lastActiveAt: { gte: activityCutoff } } : {}),
+          ...(platform === 'MOBILE_ONLY'
+            ? {
+                OR: [
+                  { deviceType: { in: [DeviceType.MOBILE, DeviceType.TABLET] } },
+                  { os: { in: ['iOS', 'Android'] } },
+                ],
+              }
+            : platform === 'DESKTOP_ONLY'
+            ? {
+                OR: [
+                  { deviceType: DeviceType.DESKTOP },
+                  { os: { in: ['macOS', 'Windows', 'Linux', 'Chrome OS'] } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: {
+          lastActiveAt: 'desc',
+        },
+        select: {
+          id: true,
+          token: true,
+          deviceType: true,
+          lastActiveAt: true,
+        },
+      },
+    },
+  });
+
+  const tokenSet = new Set<string>();
+  let targetedUserCount = 0;
+
+  for (const user of users) {
+    let userTokens: string[] = [];
+
+    if (user.devices.length > 0) {
+      if (activity === 'LAST_ACTIVE_ONLY') {
+        const topDevice = user.devices[0];
+        if (topDevice?.token && topDevice.token.trim()) {
+          userTokens.push(topDevice.token.trim());
+        }
+      } else {
+        userTokens = user.devices
+          .map((d) => d.token)
+          .filter((t): t is string => typeof t === 'string' && t.trim().length > 0);
+      }
+    } else if (user.fcmToken && user.fcmToken.trim().length > 0) {
+      // Legacy fallback
+      if (platform === 'ALL' && (activity === 'ALL_ACTIVE' || activity === 'LAST_ACTIVE_ONLY')) {
+        userTokens.push(user.fcmToken.trim());
+      }
+    }
+
+    if (userTokens.length > 0) {
+      targetedUserCount++;
+      for (const t of userTokens) {
+        tokenSet.add(t);
+      }
+    }
+  }
+
+  const tokens = Array.from(tokenSet);
 
   const result = await sendMulticastPushNotification(
     tokens,
@@ -1241,6 +1375,8 @@ export async function sendAdminPushNotificationAction(data: SendAdminPushNotific
       body: data.body.trim(),
       url: data.url?.trim() || null,
       targetType: data.targetType,
+      platformFilter: platform,
+      activityFilter: activity,
       targetedUserCount,
       eligibleTokensCount: tokens.length,
       sentSuccessCount: result.successCount,
@@ -1253,6 +1389,130 @@ export async function sendAdminPushNotificationAction(data: SendAdminPushNotific
     ...result,
     targetedUserCount,
     eligibleTokensCount: tokens.length,
+  };
+}
+
+export async function getAdminNotificationAudienceEstimateAction(data: {
+  targetType: 'ALL' | 'SELECTED';
+  userIds?: string[];
+  platformFilter?: DevicePlatformFilter;
+  activityFilter?: DeviceActivityFilter;
+  devicePlatform?: 'ALL' | 'MOBILE_ONLY' | 'DESKTOP_ONLY' | 'ALL_DEVICES';
+  deviceScope?:
+    | 'ALL_ACTIVE'
+    | 'LAST_ACTIVE_ONLY'
+    | 'LAST_ACTIVE_DEVICE_ONLY'
+    | 'ACTIVE_7D'
+    | 'ACTIVE_30D'
+    | 'ALL_ACTIVE_DEVICES'
+    | 'ACTIVE_WITHIN_7_DAYS'
+    | 'ACTIVE_WITHIN_30_DAYS';
+}) {
+  await requireAdminAccess();
+
+  // Normalize platform filter
+  let platform: DevicePlatformFilter = 'ALL';
+  const rawPlatform = data.platformFilter || data.devicePlatform;
+  if (rawPlatform === 'MOBILE_ONLY') platform = 'MOBILE_ONLY';
+  else if (rawPlatform === 'DESKTOP_ONLY') platform = 'DESKTOP_ONLY';
+
+  // Normalize activity filter
+  let activity: DeviceActivityFilter = 'ALL_ACTIVE';
+  const rawActivity = data.activityFilter || data.deviceScope;
+  if (rawActivity === 'LAST_ACTIVE_ONLY' || rawActivity === 'LAST_ACTIVE_DEVICE_ONLY') {
+    activity = 'LAST_ACTIVE_ONLY';
+  } else if (rawActivity === 'ACTIVE_7D' || rawActivity === 'ACTIVE_WITHIN_7_DAYS') {
+    activity = 'ACTIVE_7D';
+  } else if (rawActivity === 'ACTIVE_30D' || rawActivity === 'ACTIVE_WITHIN_30_DAYS') {
+    activity = 'ACTIVE_30D';
+  }
+
+  let activityCutoff: Date | null = null;
+  if (activity === 'ACTIVE_7D') {
+    activityCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  } else if (activity === 'ACTIVE_30D') {
+    activityCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  }
+
+  const users = await prisma.user.findMany({
+    where: {
+      ...(data.targetType === 'ALL'
+        ? {
+            name: { not: 'Guest Customer' },
+            email: { not: { startsWith: 'guest_' } },
+          }
+        : {
+            id: { in: data.userIds || [] },
+          }),
+    },
+    select: {
+      id: true,
+      fcmToken: true,
+      devices: {
+        where: {
+          isActive: true,
+          ...(activityCutoff ? { lastActiveAt: { gte: activityCutoff } } : {}),
+          ...(platform === 'MOBILE_ONLY'
+            ? {
+                OR: [
+                  { deviceType: { in: [DeviceType.MOBILE, DeviceType.TABLET] } },
+                  { os: { in: ['iOS', 'Android'] } },
+                ],
+              }
+            : platform === 'DESKTOP_ONLY'
+            ? {
+                OR: [
+                  { deviceType: DeviceType.DESKTOP },
+                  { os: { in: ['macOS', 'Windows', 'Linux', 'Chrome OS'] } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: {
+          lastActiveAt: 'desc',
+        },
+        select: {
+          id: true,
+          token: true,
+        },
+      },
+    },
+  });
+
+  const tokenSet = new Set<string>();
+  let targetedUserCount = 0;
+
+  for (const user of users) {
+    let userTokens: string[] = [];
+
+    if (user.devices.length > 0) {
+      if (activity === 'LAST_ACTIVE_ONLY') {
+        const topDevice = user.devices[0];
+        if (topDevice?.token && topDevice.token.trim()) {
+          userTokens.push(topDevice.token.trim());
+        }
+      } else {
+        userTokens = user.devices
+          .map((d) => d.token)
+          .filter((t): t is string => typeof t === 'string' && t.trim().length > 0);
+      }
+    } else if (user.fcmToken && user.fcmToken.trim().length > 0) {
+      if (platform === 'ALL' && (activity === 'ALL_ACTIVE' || activity === 'LAST_ACTIVE_ONLY')) {
+        userTokens.push(user.fcmToken.trim());
+      }
+    }
+
+    if (userTokens.length > 0) {
+      targetedUserCount++;
+      for (const t of userTokens) {
+        tokenSet.add(t);
+      }
+    }
+  }
+
+  return {
+    targetedUserCount,
+    targetedDeviceCount: tokenSet.size,
   };
 }
 

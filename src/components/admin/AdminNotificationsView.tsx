@@ -24,12 +24,29 @@ import {
   Ticket,
   Zap,
   X,
+  Laptop,
+  Tablet,
+  Monitor,
+  Filter,
+  Clock,
 } from 'lucide-react';
 import {
   sendAdminPushNotificationAction,
   getAdminNotificationRecipientsAction,
+  DevicePlatformFilter,
+  DeviceActivityFilter,
 } from '@/app/actions/admin';
 import Link from 'next/link';
+
+export interface NotificationDeviceItem {
+  id: string;
+  deviceType: 'MOBILE' | 'TABLET' | 'DESKTOP' | 'OTHER';
+  deviceName: string | null;
+  browser: string | null;
+  os: string | null;
+  lastActiveAt: Date | string;
+  isActive: boolean;
+}
 
 export interface NotificationRecipient {
   id: string;
@@ -37,6 +54,8 @@ export interface NotificationRecipient {
   email: string | null;
   phone: string | null;
   hasFcmToken: boolean;
+  deviceCount?: number;
+  devices?: NotificationDeviceItem[];
   createdAt: Date | string;
 }
 
@@ -109,6 +128,8 @@ export default function AdminNotificationsView({
 }: AdminNotificationsViewProps) {
   const [recipients, setRecipients] = useState<NotificationRecipient[]>(initialRecipients);
   const [targetType, setTargetType] = useState<'ALL' | 'SELECTED'>('ALL');
+  const [platformFilter, setPlatformFilter] = useState<DevicePlatformFilter>('ALL');
+  const [activityFilter, setActivityFilter] = useState<DeviceActivityFilter>('ALL_ACTIVE');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -140,6 +161,66 @@ export default function AdminNotificationsView({
   const subscribedCount = subscribedUsers.length;
   const unsubscribedCount = totalUsers - subscribedCount;
   const subscriptionRate = totalUsers > 0 ? Math.round((subscribedCount / totalUsers) * 100) : 0;
+
+  const totalRegisteredDevices = useMemo(() => {
+    return recipients.reduce((acc, r) => acc + (r.devices?.length || (r.hasFcmToken ? 1 : 0)), 0);
+  }, [recipients]);
+
+  const targetAudienceEstimate = useMemo(() => {
+    const targetRecipients = targetType === 'ALL'
+      ? recipients
+      : recipients.filter((r) => selectedUserIds.includes(r.id));
+
+    let totalEligibleUsers = 0;
+    let totalTargetDevices = 0;
+
+    const now = Date.now();
+    const cutoff7d = now - 7 * 24 * 60 * 60 * 1000;
+    const cutoff30d = now - 30 * 24 * 60 * 60 * 1000;
+
+    targetRecipients.forEach((user) => {
+      let matchingDevices = (user.devices || []).filter((device) => {
+        if (!device.isActive) return false;
+
+        // Platform check
+        if (platformFilter === 'MOBILE_ONLY') {
+          const isMob = device.deviceType === 'MOBILE' || device.deviceType === 'TABLET' || device.os === 'iOS' || device.os === 'Android';
+          if (!isMob) return false;
+        } else if (platformFilter === 'DESKTOP_ONLY') {
+          const isDesk = device.deviceType === 'DESKTOP' || ['macOS', 'Windows', 'Linux', 'Chrome OS'].includes(device.os || '');
+          if (!isDesk) return false;
+        }
+
+        // Activity check
+        const lastActive = new Date(device.lastActiveAt).getTime();
+        if (activityFilter === 'ACTIVE_7D' && lastActive < cutoff7d) return false;
+        if (activityFilter === 'ACTIVE_30D' && lastActive < cutoff30d) return false;
+
+        return true;
+      });
+
+      let count = 0;
+      if (matchingDevices.length > 0) {
+        if (activityFilter === 'LAST_ACTIVE_ONLY') {
+          count = 1;
+        } else {
+          count = matchingDevices.length;
+        }
+      } else if (user.hasFcmToken && platformFilter === 'ALL' && (activityFilter === 'ALL_ACTIVE' || activityFilter === 'LAST_ACTIVE_ONLY')) {
+        count = 1;
+      }
+
+      if (count > 0) {
+        totalEligibleUsers++;
+        totalTargetDevices += count;
+      }
+    });
+
+    return {
+      usersCount: totalEligibleUsers,
+      devicesCount: totalTargetDevices,
+    };
+  }, [recipients, targetType, selectedUserIds, platformFilter, activityFilter]);
 
   // Filtered recipient list for table
   const filteredRecipients = useMemo(() => {
@@ -327,6 +408,15 @@ export default function AdminNotificationsView({
       return;
     }
 
+    if (targetAudienceEstimate.devicesCount === 0) {
+      setStatusResult({
+        type: 'warning',
+        message:
+          'No registered devices match your audience and filter criteria. Adjust your platform or activity filters.',
+      });
+      return;
+    }
+
     setIsSending(true);
 
     try {
@@ -336,20 +426,24 @@ export default function AdminNotificationsView({
         url: url.trim() || undefined,
         targetType,
         userIds: targetType === 'SELECTED' ? selectedUserIds : undefined,
+        platformFilter,
+        activityFilter,
       });
 
       if (result.successCount > 0) {
         setStatusResult({
           type: 'success',
-          message: `Broadcast sent successfully to ${result.successCount} recipient${
+          message: `Broadcast delivered to ${result.successCount} device token${
             result.successCount > 1 ? 's' : ''
-          }.${result.failureCount > 0 ? ` (${result.failureCount} failed)` : ''}`,
+          } across ${result.targetedUserCount || 0} user${
+            (result.targetedUserCount || 0) === 1 ? '' : 's'
+          }.${result.failureCount > 0 ? ` (${result.failureCount} dead tokens pruned)` : ''}`,
           details: result,
         });
       } else if (result.eligibleTokensCount === 0) {
         setStatusResult({
           type: 'warning',
-          message: 'No active push notification tokens were available for the chosen recipients.',
+          message: 'No active push notification tokens were available for the chosen criteria.',
           details: result,
         });
       } else {
@@ -414,12 +508,14 @@ export default function AdminNotificationsView({
           </div>
 
           <div className="bg-white border border-neutral-200 p-5 rounded-xs space-y-1 shadow-2xs">
-            <div className="flex items-center justify-between text-neutral-500 font-mono text-[10px] uppercase tracking-wider">
-              <span>Push Disabled</span>
-              <UserCheck className="w-4 h-4 text-neutral-400" />
+            <div className="flex items-center justify-between text-neutral-700 font-mono text-[10px] uppercase tracking-wider">
+              <span>Active Devices</span>
+              <Smartphone className="w-4 h-4 text-neutral-500" />
             </div>
-            <p className="text-2xl font-serif text-neutral-700 font-medium">{unsubscribedCount}</p>
-            <p className="text-[11px] text-neutral-500 font-light">No active FCM token registered</p>
+            <p className="text-2xl font-serif text-neutral-900 font-medium">{totalRegisteredDevices}</p>
+            <p className="text-[11px] text-neutral-500 font-light">
+              Multi-device push endpoints connected
+            </p>
           </div>
 
           <div className="bg-neutral-900 text-white p-5 rounded-xs space-y-1 shadow-2xs flex flex-col justify-between">
@@ -430,9 +526,9 @@ export default function AdminNotificationsView({
             <div>
               <div className="flex items-center space-x-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-sm font-medium tracking-wide">FCM Engine Ready</span>
+                <span className="text-sm font-medium tracking-wide">FCM Multi-Device</span>
               </div>
-              <p className="text-[10px] text-neutral-400 font-mono mt-1">Firebase Cloud Messaging</p>
+              <p className="text-[10px] text-neutral-400 font-mono mt-1">Self-Healing Token Engine</p>
             </div>
           </div>
         </div>
@@ -719,15 +815,35 @@ export default function AdminNotificationsView({
                                 </p>
                               </div>
                             </div>
-                            <div className="shrink-0 pl-2">
+                            <div className="shrink-0 pl-2 text-right">
                               {user.hasFcmToken ? (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  <span className="w-1 h-1 rounded-full bg-emerald-500 mr-1" />
-                                  Push Active
-                                </span>
+                                <div className="space-y-0.5">
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <span className="w-1 h-1 rounded-full bg-emerald-500 mr-1" />
+                                    {user.deviceCount
+                                      ? `${user.deviceCount} device${user.deviceCount > 1 ? 's' : ''}`
+                                      : 'Push Active'}
+                                  </span>
+                                  {user.devices && user.devices.length > 0 && (
+                                    <div className="flex items-center justify-end space-x-1 text-neutral-400">
+                                      {user.devices.some(
+                                        (d) => d.deviceType === 'MOBILE' || d.deviceType === 'TABLET'
+                                      ) && (
+                                        <span title="Mobile device" className="inline-flex">
+                                          <Smartphone className="w-2.5 h-2.5 text-neutral-500" />
+                                        </span>
+                                      )}
+                                      {user.devices.some((d) => d.deviceType === 'DESKTOP') && (
+                                        <span title="Desktop device" className="inline-flex">
+                                          <Laptop className="w-2.5 h-2.5 text-neutral-500" />
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               ) : (
                                 <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-mono bg-neutral-100 text-neutral-500 border border-neutral-200">
-                                  No Token
+                                  No Devices
                                 </span>
                               )}
                             </div>
@@ -749,6 +865,166 @@ export default function AdminNotificationsView({
                   </div>
                 </div>
               )}
+
+              {/* Device Targeting Filters */}
+              <div className="space-y-4 pt-2 border-t border-neutral-100">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-700 font-medium flex items-center space-x-1.5">
+                    <Filter className="w-3.5 h-3.5 text-neutral-500" />
+                    <span>Device Platform Filter</span>
+                  </label>
+                  <span className="text-[10px] text-neutral-400 font-mono">Platform Targeting</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setPlatformFilter('ALL')}
+                    className={`p-3 text-left border rounded-xs transition-all flex flex-col justify-between space-y-1.5 ${
+                      platformFilter === 'ALL'
+                        ? 'border-neutral-900 bg-neutral-50 ring-1 ring-neutral-900'
+                        : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-neutral-900 text-xs">All Devices</span>
+                      <div className="flex items-center space-x-1 text-neutral-400">
+                        <Smartphone className="w-3.5 h-3.5" />
+                        <Laptop className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-neutral-500 font-light">
+                      Mobile, Tablet & Desktop browsers
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPlatformFilter('MOBILE_ONLY')}
+                    className={`p-3 text-left border rounded-xs transition-all flex flex-col justify-between space-y-1.5 ${
+                      platformFilter === 'MOBILE_ONLY'
+                        ? 'border-neutral-900 bg-neutral-50 ring-1 ring-neutral-900'
+                        : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-neutral-900 text-xs">Mobile Only</span>
+                      <Smartphone className="w-3.5 h-3.5 text-neutral-400" />
+                    </div>
+                    <span className="text-[10px] text-neutral-500 font-light">
+                      iOS & Android phones & tablets
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPlatformFilter('DESKTOP_ONLY')}
+                    className={`p-3 text-left border rounded-xs transition-all flex flex-col justify-between space-y-1.5 ${
+                      platformFilter === 'DESKTOP_ONLY'
+                        ? 'border-neutral-900 bg-neutral-50 ring-1 ring-neutral-900'
+                        : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-neutral-900 text-xs">Desktop Only</span>
+                      <Laptop className="w-3.5 h-3.5 text-neutral-400" />
+                    </div>
+                    <span className="text-[10px] text-neutral-500 font-light">
+                      macOS, Windows & Linux browsers
+                    </span>
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-700 font-medium flex items-center space-x-1.5">
+                    <Clock className="w-3.5 h-3.5 text-neutral-500" />
+                    <span>Device Activity & Scope</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActivityFilter('ALL_ACTIVE')}
+                    className={`p-2.5 text-left border rounded-xs transition-all space-y-1 ${
+                      activityFilter === 'ALL_ACTIVE'
+                        ? 'border-neutral-900 bg-neutral-50 ring-1 ring-neutral-900'
+                        : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                    }`}
+                  >
+                    <span className="font-medium text-neutral-900 block text-[11px]">All Active</span>
+                    <span className="text-[9px] text-neutral-500 font-light block">
+                      Every connected token
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActivityFilter('LAST_ACTIVE_ONLY')}
+                    className={`p-2.5 text-left border rounded-xs transition-all space-y-1 ${
+                      activityFilter === 'LAST_ACTIVE_ONLY'
+                        ? 'border-neutral-900 bg-neutral-50 ring-1 ring-neutral-900'
+                        : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                    }`}
+                  >
+                    <span className="font-medium text-neutral-900 block text-[11px]">Last Active Only</span>
+                    <span className="text-[9px] text-neutral-500 font-light block">
+                      1 device per user
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActivityFilter('ACTIVE_7D')}
+                    className={`p-2.5 text-left border rounded-xs transition-all space-y-1 ${
+                      activityFilter === 'ACTIVE_7D'
+                        ? 'border-neutral-900 bg-neutral-50 ring-1 ring-neutral-900'
+                        : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                    }`}
+                  >
+                    <span className="font-medium text-neutral-900 block text-[11px]">Active in 7 Days</span>
+                    <span className="text-[9px] text-neutral-500 font-light block">
+                      Recent activity
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActivityFilter('ACTIVE_30D')}
+                    className={`p-2.5 text-left border rounded-xs transition-all space-y-1 ${
+                      activityFilter === 'ACTIVE_30D'
+                        ? 'border-neutral-900 bg-neutral-50 ring-1 ring-neutral-900'
+                        : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                    }`}
+                  >
+                    <span className="font-medium text-neutral-900 block text-[11px]">Active in 30 Days</span>
+                    <span className="text-[9px] text-neutral-500 font-light block">
+                      Past month activity
+                    </span>
+                  </button>
+                </div>
+
+                {/* Live Target Reach Banner */}
+                <div className="p-3 bg-neutral-100 border border-neutral-200 rounded-xs flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="font-mono text-[11px] text-neutral-700">
+                      🎯 Estimated Audience Reach:
+                    </span>
+                  </div>
+                  <div className="font-mono text-[11px] font-semibold text-neutral-900">
+                    <span>
+                      {targetAudienceEstimate.usersCount} customer
+                      {targetAudienceEstimate.usersCount === 1 ? '' : 's'}
+                    </span>
+                    <span className="mx-1.5 text-neutral-400">•</span>
+                    <span className="text-emerald-700">
+                      {targetAudienceEstimate.devicesCount} target device
+                      {targetAudienceEstimate.devicesCount === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
               {/* Notification Message Details */}
               <div className="space-y-4">
@@ -812,9 +1088,8 @@ export default function AdminNotificationsView({
                 <div className="text-[11px] text-neutral-500 font-light">
                   Targeting:{' '}
                   <strong className="text-neutral-900 font-medium font-mono">
-                    {targetType === 'ALL'
-                      ? `${subscribedCount} subscribed customers`
-                      : `${selectedSubscribedCount} of ${selectedUserIds.length} selected`}
+                    {targetAudienceEstimate.usersCount} customer{targetAudienceEstimate.usersCount === 1 ? '' : 's'} •{' '}
+                    {targetAudienceEstimate.devicesCount} device{targetAudienceEstimate.devicesCount === 1 ? '' : 's'}
                   </strong>
                 </div>
 

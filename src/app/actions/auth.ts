@@ -1,12 +1,21 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma, DeviceType } from '@prisma/client';
 import { getSessionId, setLoggedInUserId, clearLoggedInUserId, getLoggedInUserId } from '@/lib/session';
 import { mergeGuestCartToUser } from '@/lib/services/cart';
 import { verifyPassword, hashPassword } from '@/lib/services/user';
 import { verifyIdToken } from '@/lib/firebase/admin';
 import { isEmailAdmin } from '@/lib/services/access';
+import {
+  registerUserDevice,
+  getUserDevices,
+  revokeUserDevice,
+  revokeAllOtherUserDevices,
+  touchDeviceHeartbeat,
+} from '@/lib/services/device';
+import { DeviceMetadata } from '@/lib/utils/device';
+import { sendPushToUser } from '@/lib/services/notification';
 
 export async function verifyFirebaseTokenAction(token: string) {
   const decodedToken = await verifyIdToken(token);
@@ -310,9 +319,94 @@ export async function verifyEmailOtpAction(code: string) {
   });
 }
 
-export async function saveFcmTokenAction(token: string) {
+export type RegisterDeviceActionInput =
+  | string
+  | {
+      token: string;
+      deviceType?: DeviceType;
+      deviceName?: string;
+      browser?: string;
+      os?: string;
+      userAgent?: string;
+      ipAddress?: string;
+      metadata?: Partial<DeviceMetadata>;
+    };
+
+export async function registerDeviceTokenAction(input: RegisterDeviceActionInput) {
   const userId = await getLoggedInUserId();
   if (!userId) throw new Error('Not logged in');
+
+  let token: string;
+  let deviceType: DeviceType | undefined;
+  let deviceName: string | undefined;
+  let browser: string | undefined;
+  let os: string | undefined;
+  let userAgent: string | undefined;
+  let ipAddress: string | undefined;
+
+  if (typeof input === 'string') {
+    token = input;
+  } else {
+    token = input.token;
+    deviceType = (input.deviceType || input.metadata?.deviceType) as DeviceType | undefined;
+    deviceName = input.deviceName || input.metadata?.deviceName;
+    browser = input.browser || input.metadata?.browser;
+    os = input.os || input.metadata?.os;
+    userAgent = input.userAgent || input.metadata?.userAgent;
+    ipAddress = input.ipAddress;
+  }
+
+  return await registerUserDevice({
+    userId,
+    token,
+    deviceType,
+    deviceName,
+    browser,
+    os,
+    userAgent,
+    ipAddress,
+  });
+}
+
+export async function getUserDevicesAction() {
+  const userId = await getLoggedInUserId();
+  if (!userId) throw new Error('Not logged in');
+
+  return await getUserDevices(userId);
+}
+
+export async function revokeDeviceAction(deviceId: string) {
+  const userId = await getLoggedInUserId();
+  if (!userId) throw new Error('Not logged in');
+
+  return await revokeUserDevice(userId, deviceId);
+}
+
+export async function revokeAllOtherDevicesAction(currentTokenOrId?: string) {
+  const userId = await getLoggedInUserId();
+  if (!userId) throw new Error('Not logged in');
+
+  return await revokeAllOtherUserDevices(userId, currentTokenOrId);
+}
+
+export async function touchDeviceHeartbeatAction(token: string) {
+  const userId = await getLoggedInUserId();
+  return await touchDeviceHeartbeat(token, userId || undefined);
+}
+
+export async function saveFcmTokenAction(token: string, metadata?: DeviceMetadata) {
+  const userId = await getLoggedInUserId();
+  if (!userId) throw new Error('Not logged in');
+
+  await registerUserDevice({
+    userId,
+    token,
+    deviceType: metadata?.deviceType,
+    deviceName: metadata?.deviceName,
+    browser: metadata?.browser,
+    os: metadata?.os,
+    userAgent: metadata?.userAgent,
+  });
 
   return await prisma.user.update({
     where: { id: userId },
@@ -320,9 +414,33 @@ export async function saveFcmTokenAction(token: string) {
   });
 }
 
-export async function deleteFcmTokenAction() {
+export async function sendTestPushNotificationAction() {
   const userId = await getLoggedInUserId();
   if (!userId) throw new Error('Not logged in');
+
+  return await sendPushToUser(userId, {
+    title: '✨ Ideal Beauty Push Notification',
+    body: 'Push notifications are successfully active on your account!',
+    url: '/account?tab=notifications',
+  });
+}
+
+export async function deleteFcmTokenAction(token?: string) {
+  const userId = await getLoggedInUserId();
+  if (!userId) throw new Error('Not logged in');
+
+  if (token) {
+    const device = await prisma.userDevice.findFirst({
+      where: { userId, token },
+    });
+    if (device) {
+      await prisma.userDevice.delete({ where: { id: device.id } });
+    }
+  } else {
+    await prisma.userDevice.deleteMany({
+      where: { userId },
+    });
+  }
 
   return await prisma.user.update({
     where: { id: userId },

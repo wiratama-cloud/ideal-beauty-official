@@ -2,6 +2,8 @@ import { prisma } from '../src/lib/prisma';
 import { seedDefaultCategoryTree } from '../src/lib/services/nav-category';
 import { seedDefaultSizeCharts } from '../src/lib/services/size-chart';
 import { syncSeedImagesToFirebase, isFirebaseStorageConfigured } from '../src/lib/services/firebase-storage';
+import { backfillUserDeviceTokens } from '../src/lib/services/device';
+import { DeviceType } from '@prisma/client';
 
 export async function main() {
   console.log('Seeding Ideal Beauty Official database with dummy data...');
@@ -1600,6 +1602,65 @@ export async function main() {
       data: { sizeChartId: defaultSizeChart.id },
     });
     console.log('Seeded default size charts and linked existing products');
+  }
+
+  // 13. Backfill and Seed User Devices (Multi-Device FCM Support)
+  await backfillUserDeviceTokens();
+
+  const existingDevice = await prisma.userDevice.findFirst({
+    where: { userId: user1.id },
+  });
+  if (!existingDevice) {
+    await prisma.userDevice.createMany({
+      data: [
+        {
+          userId: user1.id,
+          token: 'seed_fcm_token_ayu_iphone_15_pro',
+          deviceType: DeviceType.MOBILE,
+          deviceName: 'Apple iPhone 15 Pro',
+          browser: 'Mobile Safari',
+          os: 'iOS',
+          userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
+          isActive: true,
+          lastActiveAt: new Date(),
+        },
+        {
+          userId: user1.id,
+          token: 'seed_fcm_token_ayu_macbook_pro',
+          deviceType: DeviceType.DESKTOP,
+          deviceName: 'MacBook Pro 16"',
+          browser: 'Chrome',
+          os: 'macOS',
+          userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+          isActive: true,
+          lastActiveAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+        },
+        {
+          userId: user2.id,
+          token: 'seed_fcm_token_budi_galaxy_s24',
+          deviceType: DeviceType.MOBILE,
+          deviceName: 'Samsung Galaxy S24 Ultra',
+          browser: 'Chrome Mobile',
+          os: 'Android',
+          userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36',
+          isActive: true,
+          lastActiveAt: new Date(),
+        },
+        {
+          userId: user3.id,
+          token: 'seed_fcm_token_citra_ipad_pro',
+          deviceType: DeviceType.TABLET,
+          deviceName: 'Apple iPad Pro 12.9"',
+          browser: 'Mobile Safari',
+          os: 'iOS',
+          userAgent: 'Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
+          isActive: true,
+          lastActiveAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+        },
+      ],
+      skipDuplicates: true,
+    });
+    console.log('Seeded sample user devices for multi-device push notifications');
   }
 
   console.log('Seeding completed successfully!');

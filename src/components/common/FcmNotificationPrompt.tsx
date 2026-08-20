@@ -6,6 +6,7 @@ import { Bell, Loader2, X, Share, PlusSquare, Smartphone, Sparkles } from 'lucid
 import { getMessagingInstance, isFirebaseConfigured } from '@/lib/firebase/client';
 import { saveFcmTokenAction } from '@/app/actions/auth';
 import { isIos, isStandalone, isNotificationSupported, getIosBrowserType } from '@/lib/utils/pwa';
+import { getDeviceMetadata } from '@/lib/utils/device';
 
 export const FCM_PROMPT_DISMISSED_KEY = 'fcm_prompt_dismissed';
 
@@ -105,7 +106,8 @@ export default function FcmNotificationPrompt({ isLoggedIn = false }: FcmNotific
         });
         
         if (token) {
-          await saveFcmTokenAction(token);
+          const deviceMetadata = getDeviceMetadata();
+          await saveFcmTokenAction(token, deviceMetadata);
           setEnabled(true);
         }
       }

@@ -32,7 +32,8 @@ if (process.env.NODE_ENV !== 'production' && globalForPrisma.prisma) {
   if (
     globalForPrisma.dmmfHash !== currentDmmfHash ||
     !(globalForPrisma.prisma as any).auditLog ||
-    !(globalForPrisma.prisma as any).navCategory
+    !(globalForPrisma.prisma as any).navCategory ||
+    !(globalForPrisma.prisma as any).userDevice
   ) {
     globalForPrisma.prisma = undefined;
     globalForPrisma.dmmfHash = undefined;

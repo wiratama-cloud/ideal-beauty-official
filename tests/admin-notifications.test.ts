@@ -3,9 +3,11 @@ import { prisma } from '../src/lib/prisma';
 import {
   getAdminNotificationRecipientsAction,
   sendAdminPushNotificationAction,
+  getAdminNotificationAudienceEstimateAction,
 } from '../src/app/actions/admin';
 import { sendMulticastPushNotification } from '../src/lib/services/notification';
 import * as firebaseAdminModule from '../src/lib/firebase/admin';
+import { DeviceType } from '@prisma/client';
 
 interface AuditLogRecord {
   id: string;
@@ -17,6 +19,8 @@ interface AuditLogRecord {
     url?: string;
     targetType: string;
     targetedUserCount?: number;
+    platformFilter?: string;
+    activityFilter?: string;
     [key: string]: unknown;
   };
 }
@@ -25,13 +29,44 @@ describe('Admin Push Notifications System', () => {
   let createdUserIds: string[] = [];
 
   beforeEach(async () => {
-    // Create sample users with and without FCM tokens
+    // Create sample users with and without FCM tokens and devices
     const userWithToken = await prisma.user.create({
       data: {
         email: `fcm-user-1-${Date.now()}@example.com`,
         name: 'Notification Test User 1',
         phone: `+6281111111${Date.now().toString().slice(-4)}`,
         fcmToken: 'mock-fcm-token-1',
+        devices: {
+          create: [
+            {
+              token: `mock-device-mobile-${Date.now()}`,
+              deviceType: DeviceType.MOBILE,
+              deviceName: 'Apple iPhone 15',
+              browser: 'Safari',
+              os: 'iOS',
+              lastActiveAt: new Date(),
+              isActive: true,
+            },
+            {
+              token: `mock-device-desktop-${Date.now()}`,
+              deviceType: DeviceType.DESKTOP,
+              deviceName: 'MacBook Pro',
+              browser: 'Chrome',
+              os: 'macOS',
+              lastActiveAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+              isActive: true,
+            },
+            {
+              token: `mock-device-old-${Date.now()}`,
+              deviceType: DeviceType.MOBILE,
+              deviceName: 'Old Android',
+              browser: 'Chrome',
+              os: 'Android',
+              lastActiveAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000), // 40 days ago
+              isActive: true,
+            },
+          ],
+        },
       },
     });
 
@@ -93,7 +128,7 @@ describe('Admin Push Notifications System', () => {
   });
 
   describe('getAdminNotificationRecipientsAction', () => {
-    it('should return all users with hasFcmToken flag correctly set', async () => {
+    it('should return all users with hasFcmToken flag and device metadata correctly set', async () => {
       const recipients = await getAdminNotificationRecipientsAction();
       expect(Array.isArray(recipients)).toBe(true);
       expect(recipients.length).toBeGreaterThanOrEqual(2);
@@ -103,15 +138,19 @@ describe('Admin Push Notifications System', () => {
 
       expect(user1).toBeDefined();
       expect(user1?.hasFcmToken).toBe(true);
+      expect(user1?.deviceCount).toBe(3);
+      expect(user1?.devices?.length).toBe(3);
       expect(user1?.name).toBe('Notification Test User 1');
 
       expect(user2).toBeDefined();
       expect(user2?.hasFcmToken).toBe(false);
+      expect(user2?.deviceCount).toBe(0);
+      expect(user2?.devices?.length).toBe(0);
       expect(user2?.name).toBe('Notification Test User 2');
     });
   });
 
-  describe('sendAdminPushNotificationAction', () => {
+  describe('sendAdminPushNotificationAction with Multi-Device Filters', () => {
     it('should validate required title and body fields', async () => {
       await expect(
         sendAdminPushNotificationAction({
@@ -141,18 +180,20 @@ describe('Admin Push Notifications System', () => {
       ).rejects.toThrow('Please select at least one recipient user');
     });
 
-    it('should handle broadcast to ALL users and record audit log', async () => {
+    it('should handle broadcast to ALL users and record audit log with device filters', async () => {
       const result = await sendAdminPushNotificationAction({
         title: '🌟 Flash Weekend Sale',
         body: 'Enjoy 20% off all gown rentals this weekend!',
         url: '/products',
         targetType: 'ALL',
+        platformFilter: 'ALL',
+        activityFilter: 'ALL_ACTIVE',
       });
 
       expect(result).toBeDefined();
       expect(typeof result.targetedUserCount).toBe('number');
       expect(typeof result.eligibleTokensCount).toBe('number');
-      expect(result.eligibleTokensCount).toBeGreaterThanOrEqual(1);
+      expect(result.eligibleTokensCount).toBeGreaterThanOrEqual(3);
 
       // Verify audit log entry
       const auditLog = await (prisma as unknown as { auditLog: { findFirst: (query: unknown) => Promise<AuditLogRecord | null> } }).auditLog.findFirst({
@@ -168,35 +209,68 @@ describe('Admin Push Notifications System', () => {
       expect(auditLog?.details.title).toBe('🌟 Flash Weekend Sale');
       expect(auditLog?.details.url).toBe('/products');
       expect(auditLog?.details.targetType).toBe('ALL');
+      expect(auditLog?.details.platformFilter).toBe('ALL');
+      expect(auditLog?.details.activityFilter).toBe('ALL_ACTIVE');
     });
 
-    it('should handle notification to SELECTED users and record audit log', async () => {
+    it('should filter by MOBILE_ONLY devices for selected user', async () => {
       const result = await sendAdminPushNotificationAction({
-        title: '📦 Order Ready for Pickup',
-        body: 'Your fitted dress is ready for collection at our atelier.',
-        url: '/account/orders',
+        title: '📱 Mobile Exclusive Promo',
+        body: 'Special offer for our mobile app customers',
         targetType: 'SELECTED',
-        userIds: [createdUserIds[0]], // user with active token
+        userIds: [createdUserIds[0]],
+        platformFilter: 'MOBILE_ONLY',
       });
 
       expect(result).toBeDefined();
       expect(result.targetedUserCount).toBe(1);
-      expect(result.eligibleTokensCount).toBe(1);
+      // Should include 2 mobile devices (iPhone, Old Android) and exclude MacBook desktop
+      expect(result.eligibleTokensCount).toBe(2);
+    });
 
-      // Verify audit log entry
-      const auditLog = await (prisma as unknown as { auditLog: { findFirst: (query: unknown) => Promise<AuditLogRecord | null> } }).auditLog.findFirst({
-        where: {
-          action: 'SEND_PUSH_NOTIFICATION',
-          entity: 'NOTIFICATION',
-          entityId: 'SELECTED',
-        },
-        orderBy: { createdAt: 'desc' },
+    it('should filter by DESKTOP_ONLY devices for selected user', async () => {
+      const result = await sendAdminPushNotificationAction({
+        title: '💻 Desktop Atelier Lookbook',
+        body: 'Experience our high-resolution couture catalog on your computer',
+        targetType: 'SELECTED',
+        userIds: [createdUserIds[0]],
+        platformFilter: 'DESKTOP_ONLY',
       });
 
-      expect(auditLog).toBeDefined();
-      expect(auditLog?.details.title).toBe('📦 Order Ready for Pickup');
-      expect(auditLog?.details.targetType).toBe('SELECTED');
-      expect(auditLog?.details.targetedUserCount).toBe(1);
+      expect(result).toBeDefined();
+      expect(result.targetedUserCount).toBe(1);
+      // Should include only the MacBook Pro desktop device
+      expect(result.eligibleTokensCount).toBe(1);
+    });
+
+    it('should filter by LAST_ACTIVE_ONLY device per user', async () => {
+      const result = await sendAdminPushNotificationAction({
+        title: '⚡ Instant Alert',
+        body: 'One message to your most active device',
+        targetType: 'SELECTED',
+        userIds: [createdUserIds[0]],
+        activityFilter: 'LAST_ACTIVE_ONLY',
+      });
+
+      expect(result).toBeDefined();
+      expect(result.targetedUserCount).toBe(1);
+      // Only the most recently active device (iPhone) should be targeted
+      expect(result.eligibleTokensCount).toBe(1);
+    });
+
+    it('should filter by ACTIVE_7D recency timeframe', async () => {
+      const result = await sendAdminPushNotificationAction({
+        title: '⏰ Recent Customers Alert',
+        body: 'Message to recently active devices',
+        targetType: 'SELECTED',
+        userIds: [createdUserIds[0]],
+        activityFilter: 'ACTIVE_7D',
+      });
+
+      expect(result).toBeDefined();
+      expect(result.targetedUserCount).toBe(1);
+      // iPhone (now) and MacBook (2 days ago) are within 7 days; Old Android (40 days ago) is excluded
+      expect(result.eligibleTokensCount).toBe(2);
     });
 
     it('should correctly report 0 eligible tokens when selected user has no FCM token', async () => {
@@ -208,9 +282,38 @@ describe('Admin Push Notifications System', () => {
       });
 
       expect(result).toBeDefined();
-      expect(result.targetedUserCount).toBe(1);
+      expect(result.targetedUserCount).toBe(0);
       expect(result.eligibleTokensCount).toBe(0);
       expect(result.totalRecipients).toBe(0);
+    });
+
+    it('should calculate audience estimate accurately via getAdminNotificationAudienceEstimateAction', async () => {
+      const allEstimate = await getAdminNotificationAudienceEstimateAction({
+        targetType: 'SELECTED',
+        userIds: [createdUserIds[0], createdUserIds[1]],
+        platformFilter: 'ALL',
+        activityFilter: 'ALL_ACTIVE',
+      });
+      expect(allEstimate.targetedUserCount).toBe(1);
+      expect(allEstimate.targetedDeviceCount).toBe(3);
+
+      const mobileEstimate = await getAdminNotificationAudienceEstimateAction({
+        targetType: 'SELECTED',
+        userIds: [createdUserIds[0], createdUserIds[1]],
+        platformFilter: 'MOBILE_ONLY',
+        activityFilter: 'ALL_ACTIVE',
+      });
+      expect(mobileEstimate.targetedUserCount).toBe(1);
+      expect(mobileEstimate.targetedDeviceCount).toBe(2);
+
+      const lastActiveEstimate = await getAdminNotificationAudienceEstimateAction({
+        targetType: 'SELECTED',
+        userIds: [createdUserIds[0], createdUserIds[1]],
+        platformFilter: 'ALL',
+        activityFilter: 'LAST_ACTIVE_ONLY',
+      });
+      expect(lastActiveEstimate.targetedUserCount).toBe(1);
+      expect(lastActiveEstimate.targetedDeviceCount).toBe(1);
     });
 
     it('should support Product Spotlight preset broadcast payload and link', async () => {
