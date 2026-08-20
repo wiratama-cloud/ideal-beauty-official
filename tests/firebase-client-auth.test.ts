@@ -25,6 +25,15 @@ describe('Firebase Client Auth Configuration', () => {
     expect(clientContent).toContain("typeof window !== 'undefined'");
     expect(clientContent).toContain('authInstance = getAuth(app)');
   });
+
+  it('guards auth and storage emulator connections in production mode', () => {
+    expect(clientContent).toContain("const isProduction = process.env.NODE_ENV === 'production';");
+    expect(clientContent).toContain("const forceEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true';");
+    expect(clientContent).toContain('const shouldConnectEmulator = !isProduction || forceEmulator;');
+    expect(clientContent).toContain('shouldConnectEmulator &&');
+    expect(clientContent).toContain("authEmulatorHost !== 'false'");
+    expect(clientContent).toContain("storageEmulatorHost !== 'false'");
+  });
 });
 
 describe('SocialAuthButtons Mobile Resilience & Error Handling', () => {

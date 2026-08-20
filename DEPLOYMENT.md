@@ -88,16 +88,21 @@ gcloud secrets create DATABASE_URL --replication-policy="automatic" --project=YO
 echo -n "postgresql://user:password@host:5432/idealbeauty?schema=public&sslmode=require&connection_limit=5" | \
   gcloud secrets versions add DATABASE_URL --data-file=- --project=YOUR_FIREBASE_PROJECT_ID
 
-# 2. Firebase Admin Service Account Key (Single-line minified JSON string)
+# 2. Admin Access Email
+gcloud secrets create ADMIN_EMAIL --replication-policy="automatic" --project=YOUR_FIREBASE_PROJECT_ID
+echo -n "admin@idealbeautyofficial.com" | \
+  gcloud secrets versions add ADMIN_EMAIL --data-file=- --project=YOUR_FIREBASE_PROJECT_ID
+
+# 3. Firebase Admin Service Account Key (Single-line minified JSON string)
 gcloud secrets create FIREBASE_SERVICE_ACCOUNT_KEY --replication-policy="automatic" --project=YOUR_FIREBASE_PROJECT_ID
 gcloud secrets versions add FIREBASE_SERVICE_ACCOUNT_KEY --data-file=path/to/service-account.json --project=YOUR_FIREBASE_PROJECT_ID
 
-# 3. Midtrans Payment Gateway Server Key
+# 4. Midtrans Payment Gateway Server Key
 gcloud secrets create MIDTRANS_SERVER_KEY --replication-policy="automatic" --project=YOUR_FIREBASE_PROJECT_ID
 echo -n "Mid-server-YOUR_PRODUCTION_SERVER_KEY" | \
   gcloud secrets versions add MIDTRANS_SERVER_KEY --data-file=- --project=YOUR_FIREBASE_PROJECT_ID
 
-# 4. Firebase Public Client SDK Variables
+# 5. Firebase Public Client SDK Variables
 gcloud secrets create NEXT_PUBLIC_FIREBASE_API_KEY --project=YOUR_FIREBASE_PROJECT_ID
 echo -n "AIzaSyYourProductionApiKey" | gcloud secrets versions add NEXT_PUBLIC_FIREBASE_API_KEY --data-file=- --project=YOUR_FIREBASE_PROJECT_ID
 

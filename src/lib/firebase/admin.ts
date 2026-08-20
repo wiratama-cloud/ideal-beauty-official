@@ -4,13 +4,15 @@ import { getMessaging } from 'firebase-admin/messaging';
 import { getStorage } from 'firebase-admin/storage';
 
 const isServiceAccountConfigured = !!process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+const isProduction = process.env.NODE_ENV === 'production';
 const isEmulatorOrDev =
-  !!process.env.FIREBASE_STORAGE_EMULATOR_HOST ||
-  !!process.env.FIREBASE_AUTH_EMULATOR_HOST ||
-  !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_HOST ||
-  !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST ||
-  process.env.NODE_ENV === 'development' ||
-  process.env.NODE_ENV === 'test';
+  !isProduction &&
+  (!!process.env.FIREBASE_STORAGE_EMULATOR_HOST ||
+    !!process.env.FIREBASE_AUTH_EMULATOR_HOST ||
+    !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_HOST ||
+    !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST ||
+    process.env.NODE_ENV === 'development' ||
+    process.env.NODE_ENV === 'test');
 
 let app: App | null = null;
 if (!getApps().length) {
@@ -80,11 +82,22 @@ function decodeEmulatorOrDevToken(token: string) {
 export async function verifyIdToken(token: string) {
   if (!token || typeof token !== 'string') return null;
 
+  const isCurrentProduction = process.env.NODE_ENV === 'production';
+  const shouldAllowEmulator =
+    !isCurrentProduction &&
+    (isEmulatorOrDev ||
+      !!process.env.FIREBASE_STORAGE_EMULATOR_HOST ||
+      !!process.env.FIREBASE_AUTH_EMULATOR_HOST ||
+      !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_HOST ||
+      !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST ||
+      process.env.NODE_ENV === 'development' ||
+      process.env.NODE_ENV === 'test');
+
   if (firebaseAdminAuth) {
     try {
       return await firebaseAdminAuth.verifyIdToken(token);
     } catch (error) {
-      if (isEmulatorOrDev) {
+      if (shouldAllowEmulator) {
         const decoded = decodeEmulatorOrDevToken(token);
         if (decoded) {
           return decoded;
@@ -95,7 +108,7 @@ export async function verifyIdToken(token: string) {
     }
   }
 
-  if (isEmulatorOrDev) {
+  if (shouldAllowEmulator) {
     const decoded = decodeEmulatorOrDevToken(token);
     if (decoded) {
       return decoded;

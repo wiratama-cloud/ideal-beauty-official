@@ -26,11 +26,11 @@
 *.tsbuildinfo
 next-env.d.ts
 
-# env files (committed base .env with local emulation defaults; ignore local overrides and secret profiles)
+# env files (ignore local env files and secret profiles, track example files)
+.env
 .env*.local
 .env.production
 .env.staging
-!.env
 !.env.example
 !.env.production.example
 

@@ -67,7 +67,7 @@ The platform manages haute couture sales, bridal & eveningwear rentals, flexible
 ```
 idealbeautyofficial/
 ├── docker-compose.yml       # PostgreSQL 16 container definition (:5432)
-├── .env                     # Pre-configured local emulation environment (committed)
+├── .env.example             # Pre-configured local development environment template
 ├── package.json             # Scripts & dependencies
 ├── prisma/
 │   ├── schema.prisma        # Prisma schema (Models, Enums, Composite Indexes)
@@ -112,9 +112,15 @@ The repository is configured for **100% offline local development and zero-depen
 npm install
 ```
 
-### Step 2: Verify Environment Configuration
+### Step 2: Configure Environment
 
-A functional `.env` file is already provided in the repository with local defaults:
+Copy `.env.example` to create your local `.env` file with pre-configured local defaults:
+
+```bash
+cp .env.example .env
+```
+
+The default configuration is ready for 100% offline development:
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/idealbeauty?schema=public"
@@ -128,13 +134,11 @@ NEXT_PUBLIC_MIDTRANS_CLIENT_KEY="SB-Mid-client-sample-key"
 NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION="false"
 MIDTRANS_MOCK_MODE="true"
 
-# Firebase Storage & Auth Emulation
+# Firebase Public Client Configuration
 NEXT_PUBLIC_FIREBASE_API_KEY="AIzaSyMockLocalApiKeyForOfflineDev12345"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="localhost"
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="ideal-beauty-official-b313d.firebaseapp.com"
 NEXT_PUBLIC_FIREBASE_PROJECT_ID="ideal-beauty-official-b313d"
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="ideal-beauty-official-b313d.appspot.com"
-FIREBASE_STORAGE_EMULATOR_HOST="127.0.0.1:9199"
-NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_HOST="127.0.0.1:9199"
 ```
 
 ### Step 3: Start Local PostgreSQL Database

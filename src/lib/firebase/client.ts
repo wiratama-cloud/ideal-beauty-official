@@ -13,11 +13,25 @@ import {
 import { getStorage, connectStorageEmulator, FirebaseStorage } from 'firebase/storage';
 import { getMessaging, isSupported, Messaging } from 'firebase/messaging';
 
+const isProduction = process.env.NODE_ENV === 'production';
+const forceEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true';
+const shouldConnectEmulator = !isProduction || forceEmulator;
+
+const projectId =
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+  process.env.FIREBASE_PROJECT_ID ||
+  'ideal-beauty-official-b313d';
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'demo-api-key',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'ideal-beauty-official-b313d',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  authDomain:
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ||
+    (projectId ? `${projectId}.firebaseapp.com` : undefined),
+  projectId,
+  storageBucket:
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+    process.env.FIREBASE_STORAGE_BUCKET ||
+    (projectId ? `${projectId}.appspot.com` : undefined),
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
@@ -25,6 +39,7 @@ const firebaseConfig = {
 // Initialize only if config exists or emulator is present
 const isFirebaseConfigured = !!(
   process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
+  process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ||
   process.env.NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_HOST ||
   process.env.FIREBASE_STORAGE_EMULATOR_HOST ||
   process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST ||
@@ -63,7 +78,14 @@ if (isFirebaseConfigured && app) {
   const authEmulatorHost =
     process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST ||
     process.env.FIREBASE_AUTH_EMULATOR_HOST;
-  if (authEmulatorHost && authInstance) {
+  if (
+    shouldConnectEmulator &&
+    authEmulatorHost &&
+    authEmulatorHost !== 'false' &&
+    authEmulatorHost !== 'undefined' &&
+    authEmulatorHost.trim() !== '' &&
+    authInstance
+  ) {
     const url = authEmulatorHost.startsWith('http')
       ? authEmulatorHost
       : `http://${authEmulatorHost}`;
@@ -81,7 +103,14 @@ if (isFirebaseConfigured && app) {
   const storageEmulatorHost =
     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_HOST ||
     process.env.FIREBASE_STORAGE_EMULATOR_HOST;
-  if (storageEmulatorHost && storageInstance) {
+  if (
+    shouldConnectEmulator &&
+    storageEmulatorHost &&
+    storageEmulatorHost !== 'false' &&
+    storageEmulatorHost !== 'undefined' &&
+    storageEmulatorHost.trim() !== '' &&
+    storageInstance
+  ) {
     const cleanHost = storageEmulatorHost.replace(/^https?:\/\//, '');
     const [host, portStr] = cleanHost.split(':');
     const port = portStr ? parseInt(portStr, 10) : 9199;
